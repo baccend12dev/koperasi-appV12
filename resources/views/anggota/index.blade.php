@@ -132,9 +132,11 @@
                                onclick="document.querySelectorAll('.row-check').forEach(c=>c.checked=this.checked)">
                     </th>
                     <th style="width:40px"></th>
-                    <th>Nama & No. Kop</th>
+                    <th>Nama & NIK</th>
                     <th>Tanggal Bergabung</th>
                     <th>Departemen</th>
+                    <th>Bagian</th>
+                    <th>Alamat</th>
                     <th>Status</th>
                     <th class="th-settings">
                         <button class="th-settings-btn" title="Konfigurasi kolom">
@@ -170,6 +172,8 @@
                             <div class="td-muted" style="font-size:12px; margin-top:2px;">{{ $item->nokop ?? '—' }}</div>
                         </td>
                         <td>{{ $item->join_date ?? '—' }}</td>
+                        <td>{{ $item->department_id ? $item->departemen?->nama : '—' }}</td>
+                        <td>{{ $item->department_id ? $item->departemen?->nama : '—' }}</td>
                         <td>{{ $item->department_id ? $item->departemen?->nama : '—' }}</td>
                         <td>
                             @if($item->status == 'active' || $item->status == 'Aktif')

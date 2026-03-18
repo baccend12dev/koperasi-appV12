@@ -36,7 +36,8 @@ class AnggotaController extends Controller
      */
     public function create()
     {
-        //
+        $departemen = Departemen::all();
+        return view('anggota.create', compact('departemen'));
     }
 
     /**

@@ -11,10 +11,14 @@ return new class extends Migration
     {
         Schema::create('anggotas', function (Blueprint $table) {
             $table->id();
-            $table->string('nik');
-            $table->string('nokop');
+            $table->string('no_pegawai');
+            $table->string('nik')->nullable();
             $table->string('nama_anggota');
             $table->integer('department_id');
+            $table->integer('bagian_id');
+            $table->text('alamat')->nullable();
+            $table->string('no_hp')->nullable();
+            $table->string('ket_bagian')->nullable();
             $table->date('join_date');
             $table->string('status');
             $table->timestamps();
