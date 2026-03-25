@@ -413,15 +413,19 @@
                             </div>
                         </div>
 
-                        {{-- Bagian + No Pegawai --}}
+                        {{-- department + No Pegawai --}}
                         <div class="field-row">
                             <div class="form-group">
-                                <label class="form-label" for="bagian">Bagian</label>
-                                <input id="bagian" name="bagian" type="text"
-                                       class="form-control @error('bagian') is-invalid @enderror"
-                                       placeholder="Masukkan bagian"
-                                       value="{{ old('bagian') }}">
-                                @error('bagian')<span class="field-error">{{ $message }}</span>@enderror
+                                <label class="form-label" for="department_id">Department</label>
+                                <select id="department_id" name="department_id" type="text"
+                                       class="form-control @error('department_id') is-invalid @enderror"
+                                       placeholder="Masukkan department"
+                                       value="{{ old('department_id') }}">
+                                       <option value="">Pilih Department</option>
+                                       @foreach ($departemen as $dept)
+                                           <option value="{{ $dept->id }}">{{ $dept->nama }}</option>
+                                       @endforeach
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="no_pegawai">No. Pegawai</label>
@@ -465,15 +469,15 @@
                                 @error('jenis_kelamin')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="status_pegawai">Status Pegawai</label>
-                                <select id="status_pegawai" name="status_pegawai"
-                                       class="form-control @error('status_pegawai') is-invalid @enderror"
-                                       value="{{ old('status_pegawai') }}">
-                                    <option value="">Pilih Status Pegawai</option>
+                                <label class="form-label" for="ikatan_kerja">Ikatan Kerja</label>
+                                <select id="ikatan_kerja" name="ikatan_kerja"
+                                       class="form-control @error('ikatan_kerja') is-invalid @enderror"
+                                       value="{{ old('ikatan_kerja') }}">
+                                    <option value="">Pilih Ikatan Kerja</option>
                                     <option value="Kontrak">Kontrak</option>
                                     <option value="Tetap">Tetap</option>
                                 </select>
-                                @error('status_pegawai')<span class="field-error">{{ $message }}</span>@enderror
+                                @error('ikatan_kerja')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                         </div>
 
@@ -491,12 +495,12 @@
                         {{-- Status --}}
                         <div class="field-row" style="grid-template-columns:1fr 1fr;max-width:320px">
                             <div class="form-group">
-                                <label class="form-label" for="status">Status Keanggotaan</label>
-                                <select id="status" name="status"
-                                        class="form-control @error('status') is-invalid @enderror">
-                                    <option value="aktif"   {{ old('status','aktif') === 'aktif'   ? 'selected' : '' }}>Aktif</option>
-                                    <option value="nonaktif"{{ old('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                                    <option value="pending" {{ old('status') === 'pending'  ? 'selected' : '' }}>Pending</option>
+                                <label class="form-label" for="status_anggota">Status Keanggotaan</label>
+                                <select id="status_anggota" name="status_anggota"
+                                        class="form-control @error('status_anggota') is-invalid @enderror">
+                                    <option value="aktif"   {{ old('status_anggota','aktif') === 'aktif'   ? 'selected' : '' }}>Aktif</option>
+                                    <option value="nonaktif"{{ old('status_anggota') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+                                    <option value="pending" {{ old('status_anggota') === 'pending'  ? 'selected' : '' }}>Pending</option>
                                 </select>
                                 @error('status')<span class="field-error">{{ $message }}</span>@enderror
                             </div>

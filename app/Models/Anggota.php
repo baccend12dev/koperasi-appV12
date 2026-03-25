@@ -11,12 +11,20 @@ class Anggota extends Model
     use HasFactory;
 
     protected $fillable = [
+        'no_pegawai',
         'nik',
-        'nokop',
-        'name',
+        'nama_anggota',
         'department_id',
-        'join_date',
-        'status',
+        'bagian_id',
+        'alamat',
+        'no_hp',
+        'jenis_kelamin',
+        'tgl_lahir',
+        'jabatan',
+        'ket_bagian',
+        'tgl_bergabung',
+        'ikatan_kerja',
+        'status_anggota',
     ];
 
     /** Relasi ke departemen */
@@ -35,5 +43,11 @@ class Anggota extends Model
     public function bawahannya()
     {
         return $this->hasMany(Anggota::class, 'manajer_id');
+    }
+
+    /** Relasi ke Master Simpanan */
+    public function masterSimpanan()
+    {
+        return $this->hasOne(MasterSimpanan::class, 'anggota_id');
     }
 }

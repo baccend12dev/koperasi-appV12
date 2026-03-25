@@ -18,9 +18,13 @@ return new class extends Migration
             $table->integer('bagian_id');
             $table->text('alamat')->nullable();
             $table->string('no_hp')->nullable();
+            $table->string('jenis_kelamin')->nullable();
+            $table->date('tgl_lahir')->nullable();
+            $table->string('jabatan')->nullable();
             $table->string('ket_bagian')->nullable();
-            $table->date('join_date');
-            $table->string('status');
+            $table->date('tgl_bergabung');
+            $table->string('ikatan_kerja')->nullable();
+            $table->string('status_anggota')->default('Aktif');
             $table->timestamps();
         });
     }

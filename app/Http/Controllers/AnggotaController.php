@@ -45,7 +45,58 @@ class AnggotaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'nik' => 'required|string|max:16|unique:anggotas,nik',
+            'bagian' => 'nullable|string|max:255',
+            'department_id' => 'required|exists:departemens,id',
+            'no_pegawai' => 'nullable|string|max:255',
+            'tanggal_lahir' => 'nullable|date',
+            'no_hp' => 'nullable|string|max:255',
+            'jenis_kelamin' => 'nullable|string|in:L,P',
+            'ikatan_kerja' => 'nullable|string',
+            'status_anggota' => 'required|string',
+            'alamat' => 'nullable|string',
+            'tanggal_masuk' => 'required|date',
+            'simpanan_pokok' => 'nullable|numeric|min:0',
+            'simpanan_wajib' => 'nullable|numeric|min:0',
+            'simpanan_sukarela' => 'nullable|numeric|min:0',
+        ]);
+        // dd($validated);
+        \DB::beginTransaction();
+        try {
+            $anggota = Anggota::create([
+                'nama_anggota' => $validated['nama'],
+                'nik' => $validated['nik'],
+                'ket_bagian' => $validated['bagian'] ?? null,
+                'bagian_id' => 1, // Fallback int if required
+                'department_id' => $validated['department_id'],
+                'no_pegawai' => $validated['no_pegawai'] ?? null,
+                'tgl_lahir' => $validated['tanggal_lahir'] ?? null,
+                'no_hp' => $validated['no_hp'] ?? null,
+                'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+                'ikatan_kerja' => $validated['ikatan_kerja'] ?? null,
+                'alamat' => $validated['alamat'] ?? null,
+                'status_anggota' => $validated['status_anggota'],
+                'tgl_bergabung' => $validated['tanggal_masuk'],
+            ]);
+
+            \App\Models\MasterSimpanan::create([
+                'anggota_id' => $anggota->id,
+                'simpanan_pokok' => $validated['simpanan_pokok'] ?? 0,
+                'simpanan_wajib' => $validated['simpanan_wajib'] ?? 0,
+                'simpanan_sukarela' => $validated['simpanan_sukarela'] ?? 0,
+                'tanggal_mulai' => $validated['tanggal_masuk'],
+                'aktif' => true,
+            ]);
+
+            \DB::commit();
+
+            return redirect()->route('anggota.index')->with('success', 'Anggota dan data simpanan berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+        }
     }
 
     /**

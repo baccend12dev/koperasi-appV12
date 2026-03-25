@@ -5,6 +5,7 @@ use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\SimpananController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +35,19 @@ Route::get('/', function () {
 
     // ── Laporan ───────────────────────────────────────────
     Route::resource('laporan', LaporanController::class);
+
+    // ── Simpanan ───────────────────────────────────────────
+    Route::get('simpanan/tagihangenerator', [SimpananController::class, 'tagihangenerator'])
+        ->name('simpanan.tagihangenerator');
+    Route::get('simpanan/transaksi', [SimpananController::class, 'transaksi'])
+        ->name('simpanan.transaksi');
+    Route::post('simpanan/tagihangenerator', [SimpananController::class, 'storeTagihanGenerator'])
+        ->name('simpanan.tagihangenerator.store');
+    Route::get('simpanan/tagihangenerator/{id}', [SimpananController::class, 'showTagihan'])
+        ->name('simpanan.tagihangenerator.show');
+    Route::post('simpanan/tagihangenerator/bayar', [SimpananController::class, 'bayarTagihan'])
+        ->name('simpanan.tagihangenerator.bayar');
+    Route::resource('simpanan', SimpananController::class);
 
     // ── Konfigurasi ───────────────────────────────────────
     Route::get('konfigurasi', fn() => view('konfigurasi.index'))->name('konfigurasi.index');

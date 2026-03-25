@@ -1,29 +1,25 @@
-{{-- resources/views/anggota/index.blade.php --}}
+{{-- resources/views/Simpanan/index.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Karyawan')
+@section('title', 'Simpanan')
 
 {{-- ── Topbar nav ── --}}
 @section('topbar-nav')
-    <a href="{{ route('anggota.index') }}"
-       class="tb-link {{ request()->routeIs('anggota.*') ? 'active' : '' }}">
-        Karyawan
+    <a href="{{ route('simpanan.index') }}"
+       class="tb-link {{ request()->routeIs('simpanan.index') ? 'active' : '' }}">
+        Simpanan Anggota
     </a>
-    <a href="{{ route('departemen.index') }}"
-       class="tb-link {{ request()->routeIs('departemen.*') ? 'active' : '' }}">
-        Departemen
-    </a>
-    <a href="{{ route('learning.index') }}"
-       class="tb-link {{ request()->routeIs('learning.*') ? 'active' : '' }}">
-        Learning
+    <a href="{{ route('simpanan.transaksi') }}"
+       class="tb-link {{ request()->routeIs('simpanan.transaksi') ? 'active' : '' }}">
+        Transaksi
     </a>
     <a href="{{ route('laporan.index') }}"
        class="tb-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
         Laporan
     </a>
-    <a href="{{ route('konfigurasi.index') }}"
-       class="tb-link {{ request()->routeIs('konfigurasi.*') ? 'active' : '' }}">
-        Konfigurasi
+    <a href="{{ route('simpanan.tagihangenerator') }}"
+       class="tb-link {{ request()->routeIs('simpanan.tagihangenerator') ? 'active' : '' }}">
+        Tagih Simpanan
     </a>
 @endsection
 
@@ -32,7 +28,7 @@
     <a href="{{ route('anggota.create') }}" class="btn-primary">Baru</a>
 @endsection
 
-@section('page-title', 'Karyawan')
+@section('page-title', 'Simpanan Anggota')
 
 @section('page-title-settings')
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -54,16 +50,16 @@
 
 @section('subbar-pagination')
     <span class="pag-info">
-        {{ $anggota->firstItem() }}–{{ $anggota->lastItem() }} / {{ $anggota->total() }}
+        {{ $simpanan->firstItem() }}–{{ $simpanan->lastItem() }} / {{ $simpanan->total() }}
     </span>
-    <a href="{{ $anggota->previousPageUrl() ?? '#' }}"
-       class="pag-btn" {{ $anggota->onFirstPage() ? 'style=opacity:.4;pointer-events:none' : '' }}>
+    <a href="{{ $simpanan->previousPageUrl() ?? '#' }}"
+       class="pag-btn" {{ $simpanan->onFirstPage() ? 'style=opacity:.4;pointer-events:none' : '' }}>
         <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
             <path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
     </a>
-    <a href="{{ $anggota->nextPageUrl() ?? '#' }}"
-       class="pag-btn" {{ !$anggota->hasMorePages() ? 'style=opacity:.4;pointer-events:none' : '' }}>
+    <a href="{{ $simpanan->nextPageUrl() ?? '#' }}"
+       class="pag-btn" {{ !$simpanan->hasMorePages() ? 'style=opacity:.4;pointer-events:none' : '' }}>
         <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
             <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -106,16 +102,16 @@
             
         </div>
 
-        <a href="{{ route('anggota.index') }}"
+        <a href="{{ route('simpanan.index') }}"
            class="sd-link {{ !request('dept') ? 'active' : '' }}">
             Semua
         </a>
 
         @foreach($departemen as $dept)
-            <a href="{{ route('anggota.index', ['dept' => $dept->id, 'q' => request('q')]) }}"
+            <a href="{{ route('simpanan.index', ['dept' => $dept->id, 'q' => request('q')]) }}"
                class="sd-link {{ request('dept') == $dept->id ? 'active' : '' }}">
                 {{ $dept->nama }}
-                <span class="sd-badge">{{ $dept->anggota_count }}</span>
+                <span class="sd-badge">{{ $dept->simpanan_count }}</span>
             </a>
         @endforeach
     </div>
@@ -133,11 +129,10 @@
                     </th>
                     <th style="width:40px"></th>
                     <th>Nama & NIK</th>
-                    <th>No. HP</th>
                     <th>Tanggal Bergabung</th>
-                    <th>Departemen</th>
-                    <th>Bagian</th>
-                    <th>Alamat</th>
+                    <th>Simpanan Wajib</th>
+                    <th>Simpanan Pokok</th>
+                    <th>Simpanan Sukarela</th>
                     <th>Status Anggota</th>
                     <th class="th-settings">
                         <button class="th-settings-btn" title="Konfigurasi kolom">
@@ -152,8 +147,8 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($anggota as $item)
-                    <tr onclick="window.location='{{ route('anggota.show', $item) }}'">
+                @forelse($simpanan as $item)
+                    <tr onclick="window.location='{{ route('simpanan.show', $item) }}'">
                         <td class="td-check" onclick="event.stopPropagation()">
                             <input type="checkbox" class="row-check" value="{{ $item->id }}">
                         </td>
@@ -162,26 +157,25 @@
                                 <img class="td-avatar" src="{{ Storage::url($item->foto) }}" alt="{{ $item->nama }}">
                             @else
                                 <div class="td-avatar-placeholder av-{{ $item->avatar_color ?? 'purple' }}">
-                                    {{ strtoupper(substr($item->nama_anggota, 0, 2)) }}
+                                    {{ strtoupper(substr($item->anggota->nama_anggota, 0, 2)) }}
                                 </div>
                             @endif
                         </td>
                         <td>
                             <div class="td-name">
-                                <span style="font-weight:500">{{ $item->nama_anggota }}</span>
+                                <span style="font-weight:500">{{ $item->anggota->nama_anggota }}</span>
                             </div>
-                            <div class="td-muted" style="font-size:12px; margin-top:2px;">{{ $item->nik ?? '—' }}</div>
+                            <div class="td-muted" style="font-size:12px; margin-top:2px;">{{ $item->anggota->nik ?? '—' }}</div>
                         </td>
-                        <td>{{ $item->no_hp ?? '—' }}</td>
-                        <td>{{ $item->tgl_bergabung ?? '—' }}</td>
-                        <td>{{ $item->department_id ? $item->departemen?->nama : '—' }}</td>
-                        <td>{{ $item->bagian_id ? $item->bagian?->nama : '—' }}</td>
-                        <td>{{ $item->alamat ?? '—' }}</td>
+                        <td>{{ $item->anggota->tgl_bergabung ?? '—' }}</td>
+                        <td>{{ number_format($item->simpanan_wajib, 2, ',', '.') }}</td>
+                        <td>{{ number_format($item->simpanan_pokok, 2, ',', '.') }}</td>
+                        <td>{{ number_format($item->simpanan_sukarela, 2, ',', '.') }}</td>
                         <td>
-                            @if($item->status_anggota == 'active' || $item->status_anggota == 'Aktif')
-                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#e6f4ea; color:#137333; font-weight:600;">{{ ucfirst($item->status_anggota) }}</span>
+                            @if($item->anggota->status_anggota == 'active' || $item->anggota->status_anggota == 'Aktif')
+                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#e6f4ea; color:#137333; font-weight:600;">{{ ucfirst($item->anggota->status_anggota) }}</span>
                             @else
-                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#fce8e6; color:#c5221f; font-weight:600;">{{ ucfirst($item->status_anggota) }}</span>
+                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#fce8e6; color:#c5221f; font-weight:600;">{{ ucfirst($item->anggota->status_anggota) }}</span>
                             @endif
                         </td>
                         <td></td>

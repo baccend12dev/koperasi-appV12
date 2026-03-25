@@ -103,7 +103,7 @@
         const modules = [
             { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-th-large', color: 'text-purple-600', bgColor: 'bg-purple-100' },
             { id: 'keanggotaan', name: 'Keanggotaan', icon: 'fas fa-users', color: 'text-blue-500', bgColor: 'bg-blue-100', url: '/anggota' },
-            { id: 'simpanan', name: 'Simpanan', icon: 'fas fa-piggy-bank', color: 'text-pink-500', bgColor: 'bg-pink-100' },
+            { id: 'simpanan', name: 'Simpanan', icon: 'fas fa-piggy-bank', color: 'text-pink-500', bgColor: 'bg-pink-100', url: '/simpanan' },
             { id: 'pinjaman', name: 'Pinjaman', icon: 'fas fa-hand-holding-dollar', color: 'text-green-500', bgColor: 'bg-green-100' },
             { id: 'akuntansi', name: 'Akuntansi', icon: 'fas fa-calculator', color: 'text-orange-500', bgColor: 'bg-orange-100' },
             { id: 'kasir', name: 'Kasir / POS', icon: 'fas fa-cash-register', color: 'text-teal-500', bgColor: 'bg-teal-100' },
