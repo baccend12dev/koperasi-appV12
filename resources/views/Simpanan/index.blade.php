@@ -135,14 +135,7 @@
                     <th>Simpanan Sukarela</th>
                     <th>Status Anggota</th>
                     <th class="th-settings">
-                        <button class="th-settings-btn" title="Konfigurasi kolom">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                <line x1="1" y1="4" x2="13" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-                                <line x1="1" y1="10" x2="13" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-                                <circle cx="4.5" cy="4" r="1.5" fill="white" stroke="currentColor" stroke-width="1.1"/>
-                                <circle cx="9.5" cy="10" r="1.5" fill="white" stroke="currentColor" stroke-width="1.1"/>
-                            </svg>
-                        </button>
+                        Aksi
                     </th>
                 </tr>
             </thead>
@@ -178,7 +171,16 @@
                                 <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#fce8e6; color:#c5221f; font-weight:600;">{{ ucfirst($item->anggota->status_anggota) }}</span>
                             @endif
                         </td>
-                        <td></td>
+                        <td>
+                            <button class="th-settings-btn" title="Konfigurasi kolom">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                    <line x1="1" y1="4" x2="13" y2="4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                                    <line x1="1" y1="10" x2="13" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                                    <circle cx="4.5" cy="4" r="1.5" fill="white" stroke="currentColor" stroke-width="1.1"/>
+                                    <circle cx="9.5" cy="10" r="1.5" fill="white" stroke="currentColor" stroke-width="1.1"/>
+                                </svg>
+                            </button>
+                        </td>
                     </tr>
                 @empty
                     <tr>

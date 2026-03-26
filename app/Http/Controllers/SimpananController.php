@@ -124,7 +124,7 @@ class SimpananController extends Controller
                             ->sum('amount');
         $persenBulanIni = $totalBulanLalu > 0 ? (($totalBulanIni - $totalBulanLalu) / $totalBulanLalu) * 100 : 0;
 
-        $anggotaAktif = Anggota::whereIn('status_anggota', ['active', 'Aktif'])->count();
+        $anggotaAktif = Anggota::whereIn('status_anggota', ['active', 'aktif'])->count();
 
         $transaksi = $query->paginate(10)->withQueryString();
         $jenisSimpanan = \App\Models\JenisSimpanan::all();
@@ -171,12 +171,18 @@ class SimpananController extends Controller
             'anggota_ids.*' => 'exists:anggotas,id',
         ]);
 
+        //check if tagihan already exists for this periode
+        $tagihan = TagihanSimpanan::where('periode', date('F Y', strtotime($request->periode)))->first();
+        if ($tagihan) {
+            return back()->with('error', 'Tagihan untuk periode ini sudah ada.');
+        }
+
         DB::beginTransaction();
         try {
             $anggotas = Anggota::with('masterSimpanan')->whereIn('id', $request->anggota_ids)->get();
             
             $tagihanTotal = 0;
-            $type = count($request->anggota_ids) == Anggota::whereIn('status_anggota', ['active', 'Aktif'])->count() 
+            $type = count($request->anggota_ids) == Anggota::whereIn('status_anggota', ['active', 'aktif'])->count() 
                 ? 'Semua Anggota' : 'By Checklist';
 
             $tagihanSimpanan = TagihanSimpanan::create([
@@ -223,19 +229,49 @@ class SimpananController extends Controller
         
     }
 
+    public function show($id)
+    {
+        $master = \App\Models\MasterSimpanan::with('anggota')->findOrFail($id);
+        
+        // Calculate total keseluruhan from transactions
+        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)->sum('amount');
+        
+        // History of transactions
+        $riwayatTransaksi = \App\Models\TransaksiSimpanan::with('jenisSimpanan')
+            ->where('anggota_id', $master->anggota_id)
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+            
+        return view('simpanan.show', compact('master', 'totalKeseluruhan', 'riwayatTransaksi'));
+    }
+
     public function store(Request $request)
     {
         
     }
 
-    public function edit(Simpanan $simpanan)
+    public function edit($id)
     {
 
     }
 
-    public function update(Request $request, Simpanan $simpanan)
+    public function update(Request $request, $id)
     {
-       
+        $master = \App\Models\MasterSimpanan::findOrFail($id);
+        
+        $request->validate([
+            'jenis_simpanan' => 'required|in:Pokok,Wajib,Sukarela',
+            'nominal_baru' => 'required|numeric|min:0',
+            'tanggal_mulai' => 'required|date'
+        ]);
+
+        $field = 'simpanan_' . strtolower($request->jenis_simpanan);
+        $master->update([
+            $field => $request->nominal_baru,
+            'tanggal_mulai' => $request->tanggal_mulai
+        ]);
+
+        return back()->with('success', 'Konfigurasi simpanan ' . $request->jenis_simpanan . ' berhasil diperbarui.');
     }
 
     public function destroy(Simpanan $simpanan)

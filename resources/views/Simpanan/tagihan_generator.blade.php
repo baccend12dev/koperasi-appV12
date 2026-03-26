@@ -108,7 +108,7 @@
                         @endif
                     </td>
                     <td style="text-align: right; padding-right: 20px;">
-                        <button style="border:1px solid #D1D5DB; background:#fff; color:#374151; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; margin-right:6px; transition: background 0.15s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='#fff'">
+                        <button onclick="window.location.href='{{ route('simpanan.tagihangenerator.show', $item->id) }}'" style="border:1px solid #D1D5DB; background:#fff; color:#374151; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; margin-right:6px; transition: background 0.15s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='#fff'">
                             Detail
                         </button>
                         <button style="border:1px solid #D1D5DB; background:#fff; color:#374151; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; transition: background 0.15s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='#fff'">
