@@ -1,0 +1,478 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.app{font-family:system-ui,sans-serif;font-size:13px;color:#111827;background:#F3F4F6;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+/* topbar */
+.tb{display:flex;align-items:center;height:40px;background:#5C4F8A;padding:0 4px 0 0}
+.tb-hm{display:flex;flex-direction:column;gap:4px;width:40px;height:40px;justify-content:center;align-items:center;background:transparent;border:none;cursor:pointer;padding:8px}
+.tb-hm span{display:block;width:18px;height:1.5px;background:rgba(255,255,255,.9);border-radius:2px}
+.tb-nav{display:flex;height:100%}
+.tn{display:inline-flex;align-items:center;height:100%;padding:0 13px;font-size:12px;font-weight:500;color:rgba(255,255,255,.8);border:none;background:transparent;cursor:pointer}
+.tn.on{background:rgba(255,255,255,.15);font-weight:600;color:#fff}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 12px}
+.tb-org{font-size:11px;color:rgba(255,255,255,.6)}
+.uav{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* page */
+.pg{background:#F3F4F6;padding:18px 22px 30px}
+.bc{display:flex;align-items:center;gap:5px;font-size:11px;color:#9CA3AF;margin-bottom:8px}
+.bc a{color:#1a56db}
+.bc-sep{color:#D1D5DB}
+.ph h1{font-size:20px;font-weight:800;color:#111827;display:flex;align-items:center;gap:8px}
+.ph h1 svg{color:#1a56db}
+.ph p{font-size:12px;color:#9CA3AF;margin-top:4px}
+
+/* grid */
+.grid{display:grid;grid-template-columns:1fr 270px;gap:14px;margin-top:16px;align-items:start}
+
+/* card */
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.card:last-child{margin-bottom:0}
+.ch{display:flex;align-items:center;gap:8px;padding:12px 16px 9px;border-bottom:1px solid #F3F4F6;font-size:13px;font-weight:700;color:#111827}
+.ch svg{color:#1a56db;flex-shrink:0}
+.ch-badge{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#EFF6FF;color:#1a56db}
+.cb{padding:16px}
+.cb-sm{padding:12px 16px}
+
+/* form */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.fg:last-child{margin-bottom:0}
+.lbl{font-size:11px;font-weight:600;color:#374151}
+.lbl .req{color:#dc2626}
+.lbl .hint{font-weight:400;color:#9CA3AF;font-size:10px}
+.fc{display:block;width:100%;height:37px;padding:0 10px;font-size:12px;color:#111827;background:#fff;border:1.5px solid #D1D5DB;border-radius:7px;outline:none;transition:border-color .15s;font-family:inherit}
+.fc::placeholder{color:#9CA3AF}
+.fc:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.09)}
+select.fc{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer}
+textarea.fc{height:70px;padding:8px 10px;resize:none}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ig{display:flex;align-items:center}
+.ia{height:37px;padding:0 10px;background:#F9FAFB;border:1.5px solid #D1D5DB;font-size:11px;font-weight:600;color:#4B5563;display:flex;align-items:center;white-space:nowrap}
+.ia-l{border-right:none;border-radius:7px 0 0 7px}
+.ia-r{border-left:none;border-radius:0 7px 7px 0}
+.ig .fc{border-radius:0 7px 7px 0}
+.ig .fc.fcl{border-radius:7px 0 0 7px}
+
+/* search */
+.sw{display:flex;gap:8px;align-items:flex-end}
+.sw .fg{flex:1;margin-bottom:0}
+.btn-srch{height:37px;padding:0 14px;background:#1a56db;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;font-family:inherit}
+.btn-srch:hover{background:#1447c0}
+
+.spinner-row{display:none;align-items:center;gap:7px;font-size:11px;color:#9CA3AF;margin-top:8px}
+.spinner-row.show{display:flex}
+.sp{width:13px;height:13px;border:2px solid #E5E7EB;border-top-color:#1a56db;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.nf{display:none;align-items:center;gap:8px;padding:11px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;font-size:12px;color:#991b1b;font-weight:500;margin-top:10px}
+.nf.show{display:flex}
+
+/* member panel */
+#mp{display:none}
+#mp.show{display:block}
+
+.mav-row{display:flex;align-items:center;gap:10px;padding:10px 0 12px;border-bottom:1px solid #F3F4F6;margin-bottom:12px}
+.mav{width:40px;height:40px;border-radius:9px;background:#EFF6FF;border:2px solid #BFDBFE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#1a56db;flex-shrink:0}
+.mnb strong{display:block;font-size:14px;font-weight:700;color:#111827}
+.mnb span{display:block;font-size:11px;color:#9CA3AF}
+.mpill{margin-left:auto;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:#F0FDF4;color:#15803d;border:1px solid #BBF7D0}
+
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ic{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:7px;padding:9px 12px}
+.ic-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9CA3AF;margin-bottom:3px}
+.ic-val{font-size:13px;font-weight:700;color:#111827}
+.ic.blue{background:#EFF6FF;border-color:#BFDBFE}
+.ic.blue .ic-lbl{color:#1d4ed8}.ic.blue .ic-val{color:#1a56db}
+.ic.green{background:#F0FDF4;border-color:#BBF7D0}
+.ic.green .ic-lbl{color:#15803d}.ic.green .ic-val{color:#15803d}
+.ic.amber{background:#FFFBEB;border-color:#FDE68A}
+.ic.amber .ic-lbl{color:#b45309}.ic.amber .ic-val{color:#b45309}
+
+.bar-track{height:5px;background:#E5E7EB;border-radius:10px;overflow:hidden;margin:10px 0 3px}
+.bar-fill{height:100%;border-radius:10px;background:#15803d;transition:width .3s,background .3s}
+.bar-lbl{display:flex;justify-content:space-between;font-size:10px;color:#9CA3AF}
+
+/* pinjaman aktif */
+.mt{width:100%;border-collapse:collapse;font-size:11px}
+.mt thead th{padding:7px 10px;font-size:10px;font-weight:700;color:#9CA3AF;text-align:left;border-bottom:1px solid #F3F4F6;background:#F9FAFB}
+.mt tbody td{padding:8px 10px;border-bottom:1px solid #F3F4F6;color:#4B5563;vertical-align:middle}
+.mt tbody tr:last-child td{border-bottom:none}
+.mt tbody tr:hover td{background:#F9FAFB}
+.sp-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
+.sp-pill::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor}
+.sp-aktif{background:#F0FDF4;color:#15803d}
+.sp-telat{background:#FEF2F2;color:#dc2626}
+.empty{display:flex;flex-direction:column;align-items:center;padding:22px;color:#9CA3AF;gap:6px}
+.empty svg{color:#D1D5DB}.empty p{font-size:12px}
+
+/* alerts */
+.aw{display:none;align-items:flex-start;gap:7px;padding:9px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:7px;font-size:11px;color:#92400e;margin-top:7px;font-weight:500}
+.aw.show{display:flex}.aw svg{color:#b45309;flex-shrink:0;margin-top:1px}
+.ad{display:none;align-items:flex-start;gap:7px;padding:9px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;font-size:11px;color:#991b1b;margin-top:7px;font-weight:500}
+.ad.show{display:flex}.ad svg{color:#dc2626;flex-shrink:0;margin-top:1px}
+.fhint{display:flex;align-items:center;gap:4px;font-size:10px;color:#9CA3AF;margin-top:4px}
+
+/* right */
+.calc-card{background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-bottom:12px}
+.cr{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6}
+.cr:last-of-type{border:none}
+.cr-lbl{font-size:11px;color:#9CA3AF;font-weight:500}
+.cr-val{font-size:12px;font-weight:700;color:#111827}
+.ctotal{margin-top:12px;padding:12px;background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:8px}
+.ctotal-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1a56db;margin-bottom:2px}
+.ctotal-amt{font-size:20px;font-weight:800;color:#1a56db}
+.ctotal-sub{font-size:10px;color:#3b82f6;margin-top:2px}
+.ccil{margin-top:8px;padding:11px 12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px}
+.ccil-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#15803d}
+.ccil-amt{font-size:17px;font-weight:800;color:#15803d;margin-top:2px}
+.ccil-sub{font-size:10px;color:#22c55e;margin-top:1px}
+
+.sim-btn{background:transparent;border:none;font-size:11px;font-weight:600;color:#1a56db;cursor:pointer;padding:8px 0 0;display:flex;align-items:center;gap:4px;font-family:inherit}
+.sim-wrap{display:none;margin-top:8px;overflow:auto;max-height:200px}
+.sim-wrap.show{display:block}
+.stbl{width:100%;border-collapse:collapse;font-size:10px}
+.stbl th{padding:5px 7px;background:#F9FAFB;border:1px solid #E5E7EB;font-weight:700;color:#4B5563;text-align:center}
+.stbl td{padding:4px 7px;border:1px solid #F3F4F6;color:#4B5563;text-align:right}
+.stbl td:first-child{text-align:center;font-weight:600}
+.stbl tbody tr:nth-child(even) td{background:#F9FAFB}
+
+.rumus{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px 14px}
+.rumus-h{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.rumus-row{font-size:10px;color:#4B5563;line-height:2.2}
+
+/* actions */
+.abar{display:flex;align-items:center;gap:8px;padding-top:4px}
+.btn-back{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#6B7280;background:transparent;border:none;cursor:pointer;font-family:inherit;margin-right:auto}
+.btn-reset{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;font-size:12px;font-weight:600;color:#dc2626;background:#fff;border:1.5px solid #FECACA;border-radius:7px;cursor:pointer;font-family:inherit}
+.btn-save{display:inline-flex;align-items:center;gap:5px;padding:8px 18px;font-size:12px;font-weight:700;color:#fff;background:#1a56db;border:none;border-radius:7px;cursor:pointer;font-family:inherit}
+.btn-save:hover{background:#1447c0}
+.sdiv{height:1px;background:#F3F4F6;margin:12px 0}
+</style>
+
+<div class="app">
+  <!-- topbar -->
+  <div class="tb">
+    <button class="tb-hm"><span></span><span></span><span></span></button>
+    <div class="tb-nav">
+      <button class="tn">Karyawan</button>
+      <button class="tn on">Pinjaman</button>
+      <button class="tn">Keuangan</button>
+      <button class="tn">Laporan</button>
+    </div>
+    <div class="tb-right">
+      <span class="tb-org">Koperasi Modern</span>
+      <div class="uav">AD</div>
+    </div>
+  </div>
+
+  <!-- page -->
+  <div class="pg">
+    <div class="bc">
+      <a href="#">Dashboard</a><span class="bc-sep">›</span>
+      <a href="#">Pinjaman</a><span class="bc-sep">›</span>
+      <span>Tambah Pinjaman</span>
+    </div>
+    <div class="ph">
+      <h1>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M6 5V4a4 4 0 0 1 8 0v1" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10.5" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+        Input Pinjaman Anggota
+      </h1>
+      <p>Buat pengajuan pinjaman baru dengan validasi otomatis.</p>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div>
+
+        <!-- SECTION 1: Cari anggota -->
+        <div class="card">
+          <div class="ch">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Pencarian Anggota
+          </div>
+          <div class="cb">
+            <div class="sw">
+              <div class="fg" style="flex:1;margin-bottom:0">
+                <label class="lbl">User ID / NIK <span class="hint">— ketik & tekan Enter</span></label>
+                <div class="ig">
+                  <span class="ia ia-l">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M9 9l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  </span>
+                  <input class="fc" id="nik" placeholder="Masukkan NIK 16 digit atau User ID..." autofocus onkeydown="if(event.key==='Enter')cari()">
+                </div>
+              </div>
+              <button class="btn-srch" onclick="cari()">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 8l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Cari
+              </button>
+            </div>
+            <div class="spinner-row" id="spr"><div class="sp"></div>Mencari data anggota...</div>
+            <div class="nf" id="nf">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4.5v4M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              Anggota tidak ditemukan. Periksa kembali NIK atau ID.
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2 & 3: Member panel -->
+        <div id="mp">
+          <div class="card">
+            <div class="ch">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.5 2.5-5 5.5-5s5.5 1.5 5.5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              Informasi Anggota
+              <span class="ch-badge">Aktif</span>
+            </div>
+            <div class="cb-sm">
+              <div class="mav-row">
+                <div class="mav" id="av">EG</div>
+                <div class="mnb">
+                  <strong id="m-nama">Emma Granger</strong>
+                  <span id="m-nik">NIK: 3201234567890001</span>
+                </div>
+                <span class="mpill">Aktif</span>
+              </div>
+              <div class="info-grid">
+                <div class="ic"><div class="ic-lbl">Tanggal Masuk</div><div class="ic-val" id="m-tgl">01 Jan 2022</div></div>
+                <div class="ic green"><div class="ic-lbl">Total Simpanan</div><div class="ic-val" id="m-simp">Rp 15 jt</div></div>
+                <div class="ic blue"><div class="ic-lbl">Maks. Pinjaman</div><div class="ic-val" id="m-maks">Rp 30 jt</div></div>
+                <div class="ic amber"><div class="ic-lbl">Pinjaman Aktif</div><div class="ic-val" id="m-aktif">Rp 5 jt</div></div>
+                <div class="ic"><div class="ic-lbl">Sisa Limit</div><div class="ic-val" id="m-sisa">Rp 25 jt</div></div>
+              </div>
+              <div style="margin-top:12px">
+                <div style="font-size:11px;font-weight:600;color:#4B5563;margin-bottom:4px">Penggunaan Limit Pinjaman</div>
+                <div class="bar-track"><div class="bar-fill" id="bar" style="width:16%"></div></div>
+                <div class="bar-lbl"><span>16% terpakai</span><span>Sisa Rp 25 jt</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- pinjaman aktif -->
+          <div class="card">
+            <div class="ch">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="2.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 7h7M4 10h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              Pinjaman Aktif
+              <span class="ch-badge" id="badge-n">1</span>
+            </div>
+            <table class="mt">
+              <thead><tr><th>Jenis Pinjaman</th><th>Sisa Tenor</th><th>Sisa Tagihan</th><th>Status</th></tr></thead>
+              <tbody id="ptbody">
+                <tr>
+                  <td>Pinjaman Reguler</td>
+                  <td style="text-align:center">8 bulan</td>
+                  <td style="text-align:right">Rp 5.000.000</td>
+                  <td><span class="sp-pill sp-aktif">aktif</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECTION 4: Form pinjaman -->
+        <div class="card">
+          <div class="ch">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 13V7.5l4.5-4.5 4.5 4.5V13" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><rect x="5.5" y="9" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/></svg>
+            Form Pinjaman Baru
+          </div>
+          <div class="cb">
+            <div class="fg">
+              <label class="lbl">Jenis Pinjaman <span class="req">*</span></label>
+              <select class="fc" id="jenis" onchange="onJenis()">
+                <option value="">— Pilih Jenis Pinjaman —</option>
+                <option value="reguler" data-bunga="1.2">Pinjaman Reguler</option>
+                <option value="darurat" data-bunga="1.5">Pinjaman Darurat</option>
+                <option value="barang"  data-bunga="1.0">Pinjaman Barang</option>
+              </select>
+              <div class="aw" id="warn-jenis">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Anggota sudah memiliki pinjaman jenis ini yang masih berjalan.
+              </div>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label class="lbl">Jumlah Pinjaman <span class="req">*</span></label>
+                <div class="ig">
+                  <span class="ia ia-l">Rp</span>
+                  <input class="fc" id="jumlah" type="number" placeholder="0" min="100000" step="100000" oninput="hitung()">
+                </div>
+                <div class="ad" id="warn-limit">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v4M7 10h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                  Melebihi batas maksimal pinjaman anggota.
+                </div>
+                <div class="fhint">
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1"/><path d="M5.5 4v3M5.5 8h.01" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                  Maks: <strong id="hint-maks">Rp 25.000.000</strong>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="lbl">Tenor <span class="req">*</span></label>
+                <select class="fc" id="tenor" onchange="hitung()">
+                  <option value="">— Pilih Tenor —</option>
+                  <option value="6">6 bulan</option>
+                  <option value="12">12 bulan</option>
+                  <option value="18">18 bulan</option>
+                  <option value="24">24 bulan</option>
+                  <option value="36">36 bulan</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="lbl">Bunga (% / bulan) <span class="hint">— otomatis dari jenis pinjaman</span></label>
+              <div class="ig">
+                <input class="fc fcl" id="bunga" type="number" placeholder="0.00" step="0.1" min="0" max="100" oninput="hitung()">
+                <span class="ia ia-r">% / bln</span>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="lbl">Keterangan</label>
+              <textarea class="fc" placeholder="Masukkan keterangan pinjaman (opsional)..."></textarea>
+            </div>
+            <div class="sdiv"></div>
+            <div class="abar">
+              <button class="btn-back" type="button">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L3 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Kembali
+              </button>
+              <button class="btn-reset" type="button" onclick="resetF()">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 1 1 1.3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 9.5V6h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Reset
+              </button>
+              <button class="btn-save" type="button">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 6l3 3.5 6-5.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Simpan Pinjaman
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div>
+        <div class="calc-card">
+          <div class="ch">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="1.5" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 6l2 2 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 11h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Perhitungan Otomatis
+          </div>
+          <div class="cb">
+            <div class="cr"><span class="cr-lbl">Jumlah Pinjaman</span><span class="cr-val" id="c-pokok">Rp 0</span></div>
+            <div class="cr"><span class="cr-lbl">Tenor</span><span class="cr-val" id="c-tenor">— bulan</span></div>
+            <div class="cr"><span class="cr-lbl">Bunga / Bulan</span><span class="cr-val" id="c-bunga">0%</span></div>
+            <div class="cr"><span class="cr-lbl">Total Bunga</span><span class="cr-val" id="c-tbunga">Rp 0</span></div>
+            <div class="ctotal">
+              <div class="ctotal-lbl">Total Bayar</div>
+              <div class="ctotal-amt" id="c-total">Rp 0</div>
+              <div class="ctotal-sub" id="c-tsub">Pokok + Bunga</div>
+            </div>
+            <div class="ccil">
+              <div class="ccil-lbl">Cicilan / Bulan</div>
+              <div class="ccil-amt" id="c-cicilan">Rp 0</div>
+              <div class="ccil-sub" id="c-csub">Belum ada data</div>
+            </div>
+            <button class="sim-btn" onclick="toggleSim(this)">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 3.5l3.5 3.5 3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Lihat simulasi angsuran
+            </button>
+            <div class="sim-wrap" id="sim-wrap">
+              <table class="stbl">
+                <thead><tr><th>Bln</th><th>Pokok</th><th>Bunga</th><th>Cicilan</th><th>Sisa</th></tr></thead>
+                <tbody id="sim-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="rumus">
+          <div class="rumus-h">Rumus Perhitungan</div>
+          <div class="rumus-row">
+            <div>Total Bunga = Pokok × Bunga% × Tenor</div>
+            <div>Total Bayar = Pokok + Total Bunga</div>
+            <div>Cicilan = Total Bayar ÷ Tenor</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function rp(n){return'Rp '+(Math.round(n)||0).toLocaleString('id-ID')}
+
+// Demo search
+function cari(){
+  const v=document.getElementById('nik').value.trim();
+  if(!v)return;
+  document.getElementById('spr').classList.add('show');
+  document.getElementById('nf').classList.remove('show');
+  document.getElementById('mp').classList.remove('show');
+  setTimeout(()=>{
+    document.getElementById('spr').classList.remove('show');
+    if(v.length>=3){
+      document.getElementById('mp').classList.add('show');
+    } else {
+      document.getElementById('nf').classList.add('show');
+    }
+  },800);
+}
+
+function onJenis(){
+  const sel=document.getElementById('jenis');
+  const b=sel.options[sel.selectedIndex]?.dataset?.bunga||'';
+  document.getElementById('bunga').value=b;
+  // warn jika reguler (sudah ada)
+  document.getElementById('warn-jenis').classList.toggle('show', sel.value==='reguler');
+  hitung();
+}
+
+function hitung(){
+  const j=parseFloat(document.getElementById('jumlah').value)||0;
+  const t=parseFloat(document.getElementById('tenor').value)||0;
+  const b=parseFloat(document.getElementById('bunga').value)||0;
+  const maxLimit=25000000;
+  document.getElementById('warn-limit').classList.toggle('show', j>maxLimit && j>0);
+  const tb=j*(b/100)*t;
+  const total=j+tb;
+  const cicilan=t>0?total/t:0;
+  document.getElementById('c-pokok').textContent=rp(j);
+  document.getElementById('c-tenor').textContent=t?t+' bulan':'— bulan';
+  document.getElementById('c-bunga').textContent=b?b+'%':'0%';
+  document.getElementById('c-tbunga').textContent=rp(tb);
+  document.getElementById('c-total').textContent=rp(total);
+  document.getElementById('c-tsub').textContent=rp(j)+' + '+rp(tb);
+  document.getElementById('c-cicilan').textContent=rp(cicilan);
+  document.getElementById('c-csub').textContent=t?'Selama '+t+' bulan':'Belum ada data';
+  renderSim(j,t,b);
+}
+
+function renderSim(j,t,b){
+  const tbody=document.getElementById('sim-body');
+  tbody.innerHTML='';
+  if(!j||!t)return;
+  const pp=j/t; let sisa=j;
+  for(let i=1;i<=Math.min(t,8);i++){
+    const bi=sisa*(b/100);
+    const ci=pp+bi;
+    sisa-=pp;
+    tbody.innerHTML+=`<tr><td>${i}</td><td>${rp(pp)}</td><td>${rp(bi)}</td><td>${rp(ci)}</td><td>${rp(Math.max(0,sisa))}</td></tr>`;
+  }
+  if(t>8) tbody.innerHTML+=`<tr><td colspan="5" style="text-align:center;color:#9CA3AF">... ${t-8} bulan lainnya</td></tr>`;
+}
+
+function toggleSim(btn){
+  const w=document.getElementById('sim-wrap');
+  w.classList.toggle('show');
+  btn.innerHTML=w.classList.contains('show')
+    ?'<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 7.5l3.5-3.5 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Sembunyikan simulasi'
+    :'<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 3.5l3.5 3.5 3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Lihat simulasi angsuran';
+}
+
+function resetF(){
+  document.getElementById('nik').value='';
+  document.getElementById('jenis').value='';
+  document.getElementById('jumlah').value='';
+  document.getElementById('tenor').value='';
+  document.getElementById('bunga').value='';
+  document.getElementById('mp').classList.remove('show');
+  document.getElementById('nf').classList.remove('show');
+  document.getElementById('warn-jenis').classList.remove('show');
+  document.getElementById('warn-limit').classList.remove('show');
+  hitung();
+}
+</script>

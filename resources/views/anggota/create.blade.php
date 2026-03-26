@@ -575,14 +575,7 @@
                                                    value="{{ old('simpanan_wajib', 0) }}"
                                                    oninput="updateSummary()">
                                         </div>
-                                        <select name="jatuh_tempo" class="form-control">
-                                            <option value="">Pilih Jatuh Tempo</option>
-                                            @for($i = 1; $i <= 28; $i++)
-                                                <option value="{{ $i }}" {{ old('jatuh_tempo') == $i ? 'selected' : '' }}>
-                                                    Tgl {{ $i }}
-                                                </option>
-                                            @endfor
-                                        </select>
+                                        
                                     </div>
                                     @error('simpanan_wajib')<span class="field-error">{{ $message }}</span>@enderror
                                 </div>
@@ -656,7 +649,10 @@
                         </div>
                         <div class="summary-row">
                             <span class="summary-row-label">Simpanan Sukarela</span>
-                            <span class="summary-row-val" id="sum-sukarela">Rp 0</span>
+                            <div style="text-align:right">
+                                <div class="summary-row-val" id="sum-sukarela">Rp 0</div>
+                                <div class="summary-row-sub">/ bln</div>
+                            </div>
                         </div>
 
                         <div class="summary-total">

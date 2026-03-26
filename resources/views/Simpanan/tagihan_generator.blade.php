@@ -8,7 +8,7 @@
     <a href="{{ route('simpanan.index') }}" class="tb-link">
         Simpanan Anggota
     </a>
-    <a href="#" class="tb-link">
+    <a href="{{ route('simpanan.transaksi') }}" class="tb-link">
         Transaksi
     </a>
     <a href="{{ route('laporan.index') }}" class="tb-link">

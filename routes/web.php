@@ -49,6 +49,16 @@ Route::get('/', function () {
         ->name('simpanan.tagihangenerator.bayar');
     Route::resource('simpanan', SimpananController::class);
 
+    // ── Pinjaman ───────────────────────────────────────────
+    Route::get('pinjaman', [App\Http\Controllers\PinjamanController::class, 'index'])->name('pinjaman.index');
+    Route::get('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'pengajuan'])->name('pinjaman.pengajuan');
+    Route::get('pinjaman/pengajuan/create', [App\Http\Controllers\PinjamanController::class, 'create'])->name('pinjaman.pengajuan.create');
+    Route::get('pinjaman/approval', [App\Http\Controllers\PinjamanController::class, 'approval'])->name('pinjaman.approval');
+    Route::get('pinjaman/aktif', [App\Http\Controllers\PinjamanController::class, 'aktif'])->name('pinjaman.aktif');
+    Route::get('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'angsuran'])->name('pinjaman.angsuran');
+    Route::get('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'masterJenis'])->name('pinjaman.masterJenis');
+    Route::post('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'storeMasterJenis'])->name('pinjaman.masterJenis.store');
+
     // ── Konfigurasi ───────────────────────────────────────
     Route::get('konfigurasi', fn() => view('konfigurasi.index'))->name('konfigurasi.index');
 

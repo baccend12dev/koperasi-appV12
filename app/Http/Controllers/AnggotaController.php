@@ -104,7 +104,37 @@ class AnggotaController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $anggota = Anggota::with(['departemen', 'masterSimpanan'])->findOrFail($id);
+        
+        // Data for new mockup design
+        $total_simpanan = 15450000;
+        $max_pinjaman = 25000000;
+        $pinjaman_aktif_amount = 10000000;
+        $sisa_pinjaman = 1200000;
+        $credit_score = 780;
+
+        $simpanan_pokok = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_pokok : 1000000;
+        $simpanan_wajib = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_wajib : 50000;
+        $simpanan_sukarela = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_sukarela : 100000;
+
+        $riwayat_simpanan = collect([
+            (object)['date' => '12 Mar 2026', 'type' => 'Mandatory Savings', 'color' => '#1a73e8', 'amount' => 50000, 'period' => 'Mar 2026', 'status' => 'SUCCESS'],
+            (object)['date' => '05 Mar 2026', 'type' => 'Voluntary Deposit', 'color' => '#fbbc04', 'amount' => 100000, 'period' => 'Mar 2026', 'status' => 'SUCCESS'],
+            (object)['date' => '12 Feb 2026', 'type' => 'Mandatory Savings', 'color' => '#1a73e8', 'amount' => 50000, 'period' => 'Feb 2026', 'status' => 'SUCCESS'],
+        ]);
+
+        return view('anggota.show', compact(
+            'anggota', 
+            'total_simpanan', 
+            'max_pinjaman', 
+            'pinjaman_aktif_amount', 
+            'sisa_pinjaman', 
+            'credit_score',
+            'simpanan_pokok',
+            'simpanan_wajib',
+            'simpanan_sukarela',
+            'riwayat_simpanan'
+        ));
     }
 
     /**
