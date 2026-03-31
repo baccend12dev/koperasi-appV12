@@ -414,7 +414,7 @@
             </div>
             <div>
                 <div class="stat-box-amount">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</div>
-                <div class="stat-box-sub"><span class="sub-green">↗ +2.4%</span> from last month</div>
+                <div class="stat-box-sub"><span class="sub-green">↗</span> Limit Plafond menyesuaikan</div>
             </div>
         </div>
 
@@ -427,7 +427,7 @@
             </div>
             <div>
                 <div class="stat-box-amount">Rp {{ number_format($max_pinjaman, 0, ',', '.') }}</div>
-                <div class="stat-box-sub">Based on credit score: {{ $credit_score }}</div>
+                <div class="stat-box-sub">Threshold 5x Simpanan</div>
             </div>
         </div>
 
@@ -440,7 +440,7 @@
             </div>
             <div>
                 <div class="stat-box-amount">Rp {{ number_format($pinjaman_aktif_amount, 0, ',', '.') }}</div>
-                <div class="stat-box-sub">1 Loan account currently active</div>
+                <div class="stat-box-sub">{{ $pinjaman_berjalan->count() }} fasilitas masih aktif/pending</div>
             </div>
         </div>
 
@@ -452,9 +452,18 @@
                 <span class="stat-box-label">SISA PINJAMAN</span>
             </div>
             <div>
-                <div class="stat-box-amount">Rp {{ number_format($sisa_pinjaman, 0, ',', '.') }}</div>
-                @php $pct = ($sisa_pinjaman / max($pinjaman_aktif_amount, 1)) * 100; @endphp
-                <div class="pb-track"><div class="pb-fill" style="width:{{ $pct }}%;"></div></div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <div class="stat-box-label" style="font-size:9px; color:#5f6368; margin-bottom:2px;">SISA HUTANG AKTIF</div>
+                        <div class="stat-box-amount" style="font-size:16px;">Rp {{ number_format($sisa_pinjaman, 0, ',', '.') }}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="stat-box-label" style="font-size:9px; color:#1e8e3e; margin-bottom:2px;">SISA KUOTA MAX</div>
+                        <div class="stat-box-amount" style="font-size:16px; color:#1e8e3e;">Rp {{ number_format($sisa_kuota, 0, ',', '.') }}</div>
+                    </div>
+                </div>
+                @php $pct = ($sisa_pinjaman / max($max_pinjaman, 1)) * 100; @endphp
+                <div class="pb-track" style="margin-top:12px;"><div class="pb-fill" style="width:{{ $pct }}%;"></div></div>
             </div>
         </div>
     </div>
@@ -510,32 +519,102 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($riwayat_simpanan as $rs)
+                @forelse($riwayat_simpanan as $rs)
                 <tr>
-                    <td>{{ $rs->date }}</td>
+                    <td>{{ \Carbon\Carbon::parse($rs->transaction_date)->format('d M Y') }}</td>
                     <td style="font-weight: 500;">
-                        <span class="type-dot" style="background-color: {{ $rs->color }};"></span>
-                        {{ $rs->type }}
+                        @php
+                            $color = '#1a73e8';
+                            $type_name = strtolower($rs->jenisSimpanan->nama ?? '');
+                            if(str_contains($type_name, 'wajib')) { $color = '#1e8e3e'; }
+                            elseif(str_contains($type_name, 'pokok')) { $color = '#f57c00'; }
+                        @endphp
+                        <span class="type-dot" style="background-color: {{ $color }};"></span>
+                        {{ $rs->jenisSimpanan->nama ?? 'Simpanan' }}
                     </td>
                     <td style="font-weight: 600; color: #111;">Rp {{ number_format($rs->amount, 0, ',', '.') }}</td>
-                    <td style="color: #5f6368;">{{ $rs->period }}</td>
-                    <td><span class="badge-success">{{ $rs->status }}</span></td>
+                    <td style="color: #5f6368;">{{ $rs->periode }}</td>
+                    <td><span class="badge-success">BERHASIL</span></td>
                 </tr>
-                @endforeach
+                @empty
+                <tr><td colspan="5" style="text-align:center; padding: 24px;">Belum ada riwayat transaksi simpanan.</td></tr>
+                @endforelse
             </tbody>
         </table>
     </div>
     
     <div id="tab-pinjaman" class="tab-content">
-        <div style="padding: 40px; text-align: center; color: #5f6368; border: 1px dashed #dadce0; border-radius: 8px;">
-            Konten Pinjaman (Fasilitas Aktif) akan ditampilkan di sini.
+        <div class="history-section-header">
+            <h3 class="history-title">Fasilitas Pinjaman (Aktif/Pending)</h3>
         </div>
+        <table class="table-history">
+            <thead>
+                <tr>
+                    <th>TANGGAL PENGAJUAN</th>
+                    <th>JENIS PINJAMAN</th>
+                    <th>JUMLAH KREDIT</th>
+                    <th>TENOR & BUNGA</th>
+                    <th>SISA TAGIHAN</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($pinjaman_berjalan as $p)
+                <tr>
+                    <td>{{ \Carbon\Carbon::parse($p->created_at)->format('d M Y') }}</td>
+                    <td style="font-weight: 500; color: #1a73e8;">{{ $p->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                    <td style="font-weight: 600; color: #111;">Rp {{ number_format($p->jumlah_pinjaman ?? $p->jumlah_pengajuan, 0, ',', '.') }}</td>
+                    <td style="color: #5f6368;">{{ $p->tenor }} Bln | {{ $p->bunga }}%</td>
+                    <td style="font-weight: 600; color: #e53e3e;">Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pengajuan + ($p->jumlah_pengajuan * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}</td>
+                    <td>
+                        @if($p->status == 'berjalan')
+                            <span class="badge-success" style="color:#004085; background-color:#cce5ff; border-color:#b8daff;">BERJALAN</span>
+                        @else
+                            <span class="badge-success" style="color:#856404; background-color:#fff3cd; border-color:#ffeeba;">PENDING</span>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" style="text-align:center; padding: 24px;">Tidak ada pinjaman yang sedang berjalan.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     
     <div id="tab-riwayat" class="tab-content">
-        <div style="padding: 40px; text-align: center; color: #5f6368; border: 1px dashed #dadce0; border-radius: 8px;">
-            Konten Riwayat (Pinjaman Lunas) akan ditampilkan di sini.
+        <div class="history-section-header">
+            <h3 class="history-title">Riwayat Pinjaman Selesai</h3>
         </div>
+        <table class="table-history">
+            <thead>
+                <tr>
+                    <th>TANGGAL PENGAJUAN</th>
+                    <th>JENIS PINJAMAN</th>
+                    <th>TOTAL KREDIT</th>
+                    <th>SISA TAGIHAN</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($pinjaman_lunas as $pl)
+                <tr>
+                    <td>{{ \Carbon\Carbon::parse($pl->created_at)->format('d M Y') }}</td>
+                    <td style="font-weight: 500;">{{ $pl->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                    <td style="font-weight: 600; color: #111;">Rp {{ number_format($pl->jumlah_pinjaman ?? $pl->jumlah_pengajuan, 0, ',', '.') }}</td>
+                    <td style="color: #5f6368;">Rp {{ number_format($pl->sisa_pinjaman, 0, ',', '.') }}</td>
+                    <td>
+                        @if($pl->status == 'lunas')
+                            <span class="badge-success">LUNAS</span>
+                        @else
+                            <span class="badge-success" style="color:#721c24; background-color:#f8d7da; border-color:#f5c6cb;">DITOLAK</span>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="5" style="text-align:center; padding: 24px;">Tidak ada riwayat pinjaman masa lalu.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
 </div>

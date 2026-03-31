@@ -49,11 +49,14 @@ Route::get('/', function () {
         ->name('simpanan.tagihangenerator.bayar');
     Route::resource('simpanan', SimpananController::class);
 
-    // ── Pinjaman ───────────────────────────────────────────
     Route::get('pinjaman', [App\Http\Controllers\PinjamanController::class, 'index'])->name('pinjaman.index');
     Route::get('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'pengajuan'])->name('pinjaman.pengajuan');
+    Route::post('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'storePengajuan'])->name('pinjaman.pengajuan.store');
+    Route::get('pinjaman/pengajuan/search-anggota', [App\Http\Controllers\PinjamanController::class, 'searchAnggota'])->name('pinjaman.pengajuan.searchAnggota');
     Route::get('pinjaman/pengajuan/create', [App\Http\Controllers\PinjamanController::class, 'create'])->name('pinjaman.pengajuan.create');
     Route::get('pinjaman/approval', [App\Http\Controllers\PinjamanController::class, 'approval'])->name('pinjaman.approval');
+    Route::post('pinjaman/approval/{id}/approve', [App\Http\Controllers\PinjamanController::class, 'approve'])->name('pinjaman.approval.approve');
+    Route::post('pinjaman/approval/{id}/reject', [App\Http\Controllers\PinjamanController::class, 'reject'])->name('pinjaman.approval.reject');
     Route::get('pinjaman/aktif', [App\Http\Controllers\PinjamanController::class, 'aktif'])->name('pinjaman.aktif');
     Route::get('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'angsuran'])->name('pinjaman.angsuran');
     Route::get('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'masterJenis'])->name('pinjaman.masterJenis');

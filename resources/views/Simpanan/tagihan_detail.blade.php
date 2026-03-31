@@ -103,6 +103,7 @@
     <form method="POST" action="{{ route('simpanan.tagihangenerator.bayar') }}">
         @csrf
         <input type="hidden" name="tagihan_id" value="{{ $tagihan->id }}">
+        <input type="hidden" name="tanggal_transaksi" value="{{ $tagihan->tanggal_generate }}">
         
         <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">

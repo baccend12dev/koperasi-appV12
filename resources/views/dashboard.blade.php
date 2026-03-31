@@ -106,7 +106,7 @@
             { id: 'simpanan', name: 'Simpanan', icon: 'fas fa-piggy-bank', color: 'text-pink-500', bgColor: 'bg-pink-100', url: '/simpanan' },
             { id: 'pinjaman', name: 'Pinjaman', icon: 'fas fa-hand-holding-dollar', color: 'text-green-500', bgColor: 'bg-green-100', url: '/pinjaman' },
             { id: 'akuntansi', name: 'Akuntansi', icon: 'fas fa-calculator', color: 'text-orange-500', bgColor: 'bg-orange-100' },
-            { id: 'kasir', name: 'Kasir / POS', icon: 'fas fa-cash-register', color: 'text-teal-500', bgColor: 'bg-teal-100' },
+            { id: 'kasir', name: 'Simulasi & Transaksi', icon: 'fas fa-cash-register', color: 'text-teal-500', bgColor: 'bg-teal-100' },
             { id: 'persetujuan', name: 'Persetujuan', icon: 'fas fa-check-double', color: 'text-indigo-500', bgColor: 'bg-indigo-100' },
             { id: 'dokumen', name: 'Dokumen', icon: 'fas fa-folder-open', color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
             { id: 'laporan', name: 'Laporan', icon: 'fas fa-chart-pie', color: 'text-red-500', bgColor: 'bg-red-100' },

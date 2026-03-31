@@ -23,15 +23,20 @@
 @section('page-title', 'Detail Simpanan: ' . ($master->anggota->nama_anggota ?? ''))
 
 @section('content')
+<!-- Include AlpineJS for local reactivity since it's missing -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <div class="px-6 py-4 space-y-6" x-data="{ 
     activeTab: 'setting',
     editSimpanan: 'Wajib',
     editNominal: {{ $master->simpanan_wajib }},
     editDate: '{{ $master->tanggal_mulai }}',
     setEdit(jenis, nominal) {
-        if(jenis === 'Pokok') return; // no action for pokok typically, but allowing if needed
         this.editSimpanan = jenis;
         this.editNominal = nominal;
+        this.$nextTick(() => {
+            this.$refs.nominalInput.focus();
+            this.$refs.nominalInput.select();
+        });
     }
 }">
     
@@ -140,7 +145,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     <!-- Pokok -->
-                    <tr class="hover:bg-gray-50/50 transition-colors cursor-default">
+                    <tr class="hover:bg-gray-50/50 transition-colors cursor-pointer" @click="setEdit('Pokok', {{ $master->simpanan_pokok }})">
                         <td class="px-6 py-4 flex items-center gap-3">
                             <div class="icon-box icon-pokok m-0 w-8 h-8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
                             <span class="font-bold text-gray-800">Pokok</span>
@@ -150,8 +155,10 @@
                         <td class="px-6 py-4">
                             <span style="font-size:11px; padding:2px 8px; border-radius:12px; background:#DEF7EC; color:#03543F; font-weight:600;">Aktif</span>
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="text-xs text-gray-400 font-medium italic">No Action</span>
+                        <td class="px-6 py-4 flex justify-center">
+                            <button class="border border-gray-200 hover:bg-gray-50 text-gray-500 p-2 rounded-lg transition-colors">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
                         </td>
                     </tr>
                     <!-- Wajib -->
@@ -214,7 +221,7 @@
                     <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wide">NOMINAL BARU (RP)</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-400 text-sm">Rp</span>
-                        <input type="number" name="nominal_baru" x-model="editNominal" required class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
+                        <input type="number" name="nominal_baru" x-ref="nominalInput" x-model="editNominal" required class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
                     </div>
                     <p class="text-[10px] text-gray-400 mt-1.5 italic">Nominal ini akan ditagihkan secara rutin setiap bulan.</p>
                 </div>

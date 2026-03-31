@@ -106,22 +106,30 @@ class AnggotaController extends Controller
     {
         $anggota = Anggota::with(['departemen', 'masterSimpanan'])->findOrFail($id);
         
-        // Data for new mockup design
-        $total_simpanan = 15450000;
-        $max_pinjaman = 25000000;
-        $pinjaman_aktif_amount = 10000000;
-        $sisa_pinjaman = 1200000;
-        $credit_score = 780;
+        $total_simpanan = $anggota->transaksiSimpanan()->sum('amount');
+        $max_pinjaman = $total_simpanan > 0 ? $total_simpanan * 5 : 20000000;
+        
+        $pinjaman_aktif_amount = $anggota->pinjamanAktif()->sum('jumlah_pinjaman');
+        $sisa_pinjaman = $anggota->pinjamanAktif()->sum('sisa_pinjaman');
+        $pengajuan_pending = \App\Models\LoanRequest::where('user_id', $anggota->id)->where('status', 'pending')->sum('jumlah_pengajuan');
+        $sisa_kuota = max(0, $max_pinjaman - $sisa_pinjaman - $pengajuan_pending);
 
-        $simpanan_pokok = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_pokok : 1000000;
-        $simpanan_wajib = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_wajib : 50000;
-        $simpanan_sukarela = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_sukarela : 100000;
+        $simpanan_pokok = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_pokok : 0;
+        $simpanan_wajib = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_wajib : 0;
+        $simpanan_sukarela = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_sukarela : 0;
 
-        $riwayat_simpanan = collect([
-            (object)['date' => '12 Mar 2026', 'type' => 'Mandatory Savings', 'color' => '#1a73e8', 'amount' => 50000, 'period' => 'Mar 2026', 'status' => 'SUCCESS'],
-            (object)['date' => '05 Mar 2026', 'type' => 'Voluntary Deposit', 'color' => '#fbbc04', 'amount' => 100000, 'period' => 'Mar 2026', 'status' => 'SUCCESS'],
-            (object)['date' => '12 Feb 2026', 'type' => 'Mandatory Savings', 'color' => '#1a73e8', 'amount' => 50000, 'period' => 'Feb 2026', 'status' => 'SUCCESS'],
-        ]);
+        $riwayat_simpanan = $anggota->transaksiSimpanan()->with('jenisSimpanan')->latest()->get();
+        
+        // Pinjaman fasilitas aktif & pengajuan
+        $pinjaman_berjalan = \App\Models\Pinjaman::where('user_id', $anggota->id)
+                                ->whereIn('status', ['berjalan', 'pending'])
+                                ->with('jenisPinjaman')
+                                ->latest()->get();
+                                
+        $pinjaman_lunas = \App\Models\Pinjaman::where('user_id', $anggota->id)
+                                ->whereIn('status', ['lunas', 'rejected'])
+                                ->with('jenisPinjaman')
+                                ->latest()->get();
 
         return view('anggota.show', compact(
             'anggota', 
@@ -129,11 +137,13 @@ class AnggotaController extends Controller
             'max_pinjaman', 
             'pinjaman_aktif_amount', 
             'sisa_pinjaman', 
-            'credit_score',
+            'sisa_kuota',
             'simpanan_pokok',
             'simpanan_wajib',
             'simpanan_sukarela',
-            'riwayat_simpanan'
+            'riwayat_simpanan',
+            'pinjaman_berjalan',
+            'pinjaman_lunas'
         ));
     }
 

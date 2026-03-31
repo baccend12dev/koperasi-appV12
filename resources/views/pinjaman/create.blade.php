@@ -327,7 +327,20 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
         </div>
 
         <!-- SECTION 4: Form pinjaman -->
-        <form id="form-pengajuan">
+        <form id="form-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}">
+        @csrf
+        <input type="hidden" name="user_id" id="user_id_input">
+        
+        @if ($errors->any())
+            <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 12px; border-radius: 8px; margin-bottom: 16px; color: #991b1b; font-size: 13px;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="create-card">
           <div class="cc-head">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 13V7.5l4.5-4.5 4.5 4.5V13" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><rect x="5.5" y="9" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/></svg>
@@ -336,11 +349,23 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
           <div class="cc-body">
             <div class="fg">
               <label class="lbl">Jenis Pinjaman <span class="req">*</span></label>
-              <select class="fc" id="jenis" onchange="onJenis()">
+              <select class="fc" id="jenis" name="jenis_pinjaman_id" onchange="onJenis()">
                 <option value="">— Pilih Jenis Pinjaman —</option>
-                <option value="reguler" data-bunga="1.2">Pinjaman Reguler</option>
-                <option value="darurat" data-bunga="1.5">Pinjaman Darurat</option>
-                <option value="barang"  data-bunga="1.0">Pinjaman Kendaraan/Barang</option>
+                @foreach($jenisPinjamanList as $jpParent)
+                    @if($jpParent->children->count() > 0)
+                        <optgroup label="{{ $jpParent->nama_pinjaman }}">
+                            @foreach($jpParent->children as $jpChild)
+                                <option value="{{ $jpChild->id }}" data-bunga="{{ $jpChild->bunga }}" data-nama="{{ $jpChild->nama_pinjaman }}" data-parent="{{ $jpParent->id }}" data-limit="{{ $jpParent->limit_maksimal ?? 0 }}">
+                                    {{ $jpChild->nama_pinjaman }}
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @else
+                        <option value="{{ $jpParent->id }}" data-bunga="{{ $jpParent->bunga }}" data-nama="{{ $jpParent->nama_pinjaman }}" data-parent="{{ $jpParent->id }}" data-limit="{{ $jpParent->limit_maksimal ?? 0 }}">
+                            {{ $jpParent->nama_pinjaman }}
+                        </option>
+                    @endif
+                @endforeach
               </select>
               <div class="aw" id="warn-jenis">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
@@ -352,7 +377,7 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
                 <label class="lbl">Jumlah Pinjaman <span class="req">*</span></label>
                 <div class="ig">
                   <span class="ia ia-l">Rp</span>
-                  <input class="fc" id="jumlah" type="number" placeholder="0" min="100000" step="100000" oninput="hitung()">
+                  <input class="fc" id="jumlah" name="jumlah_pengajuan" type="number" placeholder="0" min="100000" step="100000" oninput="hitung()" required>
                 </div>
                 <div class="ad" id="warn-limit">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v4M7 10h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
@@ -365,7 +390,7 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
               </div>
               <div class="fg">
                 <label class="lbl">Tenor <span class="req">*</span></label>
-                <select class="fc" id="tenor" onchange="hitung()">
+                <select class="fc" id="tenor" name="tenor" onchange="hitung()" required>
                   <option value="">— Pilih Tenor —</option>
                   <option value="6">6 bulan</option>
                   <option value="12">12 bulan</option>
@@ -378,13 +403,13 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
             <div class="fg">
               <label class="lbl">Bunga (% / bulan) <span class="hint">— otomatis dari jenis pinjaman</span></label>
               <div class="ig">
-                <input class="fc fcl" id="bunga" type="number" placeholder="0.00" step="0.1" min="0" max="100" oninput="hitung()">
+                <input class="fc fcl" id="bunga" name="bunga" type="number" placeholder="0.00" step="0.1" min="0" max="100" oninput="hitung()" readonly>
                 <span class="ia ia-r">% / bln</span>
               </div>
             </div>
             <div class="fg">
               <label class="lbl">Keterangan</label>
-              <textarea class="fc" placeholder="Masukkan keterangan tambahan jika diperlukan..."></textarea>
+              <textarea class="fc" name="keterangan" placeholder="Masukkan keterangan tambahan jika diperlukan..."></textarea>
             </div>
             <div class="sdiv"></div>
             <div class="abar">
@@ -392,7 +417,7 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 1 1 1.3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 9.5V6h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Reset
               </button>
-              <button class="btn-save" type="button">
+              <button class="btn-save" type="submit">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 6l3 3.5 6-5.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Buat Pengajuan
               </button>
@@ -451,38 +476,129 @@ textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
 <script>
 function rp(n){return'Rp '+(Math.round(n)||0).toLocaleString('id-ID')}
 
-// Demo search
-function cari(){
+// Database search
+let globalMaxLimit = 20000000;
+let currentMaxLimit = 20000000;
+let usagePerParent = {};
+async function cari(){
   const v=document.getElementById('nik').value.trim();
   if(!v)return;
   document.getElementById('spr').classList.add('show');
   document.getElementById('nf').classList.remove('show');
   document.getElementById('mp').classList.remove('show');
-  setTimeout(()=>{
-    document.getElementById('spr').classList.remove('show');
-    if(v.length>=3){
-      document.getElementById('mp').classList.add('show');
-    } else {
+  
+  try {
+      const res = await fetch(`{{ route('pinjaman.pengajuan.searchAnggota') }}?q=${encodeURIComponent(v)}`);
+      const data = await res.json();
+      document.getElementById('spr').classList.remove('show');
+      
+      if(data.success) {
+          const d = data.data;
+          document.getElementById('m-nama').textContent = d.nama;
+          document.getElementById('m-nik').textContent = `NIK: ${d.nik}`;
+          document.getElementById('m-tgl').textContent = d.tgl_masuk;
+          document.getElementById('m-simp').textContent = rp(d.total_simpanan);
+          document.getElementById('m-maks').textContent = rp(d.maks_pinjaman);
+          document.getElementById('m-aktif').textContent = rp(d.pinjaman_aktif);
+          document.getElementById('m-sisa').textContent = rp(d.sisa_limit);
+          document.getElementById('hint-maks').textContent = rp(d.sisa_limit);
+          document.getElementById('av').textContent = d.nama.substring(0, 2).toUpperCase();
+          
+          document.getElementById('user_id_input').value = d.user_id;
+          
+          globalMaxLimit = d.sisa_limit;
+          currentMaxLimit = d.sisa_limit;
+          usagePerParent = d.usage_per_parent || {};
+          
+          const pct = d.maks_pinjaman > 0 ? (d.pinjaman_aktif / d.maks_pinjaman * 100) : 0;
+          document.getElementById('bar').style.width = pct + '%';
+          document.querySelector('.bar-lbl').innerHTML = `<span>${pct.toFixed(1)}% terpakai</span><span>Sisa ${rp(d.sisa_limit)}</span>`;
+          
+          const ptbody = document.getElementById('ptbody');
+          ptbody.innerHTML = '';
+          if(d.pinjaman_berjalan.length > 0) {
+              document.getElementById('badge-n').textContent = d.pinjaman_berjalan.length;
+              d.pinjaman_berjalan.forEach(p => {
+                  ptbody.innerHTML += `<tr>
+                      <td>${p.jenis_pinjaman}</td>
+                      <td style="text-align:center">${p.sisa_tenor}</td>
+                      <td style="text-align:right">${rp(p.sisa_tagihan)}</td>
+                      <td><span class="sp-pill sp-aktif">aktif</span></td>
+                  </tr>`;
+              });
+          } else {
+              document.getElementById('badge-n').textContent = '0';
+              ptbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9CA3AF;padding:16px;">Belum ada pinjaman berjalan</td></tr>`;
+          }
+          
+          document.querySelectorAll('.aw.show, .ad.show').forEach(el => el.classList.remove('show'));
+          hitung();
+          onJenis();
+          
+          document.getElementById('mp').classList.add('show');
+      } else {
+          document.getElementById('nf').classList.add('show');
+      }
+  } catch(e) {
+      document.getElementById('spr').classList.remove('show');
       document.getElementById('nf').classList.add('show');
-    }
-  },800);
+      console.error(e);
+  }
 }
 
 function onJenis(){
   const sel=document.getElementById('jenis');
-  const b=sel.options[sel.selectedIndex]?.dataset?.bunga||'';
+  const opt=sel.options[sel.selectedIndex];
+  if(!opt) return;
+  const b=opt.dataset?.bunga||'';
   document.getElementById('bunga').value=b;
-  // warn jika reguler (sudah ada)
-  document.getElementById('warn-jenis').classList.toggle('show', sel.value==='reguler');
+  const selText = opt.dataset?.nama||'';
+  const hasSame = Array.from(document.querySelectorAll('#ptbody td:first-child')).some(td => td.textContent.trim() === selText.trim());
+  document.getElementById('warn-jenis').classList.toggle('show', sel.value && hasSame);
+  
+  const parentId = opt.dataset?.parent;
+  const limitParent = parseFloat(opt.dataset?.limit) || 0;
+  
+  if (limitParent > 0 && parentId) {
+      const usage = usagePerParent[parentId] || 0;
+      const specificLimit = Math.max(0, limitParent - usage);
+      currentMaxLimit = Math.min(globalMaxLimit, specificLimit);
+  } else {
+      currentMaxLimit = globalMaxLimit;
+  }
+  
+  document.getElementById('hint-maks').textContent = rp(currentMaxLimit);
+  
+  const inputJumlah = document.getElementById('jumlah');
+  inputJumlah.max = currentMaxLimit;
+  if(currentMaxLimit <= 0) {
+      inputJumlah.value = '';
+      inputJumlah.disabled = true;
+      inputJumlah.placeholder = 'Limit habis';
+  } else {
+      inputJumlah.disabled = false;
+      inputJumlah.placeholder = '0';
+  }
+  
   hitung();
 }
 
 function hitung(){
-  const j=parseFloat(document.getElementById('jumlah').value)||0;
+  const inputJumlah = document.getElementById('jumlah');
+  let j=parseFloat(inputJumlah.value)||0;
   const t=parseFloat(document.getElementById('tenor').value)||0;
   const b=parseFloat(document.getElementById('bunga').value)||0;
-  const maxLimit=20000000;
-  document.getElementById('warn-limit').classList.toggle('show', j>maxLimit && j>0);
+  const maxLimit=currentMaxLimit;
+  
+  if (j > maxLimit && maxLimit >= 0) {
+      j = maxLimit;
+      inputJumlah.value = j;
+      document.getElementById('warn-limit').classList.add('show');
+      setTimeout(() => document.getElementById('warn-limit').classList.remove('show'), 3000);
+  } else {
+      document.getElementById('warn-limit').classList.remove('show');
+  }
+  
   const tb=j*(b/100)*t;
   const total=j+tb;
   const cicilan=t>0?total/t:0;
@@ -524,7 +640,12 @@ function toggleSim(btn){
 function resetF(){
   document.getElementById('nik').value='';
   document.getElementById('jenis').value='';
-  document.getElementById('jumlah').value='';
+  
+  const inputJumlah = document.getElementById('jumlah');
+  inputJumlah.value='';
+  inputJumlah.disabled = false;
+  inputJumlah.placeholder = '0';
+  
   document.getElementById('tenor').value='';
   document.getElementById('bunga').value='';
   document.getElementById('mp').classList.remove('show');

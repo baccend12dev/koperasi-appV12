@@ -14,13 +14,18 @@ class Pinjaman extends Model
         return $this->belongsTo(LoanRequest::class, 'loan_request_id');
     }
 
-    public function user()
+    public function anggota()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Anggota::class, 'user_id');
     }
 
     public function angsuran()
     {
         return $this->hasMany(PinjamanAngsuran::class, 'loan_id');
+    }
+
+    public function jenisPinjaman()
+    {
+        return $this->belongsTo(MasterJenisPinjaman::class, 'jenis_pinjaman_id');
     }
 }

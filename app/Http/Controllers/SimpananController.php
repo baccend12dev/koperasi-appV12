@@ -15,6 +15,7 @@ class SimpananController extends Controller
     public function showTagihan($id)
     {
         $tagihan = TagihanSimpanan::with('details.anggota')->findOrFail($id);
+        // dd($tagihan);
         return view('simpanan.tagihan_detail', compact('tagihan'));
     }
 
@@ -23,7 +24,8 @@ class SimpananController extends Controller
         $request->validate([
             'tagihan_id' => 'required|exists:tagihan_simpanans,id',
             'detail_ids' => 'required|array|min:1',
-            'detail_ids.*' => 'exists:tagihan_simpanan_details,id'
+            'detail_ids.*' => 'exists:tagihan_simpanan_details,id',
+            'tanggal_transaksi' => 'required|date',
         ]);
 
         DB::beginTransaction();
@@ -45,7 +47,7 @@ class SimpananController extends Controller
                         'anggota_id' => $detail->anggota_id,
                         'jenis_simpanan_id' => $wajibId,
                         'amount' => $detail->simpanan_wajib,
-                        'transaction_date' => date('Y-m-d'),
+                        'transaction_date' => $request->tanggal_transaksi,
                         'periode' => $tagihan->periode,
                         'description' => 'Pembayaran Tagihan Wajib Periode ' . $tagihan->periode
                     ]);
@@ -55,7 +57,7 @@ class SimpananController extends Controller
                         'anggota_id' => $detail->anggota_id,
                         'jenis_simpanan_id' => $pokokId,
                         'amount' => $detail->simpanan_pokok,
-                        'transaction_date' => date('Y-m-d'),
+                        'transaction_date' => $request->tanggal_transaksi,
                         'periode' => $tagihan->periode,
                         'description' => 'Pembayaran Tagihan Pokok Periode ' . $tagihan->periode
                     ]);
@@ -65,7 +67,7 @@ class SimpananController extends Controller
                         'anggota_id' => $detail->anggota_id,
                         'jenis_simpanan_id' => $sukarelaId,
                         'amount' => $detail->simpanan_sukarela,
-                        'transaction_date' => date('Y-m-d'),
+                        'transaction_date' => $request->tanggal_transaksi,
                         'periode' => $tagihan->periode,
                         'description' => 'Pembayaran Tagihan Sukarela Periode ' . $tagihan->periode
                     ]);

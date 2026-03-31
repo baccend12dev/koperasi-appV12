@@ -17,4 +17,14 @@ class LoanRequest extends Model
     {
         return $this->hasOne(Pinjaman::class, 'loan_request_id');
     }
+
+    public function jenisPinjaman()
+    {
+        return $this->belongsTo(MasterJenisPinjaman::class, 'jenis_pinjaman_id');
+    }
+
+    public function anggota()
+    {
+        return $this->belongsTo(Anggota::class, 'user_id');
+    }
 }

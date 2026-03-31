@@ -33,21 +33,44 @@ class Anggota extends Model
         return $this->belongsTo(Departemen::class, 'department_id');
     }
 
-    /** Relasi ke manajer (self-referential) */
-    public function manajer()
-    {
-        return $this->belongsTo(Anggota::class, 'manajer_id');
-    }
-
-    /** Anggota yang dikelola oleh anggota ini */
-    public function bawahannya()
-    {
-        return $this->hasMany(Anggota::class, 'manajer_id');
-    }
-
     /** Relasi ke Master Simpanan */
     public function masterSimpanan()
     {
         return $this->hasOne(MasterSimpanan::class, 'anggota_id');
+    }
+
+    public function transaksiSimpanan()
+    {
+        return $this->hasMany(TransaksiSimpanan::class, 'anggota_id');
+    }
+
+    public function pinjaman()
+    {
+        return $this->hasMany(Pinjaman::class, 'user_id');
+    }
+
+    public function pinjamanAktif()
+    {
+        return $this->hasMany(Pinjaman::class, 'user_id')->where('status', 'berjalan');
+    }
+
+    public function pinjamanPending()
+    {
+        return $this->hasMany(Pinjaman::class, 'user_id')->where('status', 'pending');
+    }
+
+    public function pinjamanApproved()
+    {
+        return $this->hasMany(Pinjaman::class, 'user_id')->where('status', 'approved');
+    }
+
+    public function pinjamanRejected()
+    {
+        return $this->hasMany(Pinjaman::class, 'user_id')->where('status', 'rejected');
+    }
+
+    public function pinjamanLunas()
+    {
+        return $this->hasMany(Pinjaman::class, 'user_id')->where('status', 'lunas');
     }
 }
