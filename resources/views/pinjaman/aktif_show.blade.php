@@ -109,6 +109,48 @@
 }
 .s-sub svg { flex-shrink: 0; }
 
+/* ── Sisa card with breakdown ── */
+.sisa-wrapper {
+    display: flex;
+    gap: 0;
+}
+.sisa-main {
+    flex: 1;
+    min-width: 0;
+}
+.sisa-divider {
+    width: 1px;
+    background: #E5E7EB;
+    margin: 0 18px;
+    align-self: stretch;
+}
+.sisa-breakdown {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    min-width: 160px;
+}
+.sisa-breakdown .bd-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.sisa-breakdown .bd-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #9CA3AF;
+}
+.sisa-breakdown .bd-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #374151;
+}
+.sisa-breakdown .bd-value.pokok { color: #1e40af; }
+.sisa-breakdown .bd-value.bunga { color: #b45309; }
+
 /* ── Progress bar ── */
 .prog-track {
     height: 8px;
@@ -239,14 +281,29 @@
 
         {{-- Sisa Pinjaman --}}
         <div class="s-card sisa">
-            <div class="s-label">Sisa Pinjaman</div>
-            <div class="s-amount">Rp {{ number_format($pinjaman->sisa_pinjaman, 0, ',', '.') }}</div>
-            <div class="s-sub">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M3 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                @php
-                    $sisaPersen = $pinjaman->total_pinjaman > 0 ? round(($pinjaman->sisa_pinjaman / $pinjaman->total_pinjaman) * 100, 1) : 0;
-                @endphp
-                ~ {{ $sisaPersen }}% dari total pinjaman
+            <div class="sisa-wrapper">
+                <div class="sisa-main">
+                    <div class="s-label">Sisa Pinjaman</div>
+                    <div class="s-amount">Rp {{ number_format($pinjaman->sisa_pinjaman, 0, ',', '.') }}</div>
+                    <div class="s-sub">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M3 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        @php
+                            $sisaPersen = $pinjaman->total_pinjaman > 0 ? round(($pinjaman->sisa_pinjaman / $pinjaman->total_pinjaman) * 100, 1) : 0;
+                        @endphp
+                        ~ {{ $sisaPersen }}% dari total pinjaman
+                    </div>
+                </div>
+                <div class="sisa-divider"></div>
+                <div class="sisa-breakdown">
+                    <div class="bd-item">
+                        <span class="bd-label">Pinjaman Pokok</span>
+                        <span class="bd-value pokok">Rp {{ number_format($pinjaman->jumlah_pinjaman, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="bd-item">
+                        <span class="bd-label">Total Bunga ({{ $pinjaman->bunga }}%)</span>
+                        <span class="bd-value bunga">Rp {{ number_format($pinjaman->total_bunga, 0, ',', '.') }}</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -269,7 +326,7 @@
             </div>
             <div class="prog-label">
                 <span>Target selesai:</span>
-                <span>{{ $pinjaman->tanggal_selesai ? \Carbon\Carbon::parse($pinjaman->tanggal_selesai)->format('d M Y') : '-' }}</span>
+                <span>{{ $pinjaman->tanggal_selesai ? \Carbon\Carbon::parse($pinjaman->tanggal_selesai)->format('M Y') : '-' }}</span>
             </div>
         </div>
     </div>
