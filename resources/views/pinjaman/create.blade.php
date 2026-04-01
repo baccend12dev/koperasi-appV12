@@ -619,10 +619,11 @@ function renderSim(j,t,b){
   const tbody=document.getElementById('sim-body');
   tbody.innerHTML='';
   if(!j||!t)return;
-  const pp=j/t; let sisa=j;
+  const pp=j/t; 
+  const bi=j*(b/100);
+  const ci=pp+bi;
+  let sisa=j;
   for(let i=1;i<=Math.min(t,8);i++){
-    const bi=sisa*(b/100);
-    const ci=pp+bi;
     sisa-=pp;
     tbody.innerHTML+=`<tr><td>${i}</td><td>${rp(pp)}</td><td>${rp(bi)}</td><td>${rp(ci)}</td><td>${rp(Math.max(0,sisa))}</td></tr>`;
   }

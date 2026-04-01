@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('loan_id');
             $table->integer('angsuran_ke');
-            $table->date('tanggal_jatuh_tempo');
+            $table->date('tanggal_jatuh_tempo')->nullable();
             $table->decimal('jumlah_tagihan', 15, 2);
             $table->decimal('jumlah_dibayar', 15, 2)->default(0);
             $table->date('tanggal_bayar')->nullable();
-            
+            $table->date('paid_at')->nullable();
+            $table->unsignedBigInteger('payment_id')->nullable();
             // Status
             $table->enum('status', ['belum_bayar', 'sudah_bayar'])->default('belum_bayar');
             

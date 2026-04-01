@@ -58,6 +58,7 @@ Route::get('/', function () {
     Route::post('pinjaman/approval/{id}/approve', [App\Http\Controllers\PinjamanController::class, 'approve'])->name('pinjaman.approval.approve');
     Route::post('pinjaman/approval/{id}/reject', [App\Http\Controllers\PinjamanController::class, 'reject'])->name('pinjaman.approval.reject');
     Route::get('pinjaman/aktif', [App\Http\Controllers\PinjamanController::class, 'aktif'])->name('pinjaman.aktif');
+    Route::get('pinjaman/aktif/{id}', [App\Http\Controllers\PinjamanController::class, 'showAktif'])->name('pinjaman.aktif.show');
     Route::get('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'angsuran'])->name('pinjaman.angsuran');
     Route::get('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'masterJenis'])->name('pinjaman.masterJenis');
     Route::post('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'storeMasterJenis'])->name('pinjaman.masterJenis.store');

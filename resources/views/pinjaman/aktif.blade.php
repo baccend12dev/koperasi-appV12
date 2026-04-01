@@ -244,9 +244,9 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <button title="Detail Pinjaman" style="color:#6366f1; font-weight:600; font-size:13px; background:none; border:none; cursor:pointer;">
+                                <a href="{{ route('pinjaman.aktif.show', $item->id) }}" title="Detail Pinjaman" style="color:#6366f1; font-weight:600; font-size:13px; text-decoration:none;">
                                     Detail
-                                </button>
+                                </a>
                             </td>
                         </tr>
                     @empty

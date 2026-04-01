@@ -163,6 +163,18 @@ class PinjamanController extends Controller
         return view('pinjaman.aktif', compact('pinjaman_list', 'jenisPinjamanList', 'totalPinjamanBerjalan', 'countBerjalan'));
     }
 
+    public function showAktif($id) {
+        $pinjaman = Pinjaman::with(['anggota', 'jenisPinjaman', 'angsuran' => function($q) {
+            $q->orderBy('angsuran_ke', 'asc');
+        }])->findOrFail($id);
+
+        $angsuranLunas = $pinjaman->angsuran->where('status', 'sudah_bayar')->count();
+        $totalAngsuran = $pinjaman->angsuran->count();
+        $progressPersen = $totalAngsuran > 0 ? round(($angsuranLunas / $totalAngsuran) * 100) : 0;
+
+        return view('pinjaman.aktif_show', compact('pinjaman', 'angsuranLunas', 'totalAngsuran', 'progressPersen'));
+    }
+
     public function approve($id) {
         $loanRequest = LoanRequest::findOrFail($id);
         
@@ -177,7 +189,7 @@ class PinjamanController extends Controller
                 'approved_at' => now(),
             ]);
 
-            \App\Models\Pinjaman::create([
+            $pinjaman = \App\Models\Pinjaman::create([
                 'loan_request_id'   => $loanRequest->id,
                 'user_id'           => $loanRequest->user_id,
                 'jenis_pinjaman_id' => $loanRequest->jenis_pinjaman_id,
@@ -194,6 +206,18 @@ class PinjamanController extends Controller
                 'tanggal_mulai'     => now(),
                 'tanggal_selesai'   => now()->addMonths($loanRequest->tenor)
             ]);
+
+            // Generate otomatis data angsuran (cicilan) sejumlah tenor
+            for ($i = 1; $i <= $pinjaman->tenor; $i++) {
+                \App\Models\PinjamanAngsuran::create([
+                    'loan_id'             => $pinjaman->id,
+                    'angsuran_ke'         => $i,
+                    'tanggal_jatuh_tempo' => null, // Sesuai permintaan: tanggal jatuh tempo dikosongkan dahulu
+                    'jumlah_tagihan'      => $pinjaman->cicilan_per_bulan,
+                    'jumlah_dibayar'      => 0,
+                    'status'              => 'belum_bayar',
+                ]);
+            }
         });
 
         return back()->with('success', 'Pengajuan berhasil disetujui.');
