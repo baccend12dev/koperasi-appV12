@@ -353,7 +353,7 @@
                 <thead>
                     <tr>
                         <th>Angsuran Ke-</th>
-                        <th>Jatuh Tempo</th>
+                        <th>Type Bayar</th>
                         <th>Tanggal Bayar</th>
                         <th>Jumlah Tagihan</th>
                         <th>Jumlah Dibayar</th>
@@ -365,7 +365,7 @@
                         <tr>
                             <td>{{ $row->angsuran_ke }}</td>
                             <td style="text-align:center">
-                                {{ $row->tanggal_jatuh_tempo ? \Carbon\Carbon::parse($row->tanggal_jatuh_tempo)->format('d M Y') : '-' }}
+                                {{ $row->type ? $row->type : '-' }}
                             </td>
                             <td style="text-align:center">
                                 {{ $row->tanggal_bayar ? \Carbon\Carbon::parse($row->tanggal_bayar)->format('d M Y') : '-' }}

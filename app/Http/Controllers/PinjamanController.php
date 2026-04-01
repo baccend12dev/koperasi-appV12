@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Pinjaman;
 use App\Models\LoanRequest;
+use App\Models\PinjamanAngsuran;
+use App\Models\PembayaranAngsuran;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PinjamanController extends Controller
 {
@@ -359,6 +362,142 @@ class PinjamanController extends Controller
                 'usage_per_parent' => $usagePerParent
             ]
         ]);
+    }
+
+    public function angsuran(Request $request) {
+        // List all tagihan batches
+        $tagihanList = \App\Models\TagihanPinjaman::latest()->paginate(10);
+
+        // For the generate modal: get all pinjaman berjalan with their unpaid angsuran
+        $pinjamanAktif = Pinjaman::with(['anggota', 'jenisPinjaman', 'angsuran' => function($q) {
+            $q->where('status', 'belum_bayar')->orderBy('angsuran_ke', 'asc');
+        }])->where('status', 'berjalan')
+          ->whereHas('angsuran', function($q) {
+              $q->where('status', 'belum_bayar');
+          })->get();
+
+        return view('pinjaman.angsuran', compact('tagihanList', 'pinjamanAktif'));
+    }
+
+    public function storeAngsuran(Request $request) {
+        $request->validate([
+            'periode' => 'required',
+            'tanggal_tagihan' => 'required|date',
+            'angsuran_ids' => 'required|array|min:1',
+            'angsuran_ids.*' => 'exists:pinjaman_angsurans,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $angsurans = PinjamanAngsuran::with('pinjaman.anggota')
+                ->whereIn('id', $request->angsuran_ids)
+                ->where('status', 'belum_bayar')
+                ->get();
+
+            $totalTagihan = $angsurans->sum('jumlah_tagihan');
+
+            $tagihan = \App\Models\TagihanPinjaman::create([
+                'periode' => date('F Y', strtotime($request->periode)),
+                'tanggal_tagihan' => $request->tanggal_tagihan,
+                'type' => count($request->angsuran_ids) == PinjamanAngsuran::where('status', 'belum_bayar')->count()
+                    ? 'Semua Anggota' : 'By Checklist',
+                'total' => $totalTagihan,
+                'status' => 'Draft',
+            ]);
+
+            // Link angsuran records to this tagihan batch
+            PinjamanAngsuran::whereIn('id', $request->angsuran_ids)->update([
+                'tagihan_pinjaman_id' => $tagihan->id,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('pinjaman.angsuran')->with('success', 'Tagihan angsuran berhasil di-generate.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function showAngsuran($id) {
+        $tagihan = \App\Models\TagihanPinjaman::findOrFail($id);
+        $details = PinjamanAngsuran::with(['pinjaman.anggota', 'pinjaman.jenisPinjaman'])
+            ->where('tagihan_pinjaman_id', $id)
+            ->orderBy('loan_id')
+            ->orderBy('angsuran_ke')
+            ->get();
+
+        return view('pinjaman.angsuran_show', compact('tagihan', 'details'));
+    }
+
+    public function bayarAngsuran(Request $request) {
+        $request->validate([
+            'tagihan_id' => 'required|exists:tagihan_pinjamans,id',
+            'detail_ids' => 'required|array|min:1',
+            'detail_ids.*' => 'exists:pinjaman_angsurans,id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $tagihan = \App\Models\TagihanPinjaman::findOrFail($request->tagihan_id);
+            $details = PinjamanAngsuran::whereIn('id', $request->detail_ids)
+                ->where('tagihan_pinjaman_id', $tagihan->id)
+                ->where('status', 'belum_bayar')
+                ->get();
+
+            foreach ($details as $angsuran) {
+                // 1. Create payment transaction record
+                $pembayaran = PembayaranAngsuran::create([
+                    'type_bayar' => 'normal',
+                    'jumlah' => $angsuran->jumlah_tagihan,
+                    'user_id' => $angsuran->pinjaman->user_id,
+                    'loan_id' => $angsuran->loan_id,
+                    'angsuran_id' => $angsuran->id,
+                    'tanggal_bayar' => now()->toDateString(),
+                ]);
+
+                // 2. Mark angsuran as paid & link to payment
+                $angsuran->update([
+                    'status' => 'sudah_bayar',
+                    'jumlah_dibayar' => $angsuran->jumlah_tagihan,
+                    'tanggal_bayar' => now()->toDateString(),
+                    'paid_at' => now()->toDateString(),
+                    'payment_id' => $pembayaran->id,
+                ]);
+
+                // 3. Update pinjaman tracking
+                $pinjaman = $angsuran->pinjaman;
+                $pinjaman->update([
+                    'total_terbayar' => $pinjaman->total_terbayar + $angsuran->jumlah_tagihan,
+                    'sisa_pinjaman' => $pinjaman->sisa_pinjaman - $angsuran->jumlah_tagihan,
+                    'sisa_tenor' => $pinjaman->sisa_tenor - 1,
+                ]);
+
+                // 4. If all angsuran paid, mark pinjaman as lunas
+                $remaining = PinjamanAngsuran::where('loan_id', $pinjaman->id)
+                    ->where('status', 'belum_bayar')->count();
+                if ($remaining === 0) {
+                    $pinjaman->update(['status' => 'lunas']);
+                }
+            }
+
+            // 5. Update tagihan batch status
+            $totalDetails = PinjamanAngsuran::where('tagihan_pinjaman_id', $tagihan->id)->count();
+            $lunasDetails = PinjamanAngsuran::where('tagihan_pinjaman_id', $tagihan->id)->where('status', 'sudah_bayar')->count();
+
+            if ($lunasDetails == $totalDetails) {
+                $tagihan->update(['status' => 'Paid']);
+            } elseif ($lunasDetails > 0) {
+                $tagihan->update(['status' => 'Partial']);
+            }
+
+            DB::commit();
+
+            return back()->with('success', 'Pembayaran angsuran berhasil diproses!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
+        }
     }
 
     public function masterJenis() { 

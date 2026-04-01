@@ -1,7 +1,7 @@
-{{-- resources/views/simpanan/show.blade.php --}}
+{{-- resources/views/Simpanan/show.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Detail Simpanan Anggota')
+@section('title', 'Detail Simpanan: ' . ($master->anggota->nama_anggota ?? ''))
 
 {{-- ── Topbar nav ── --}}
 @section('topbar-nav')
@@ -12,283 +12,471 @@
 @endsection
 
 @section('subbar-actions')
-    <a href="{{ route('simpanan.index') }}" class="btn-secondary" style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <a href="{{ route('simpanan.index') }}" class="btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;margin-right:4px;">
             <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
         Kembali
     </a>
 @endsection
 
-@section('page-title', 'Detail Simpanan: ' . ($master->anggota->nama_anggota ?? ''))
+@section('page-title', 'Detail Simpanan')
 
 @section('content')
-<!-- Include AlpineJS for local reactivity since it's missing -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<div class="px-6 py-4 space-y-6" x-data="{ 
-    activeTab: 'setting',
-    editSimpanan: 'Wajib',
-    editNominal: {{ $master->simpanan_wajib }},
-    editDate: '{{ $master->tanggal_mulai }}',
-    setEdit(jenis, nominal) {
-        this.editSimpanan = jenis;
-        this.editNominal = nominal;
-        this.$nextTick(() => {
-            this.$refs.nominalInput.focus();
-            this.$refs.nominalInput.select();
-        });
+<style>
+    /* ── Header Strip ── */
+    .sp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
     }
-}">
-    
-    <style>
-        .stats-grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-        .stat-card-dark {
-            background:#0B1727; border-radius:12px; padding:24px; color:#fff; position:relative; overflow:hidden;
-        }
-        .stat-card-light {
-            background:#fff; border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.05); border:1px solid #f1f5f9;
-        }
-        .icon-box {
-            width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
-        }
-        .icon-pokok { background: #F3F4F6; color: #6B7280; }
-        .icon-wajib { background: #EFF6FF; color: #3B82F6; }
-        .icon-sukarela { background: #FEF3C7; color: #D97706; }
-        
-        .tabs-header {
-            display: flex; gap: 30px; border-bottom: 1px solid #E5E7EB; margin-bottom: 20px;
-        }
-        .tab-btn {
-            padding: 12px 0; font-weight: 600; font-size: 14px; color: #6B7280; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
-        }
-        .tab-btn:hover { color: #111827; }
-        .tab-btn.active { color: #2563EB; border-bottom-color: #2563EB; }
+    .sp-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .sp-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .sp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .sp-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-1);
+        margin: 0;
+        line-height: 1.3;
+    }
+    .sp-meta {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 2px;
+        font-size: 12px;
+        color: var(--text-2);
+    }
+    .sp-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .sp-badge-aktif {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        background: var(--green-bg);
+        color: var(--green-text);
+    }
 
-        .form-input { w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-500 }
-    </style>
+    /* ── Summary Bar ── */
+    .sp-summary {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+    }
+    .sp-sum-item {
+        flex: 1;
+        padding: 16px 28px;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .sp-sum-item:last-child { border-right: none; }
+    .sp-sum-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-3);
+    }
+    .sp-sum-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-1);
+        line-height: 1.3;
+        font-variant-numeric: tabular-nums;
+    }
+    .sp-sum-value.accent { color: var(--accent); }
+    .sp-sum-sub {
+        font-size: 11px;
+        color: var(--text-3);
+        margin-top: 1px;
+    }
 
-    {{-- 1. Top Cards --}}
-    <div class="stats-grid-4">
-        <div class="stat-card-dark">
-            <div class="text-gray-400 text-[10px] font-bold tracking-wider mb-2 uppercase">TOTAL KESELURUHAN</div>
-            <div class="text-2xl font-bold text-white mb-2">Rp {{ number_format($totalKeseluruhan, 0, ',', '.') }}</div>
-            <div class="text-xs text-green-400 font-medium">
-                <svg class="inline w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                Terakumulasi
+    /* ── Tabs ── */
+    .sp-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        padding: 0 28px;
+        gap: 0;
+    }
+    .sp-tab {
+        padding: 11px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-2);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color .15s, border-color .15s;
+        background: none;
+        border-top: none; border-left: none; border-right: none;
+    }
+    .sp-tab:hover { color: var(--accent); }
+    .sp-tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+    }
+
+    /* ── Tab Body ── */
+    .sp-tab-body { display: none; }
+    .sp-tab-body.active { display: block; }
+
+    /* ── Table ── */
+    .sp-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .sp-table thead th {
+        text-align: left;
+        padding: 10px 28px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-3);
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+        white-space: nowrap;
+    }
+    .sp-table tbody td {
+        padding: 12px 28px;
+        font-size: 13px;
+        color: var(--text-1);
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+    .sp-table tbody tr:last-child td { border-bottom: none; }
+    .sp-table tbody tr:hover { background: var(--bg); }
+    .sp-empty {
+        text-align: center;
+        padding: 40px 28px !important;
+        color: var(--text-3);
+        font-size: 13px;
+    }
+
+    /* ── Dot indicator ── */
+    .sp-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
+    .dot-pokok    { background: #F57C00; }
+    .dot-wajib    { background: var(--green-text); }
+    .dot-sukarela { background: var(--accent); }
+
+    /* ── Badges ── */
+    .sp-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+    .sp-badge-green  { background: var(--green-bg);  color: var(--green-text); }
+    .sp-badge-blue   { background: #E6F1FB; color: #185FA5; }
+    .sp-badge-orange { background: var(--amber-bg);  color: var(--amber-text); }
+
+    /* ── Edit Form (inline panel) ── */
+    .sp-form-panel {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+    }
+    .sp-form-grid {
+        display: grid;
+        grid-template-columns: 200px 200px 200px auto;
+        align-items: end;
+        gap: 16px;
+    }
+    .sp-form-group { display: flex; flex-direction: column; gap: 4px; }
+    .sp-form-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-3);
+    }
+    .sp-form-input {
+        height: 34px;
+        padding: 0 10px;
+        font-size: 13px;
+        color: var(--text-1);
+        background: var(--surface);
+        border: 1px solid var(--border-md);
+        border-radius: var(--radius-md);
+        outline: none;
+        transition: border-color .15s, box-shadow .15s;
+        font-family: var(--font);
+        width: 100%;
+    }
+    .sp-form-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(92,79,138,0.12);
+    }
+    .sp-form-input[readonly] {
+        background: var(--bg);
+        color: var(--text-2);
+        cursor: default;
+    }
+    .sp-amount-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+</style>
+
+<div>
+
+    {{-- 1 ▸ Header Strip --}}
+    <div class="sp-header">
+        <div class="sp-header-left">
+            <div class="sp-avatar">
+                @if($master->anggota->foto ?? false)
+                    <img src="{{ Storage::url($master->anggota->foto) }}" alt="{{ $master->anggota->nama_anggota }}">
+                @else
+                    {{ strtoupper(substr($master->anggota->nama_anggota ?? 'AN', 0, 2)) }}
+                @endif
+            </div>
+            <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <h1 class="sp-name">{{ $master->anggota->nama_anggota ?? '—' }}</h1>
+                    <span class="sp-badge-aktif">{{ $master->aktif ? 'Aktif' : 'Nonaktif' }}</span>
+                </div>
+                <div class="sp-meta">
+                    <div class="sp-meta-item">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {{ $master->anggota->nik ?? 'N/A' }}
+                    </div>
+                    <div class="sp-meta-item">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        {{ $master->anggota->departemen->nama ?? '—' }}
+                    </div>
+                    <div class="sp-meta-item">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Mulai {{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d M Y') }}
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="stat-card-light">
-            <div class="icon-box icon-pokok">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-            </div>
-            <div class="text-gray-400 text-[10px] font-bold tracking-wider mb-1 uppercase">SIMPANAN POKOK</div>
-            <div class="text-xl font-bold text-gray-800 mb-1">Rp {{ number_format($master->simpanan_pokok, 0, ',', '.') }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Sekali bayar di awal</div>
-        </div>
-
-        <div class="stat-card-light">
-            <div class="icon-box icon-wajib">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </div>
-            <div class="text-gray-400 text-[10px] font-bold tracking-wider mb-1 uppercase">SIMPANAN WAJIB</div>
-            <div class="text-xl font-bold text-gray-800 mb-1">Rp {{ number_format($master->simpanan_wajib, 0, ',', '.') }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Per bulan (Rutin)</div>
-        </div>
-
-        <div class="stat-card-light">
-            <div class="icon-box icon-sukarela">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-            </div>
-            <div class="text-gray-400 text-[10px] font-bold tracking-wider mb-1 uppercase">SIMPANAN SUKARELA</div>
-            <div class="text-xl font-bold text-gray-800 mb-1">Rp {{ number_format($master->simpanan_sukarela, 0, ',', '.') }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Kontribusi fleksibel</div>
+        <div>
+            <a href="{{ route('anggota.show', $master->anggota_id) }}" class="btn-secondary">
+                Lihat Profil Anggota
+            </a>
         </div>
     </div>
 
-    {{-- Tabs Navigation --}}
-    <div class="tabs-header">
-        <div @click="activeTab = 'setting'" :class="{'active': activeTab === 'setting'}" class="tab-btn">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
-            Setting Simpanan
+    {{-- 2 ▸ Summary Bar --}}
+    <div class="sp-summary">
+        <div class="sp-sum-item">
+            <span class="sp-sum-label">Total Terkumpul</span>
+            <span class="sp-sum-value accent">Rp {{ number_format($totalKeseluruhan, 0, ',', '.') }}</span>
+            <span class="sp-sum-sub">Dari seluruh transaksi</span>
         </div>
-        <div @click="activeTab = 'riwayat'" :class="{'active': activeTab === 'riwayat'}" class="tab-btn">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="sp-sum-item">
+            <span class="sp-sum-label">Simpanan Pokok</span>
+            <span class="sp-sum-value">Rp {{ number_format($master->simpanan_pokok, 0, ',', '.') }}</span>
+            <span class="sp-sum-sub">Sekali bayar di awal</span>
+        </div>
+        <div class="sp-sum-item">
+            <span class="sp-sum-label">Simpanan Wajib</span>
+            <span class="sp-sum-value">Rp {{ number_format($master->simpanan_wajib, 0, ',', '.') }}</span>
+            <span class="sp-sum-sub">Per bulan (rutin)</span>
+        </div>
+        <div class="sp-sum-item">
+            <span class="sp-sum-label">Simpanan Sukarela</span>
+            <span class="sp-sum-value">Rp {{ number_format($master->simpanan_sukarela, 0, ',', '.') }}</span>
+            <span class="sp-sum-sub">Kontribusi fleksibel</span>
+        </div>
+    </div>
+
+    {{-- 3 ▸ Tabs --}}
+    <div class="sp-tabs">
+        <button class="sp-tab active" onclick="spTab(this,'konfigurasi')">Konfigurasi</button>
+        <button class="sp-tab" onclick="spTab(this,'riwayat')">
             Riwayat Transaksi
-        </div>
+            <span style="font-size:10px;font-weight:700;background:var(--bg);color:var(--text-3);padding:1px 6px;border-radius:8px;margin-left:4px;">{{ $riwayatTransaksi->count() }}</span>
+        </button>
     </div>
 
-    {{-- Content: Setting Simpanan --}}
-    <div x-show="activeTab === 'setting'" x-transition class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Tabel Konfigurasi -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-                <div>
-                    <h3 class="font-bold text-[15px] text-gray-800">Konfigurasi Simpanan Rutin</h3>
-                    <p class="text-[12px] text-gray-500 mt-1">Daftar kewajiban dan iuran rutin anggota.</p>
-                </div>
-            </div>
-            <table class="w-full text-left text-sm text-gray-600">
-                <thead class="bg-gray-50/50 text-[11px] uppercase text-gray-400 font-bold border-b border-gray-100">
-                    <tr>
-                        <th class="px-6 py-3">JENIS SIMPANAN</th>
-                        <th class="px-6 py-3">NOMINAL PER BULAN</th>
-                        <th class="px-6 py-3">TANGGAL MULAI</th>
-                        <th class="px-6 py-3">STATUS</th>
-                        <th class="px-6 py-3 text-center">ACTION</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <!-- Pokok -->
-                    <tr class="hover:bg-gray-50/50 transition-colors cursor-pointer" @click="setEdit('Pokok', {{ $master->simpanan_pokok }})">
-                        <td class="px-6 py-4 flex items-center gap-3">
-                            <div class="icon-box icon-pokok m-0 w-8 h-8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
-                            <span class="font-bold text-gray-800">Pokok</span>
-                        </td>
-                        <td class="px-6 py-4 font-semibold text-gray-800">Rp {{ number_format($master->simpanan_pokok, 0, ',', '.') }}</td>
-                        <td class="px-6 py-4 text-gray-500">{{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d-m-Y') }}</td>
-                        <td class="px-6 py-4">
-                            <span style="font-size:11px; padding:2px 8px; border-radius:12px; background:#DEF7EC; color:#03543F; font-weight:600;">Aktif</span>
-                        </td>
-                        <td class="px-6 py-4 flex justify-center">
-                            <button class="border border-gray-200 hover:bg-gray-50 text-gray-500 p-2 rounded-lg transition-colors">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-                        </td>
-                    </tr>
-                    <!-- Wajib -->
-                    <tr class="hover:bg-gray-50/50 transition-colors cursor-pointer" @click="setEdit('Wajib', {{ $master->simpanan_wajib }})">
-                        <td class="px-6 py-4 flex items-center gap-3">
-                            <div class="icon-box icon-wajib m-0 w-8 h-8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-                            <span class="font-bold text-gray-800">Wajib</span>
-                        </td>
-                        <td class="px-6 py-4 font-semibold text-gray-800">Rp {{ number_format($master->simpanan_wajib, 0, ',', '.') }}</td>
-                        <td class="px-6 py-4 text-gray-500">{{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d-m-Y') }}</td>
-                        <td class="px-6 py-4">
-                            <span style="font-size:11px; padding:2px 8px; border-radius:12px; background:#DEF7EC; color:#03543F; font-weight:600;">Aktif</span>
-                        </td>
-                        <td class="px-6 py-4 flex justify-center">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-sm transition-colors">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-                        </td>
-                    </tr>
-                    <!-- Sukarela -->
-                    <tr class="hover:bg-gray-50/50 transition-colors cursor-pointer" @click="setEdit('Sukarela', {{ $master->simpanan_sukarela }})">
-                        <td class="px-6 py-4 flex items-center gap-3">
-                            <div class="icon-box icon-sukarela m-0 w-8 h-8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
-                            <span class="font-bold text-gray-800">Sukarela</span>
-                        </td>
-                        <td class="px-6 py-4 font-semibold text-gray-800">Rp {{ number_format($master->simpanan_sukarela, 0, ',', '.') }}</td>
-                        <td class="px-6 py-4 text-gray-500">{{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d-m-Y') }}</td>
-                        <td class="px-6 py-4">
-                            <span style="font-size:11px; padding:2px 8px; border-radius:12px; background:#DEF7EC; color:#03543F; font-weight:600;">Aktif</span>
-                        </td>
-                        <td class="px-6 py-4 flex justify-center">
-                            <button class="border border-gray-200 hover:bg-gray-50 text-gray-500 p-2 rounded-lg transition-colors">
-                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    {{-- ─── TAB: KONFIGURASI ─── --}}
+    <div id="sp-konfigurasi" class="sp-tab-body active">
 
-        <!-- Form Edit -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden self-start">
-            <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
-                <div class="bg-blue-50 text-blue-600 p-2 rounded-lg">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                </div>
-                <h3 class="font-bold text-[15px] text-gray-800">Edit Simpanan</h3>
-            </div>
-            
-            <form method="POST" action="{{ route('simpanan.update', $master->id) }}" class="p-6">
+        {{-- Inline edit form --}}
+        <div class="sp-form-panel">
+            <form method="POST" action="{{ route('simpanan.update', $master->id) }}">
                 @csrf
                 @method('PUT')
-                
-                <div class="mb-4">
-                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wide">JENIS SIMPANAN</label>
-                    <input type="text" name="jenis_simpanan" x-model="editSimpanan" readonly class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-600 focus:outline-none">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wide">NOMINAL BARU (RP)</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2 text-gray-400 text-sm">Rp</span>
-                        <input type="number" name="nominal_baru" x-ref="nominalInput" x-model="editNominal" required class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
+                <div class="sp-form-grid">
+                    <div class="sp-form-group">
+                        <label class="sp-form-label">Jenis Simpanan</label>
+                        <select name="jenis_simpanan" id="jenis_simpanan_select" class="sp-form-input" onchange="syncNominal(this)">
+                            <option value="Pokok" {{ old('jenis_simpanan') == 'Pokok' ? 'selected' : '' }}>Pokok</option>
+                            <option value="Wajib" selected {{ old('jenis_simpanan') == 'Wajib' ? 'selected' : '' }}>Wajib</option>
+                            <option value="Sukarela" {{ old('jenis_simpanan') == 'Sukarela' ? 'selected' : '' }}>Sukarela</option>
+                        </select>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1.5 italic">Nominal ini akan ditagihkan secara rutin setiap bulan.</p>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wide">TANGGAL MULAI BERLAKU</label>
-                    <div class="relative">
-                        <input type="date" name="tanggal_mulai" x-model="editDate" required class="w-full border border-gray-300 rounded-lg pl-3 pr-9 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
-                        <svg class="absolute right-3 top-2.5 text-gray-400" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <div class="sp-form-group">
+                        <label class="sp-form-label">Nominal Baru (Rp)</label>
+                        <input type="number" name="nominal_baru" id="nominal_baru_input"
+                            value="{{ old('nominal_baru', $master->simpanan_wajib) }}"
+                            required class="sp-form-input">
                     </div>
-                </div>
-
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-[13px] transition-colors shadow-sm mb-3">
-                    Simpan Perubahan
-                </button>
-                <div class="text-center">
-                    <button type="button" @click="editSimpanan='Wajib'; editNominal={{$master->simpanan_wajib}}" class="text-gray-500 hover:text-gray-700 text-xs font-semibold">Batal</button>
+                    <div class="sp-form-group">
+                        <label class="sp-form-label">Tanggal Mulai Berlaku</label>
+                        <input type="date" name="tanggal_mulai"
+                            value="{{ old('tanggal_mulai', $master->tanggal_mulai) }}"
+                            required class="sp-form-input">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn-primary" style="height:34px;">Simpan</button>
+                    </div>
                 </div>
             </form>
         </div>
 
+        {{-- Konfigurasi Table --}}
+        <table class="sp-table">
+            <thead>
+                <tr>
+                    <th>Jenis Simpanan</th>
+                    <th>Nominal Per Bulan</th>
+                    <th>Tanggal Mulai</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr onclick="setEdit('Pokok', {{ $master->simpanan_pokok }})" style="cursor:pointer;">
+                    <td style="font-weight:600;">
+                        <span class="sp-dot dot-pokok"></span>Pokok
+                    </td>
+                    <td class="sp-amount-value">Rp {{ number_format($master->simpanan_pokok, 0, ',', '.') }}</td>
+                    <td style="color:var(--text-2);">{{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d M Y') }}</td>
+                    <td><span class="sp-badge sp-badge-green">Aktif</span></td>
+                    <td style="text-align:right;">
+                        <button onclick="setEdit('Pokok', {{ $master->simpanan_pokok }}); event.stopPropagation();" class="btn-secondary" style="padding:4px 10px; font-size:12px;">Edit</button>
+                    </td>
+                </tr>
+                <tr onclick="setEdit('Wajib', {{ $master->simpanan_wajib }})" style="cursor:pointer;">
+                    <td style="font-weight:600;">
+                        <span class="sp-dot dot-wajib"></span>Wajib
+                    </td>
+                    <td class="sp-amount-value">Rp {{ number_format($master->simpanan_wajib, 0, ',', '.') }}</td>
+                    <td style="color:var(--text-2);">{{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d M Y') }}</td>
+                    <td><span class="sp-badge sp-badge-green">Aktif</span></td>
+                    <td style="text-align:right;">
+                        <button onclick="setEdit('Wajib', {{ $master->simpanan_wajib }}); event.stopPropagation();" class="btn-secondary" style="padding:4px 10px; font-size:12px;">Edit</button>
+                    </td>
+                </tr>
+                <tr onclick="setEdit('Sukarela', {{ $master->simpanan_sukarela }})" style="cursor:pointer;">
+                    <td style="font-weight:600;">
+                        <span class="sp-dot dot-sukarela"></span>Sukarela
+                    </td>
+                    <td class="sp-amount-value">Rp {{ number_format($master->simpanan_sukarela, 0, ',', '.') }}</td>
+                    <td style="color:var(--text-2);">{{ \Carbon\Carbon::parse($master->tanggal_mulai)->format('d M Y') }}</td>
+                    <td><span class="sp-badge sp-badge-green">Aktif</span></td>
+                    <td style="text-align:right;">
+                        <button onclick="setEdit('Sukarela', {{ $master->simpanan_sukarela }}); event.stopPropagation();" class="btn-secondary" style="padding:4px 10px; font-size:12px;">Edit</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    {{-- Content: Riwayat Transaksi --}}
-    <div x-show="activeTab === 'riwayat'" x-cloak x-transition>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-[15px] text-gray-800">Riwayat Transaksi Anggota</h3>
-            </div>
-            <table class="w-full text-left text-sm text-gray-600">
-                <thead class="bg-gray-50/50 text-[11px] uppercase text-gray-400 font-bold border-b border-gray-100">
-                    <tr>
-                        <th class="px-6 py-4">TANGGAL</th>
-                        <th class="px-6 py-4">PERIODE</th>
-                        <th class="px-6 py-4">JENIS</th>
-                        <th class="px-6 py-4">KETERANGAN</th>
-                        <th class="px-6 py-4 text-right">NOMINAL</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($riwayatTransaksi as $trx)
-                        <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-800">{{ \Carbon\Carbon::parse($trx->transaction_date)->format('d M Y') }}</td>
-                            <td class="px-6 py-4 text-gray-500">{{ $trx->periode }}</td>
-                            <td class="px-6 py-4">
-                                @php
-                                    $jClass = 'bg-blue-50 text-blue-600';
-                                    $nama = strtolower($trx->jenisSimpanan->nama ?? '');
-                                    if(str_contains($nama, 'wajib')) $jClass = 'bg-green-50 text-green-600';
-                                    elseif(str_contains($nama, 'pokok')) $jClass = 'bg-orange-50 text-orange-600';
-                                @endphp
-                                <span style="font-size:10px; padding:3px 8px; border-radius:12px; font-weight:700;" class="{{ $jClass }}">
-                                    {{ strtoupper($trx->jenisSimpanan->nama ?? '-') }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-500">{{ $trx->description ?? '-' }}</td>
-                            <td class="px-6 py-4 text-right font-bold text-gray-800">Rp {{ number_format($trx->amount, 0, ',', '.') }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="py-12 text-center text-gray-400">Belum ada riwayat transaksi.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    {{-- ─── TAB: RIWAYAT TRANSAKSI ─── --}}
+    <div id="sp-riwayat" class="sp-tab-body">
+        <table class="sp-table">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Periode</th>
+                    <th>Jenis</th>
+                    <th>Keterangan</th>
+                    <th style="text-align:right;">Nominal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($riwayatTransaksi as $trx)
+                <tr>
+                    <td>{{ \Carbon\Carbon::parse($trx->transaction_date)->format('d M Y') }}</td>
+                    <td style="color:var(--text-2);">{{ $trx->periode }}</td>
+                    <td>
+                        @php
+                            $nama = strtolower($trx->jenisSimpanan->nama ?? '');
+                            $dotClass = 'dot-sukarela';
+                            $badgeClass = 'sp-badge-blue';
+                            if(str_contains($nama, 'wajib'))  { $dotClass = 'dot-wajib';    $badgeClass = 'sp-badge-green';  }
+                            if(str_contains($nama, 'pokok'))  { $dotClass = 'dot-pokok';    $badgeClass = 'sp-badge-orange'; }
+                        @endphp
+                        <span class="sp-badge {{ $badgeClass }}">{{ strtoupper($trx->jenisSimpanan->nama ?? '—') }}</span>
+                    </td>
+                    <td style="color:var(--text-2);">{{ $trx->description ?? '—' }}</td>
+                    <td style="text-align:right;" class="sp-amount-value">Rp {{ number_format($trx->amount, 0, ',', '.') }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="5" class="sp-empty">Belum ada riwayat transaksi.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
 </div>
+
+<script>
+    const nominalMap = {
+        Pokok:    {{ $master->simpanan_pokok }},
+        Wajib:    {{ $master->simpanan_wajib }},
+        Sukarela: {{ $master->simpanan_sukarela }},
+    };
+
+    function spTab(el, id) {
+        document.querySelectorAll('.sp-tab-body').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('sp-' + id).classList.add('active');
+        el.classList.add('active');
+    }
+
+    function setEdit(jenis, nominal) {
+        document.getElementById('jenis_simpanan_select').value = jenis;
+        document.getElementById('nominal_baru_input').value = nominal;
+        document.getElementById('nominal_baru_input').focus();
+        document.getElementById('nominal_baru_input').select();
+    }
+
+    function syncNominal(select) {
+        const jenis = select.value;
+        document.getElementById('nominal_baru_input').value = nominalMap[jenis] ?? 0;
+    }
+</script>
 @endsection

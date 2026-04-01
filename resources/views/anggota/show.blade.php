@@ -1,7 +1,7 @@
 {{-- resources/views/anggota/show.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Profil Karyawan: ' . $anggota->nama_anggota)
+@section('title', 'Profil: ' . $anggota->nama_anggota)
 
 {{-- ── Topbar nav ── --}}
 @section('topbar-nav')
@@ -12,7 +12,7 @@
     <a href="{{ route('konfigurasi.index') }}" class="tb-link">Konfigurasi</a>
 @endsection
 
-{{-- ── Subbar kiri ── --}}
+{{-- ── Subbar ── --}}
 @section('subbar-actions')
     <a href="{{ route('anggota.index') }}" class="btn-secondary" style="margin-right: 10px;">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline; margin-right:4px;">
@@ -26,608 +26,532 @@
 
 @section('content')
 <style>
-    .profile-wrap {
-        padding: 24px;
-        max-width: 1200px;
-        margin: 0 auto;
-        color: #333;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
+    /* ── Page Container ── */
+    .ag-page { padding: 0; }
 
-    /* Top Card Layering */
-    .top-card {
-        background: #fff;
-        border-radius: 8px;
-        border: 1px solid #e0e0e0;
-        margin-bottom: 24px;
-        position: relative;
-    }
-    .top-card-banner {
-        height: 100px;
-        background-color: #1a73e8; /* Blue exact color */
-        border-radius: 8px 8px 0 0;
-        width: 100%;
-    }
-    .top-card-body {
-        padding: 24px 24px 24px 160px; /* Leave space for avatar */
-        position: relative;
+    /* ── Header Strip ── */
+    .ag-header {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-end;
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
     }
-    
-    .avatar-wrapper {
-        position: absolute;
-        bottom: 24px;
-        left: 24px;
-        width: 110px;
-        height: 110px;
-        border-radius: 12px;
-        border: 4px solid #fff;
-        background-color: #1f2937;
-        overflow: visible; /* to allow status dot */
+    .ag-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .ag-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        flex-shrink: 0;
+        overflow: hidden;
     }
-    .avatar-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 8px;
+    .ag-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .ag-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-1);
+        margin: 0;
+        line-height: 1.3;
     }
-    .avatar-status-dot {
-        position: absolute;
-        bottom: -4px;
-        right: -4px;
-        width: 20px;
-        height: 20px;
-        background-color: #34a853;
-        border: 3px solid #fff;
-        border-radius: 50%;
-    }
-    
-    .profile-info-main {
+    .ag-meta {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        margin-top: 2px;
+        font-size: 12px;
+        color: var(--text-2);
+    }
+    .ag-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .ag-status-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .ag-status-aktif { background: var(--green-bg); color: var(--green-text); }
+    .ag-status-nonaktif { background: var(--red-bg); color: var(--red-text); }
+
+    .ag-header-right {
+        display: flex;
+        align-items: center;
         gap: 8px;
     }
-    .profile-info-top {
+
+    /* ── Summary Bar ── */
+    .ag-summary {
         display: flex;
-        align-items: center;
-        gap: 12px;
+        align-items: stretch;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
     }
-    .profile-name-lg {
-        font-size: 24px;
+    .ag-sum-item {
+        flex: 1;
+        padding: 16px 28px;
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .ag-sum-item:last-child { border-right: none; }
+    .ag-sum-label {
+        font-size: 10px;
         font-weight: 700;
-        color: #111;
-        margin: 0;
-    }
-    .badge-aktif {
-        background-color: #e6f4ea;
-        color: #137333;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 12px;
         text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-3);
     }
-    .profile-meta {
+    .ag-sum-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-1);
+        line-height: 1.3;
+    }
+    .ag-sum-value.accent { color: var(--accent); }
+    .ag-sum-value.green  { color: var(--green-text); }
+    .ag-sum-value.red    { color: var(--red-text); }
+    .ag-sum-sub {
+        font-size: 11px;
+        color: var(--text-3);
+        margin-top: 1px;
+    }
+
+    /* ── Tabs ── */
+    .ag-tabs {
         display: flex;
-        align-items: center;
-        gap: 16px;
-        color: #5f6368;
-        font-size: 13px;
+        gap: 0;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        padding: 0 28px;
     }
-    .profile-meta-item {
+    .ag-tab {
+        padding: 11px 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-2);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color .15s, border-color .15s;
         display: flex;
         align-items: center;
         gap: 6px;
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
     }
-    
-    .profile-actions {
-        display: flex;
-        gap: 12px;
+    .ag-tab:hover { color: var(--accent); }
+    .ag-tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
     }
-    .btn-outline {
-        border: 1px solid #dadce0;
-        background: #fff;
-        color: #3c4043;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        text-decoration: none;
-    }
-    .btn-outline:hover { background: #f8f9fa; }
-    
-    .btn-primary-sc {
-        border: none;
-        background: #1a73e8;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        text-decoration: none;
-    }
-    .btn-primary-sc:hover { background: #1557b0; }
-
-    /* 4 Stats Grid */
-    .four-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-    .stat-box {
-        background: #fff;
-        border: 1px solid #e0e0e0;
+    .ag-tab-count {
+        font-size: 10px;
+        font-weight: 700;
+        background: var(--bg);
+        color: var(--text-3);
+        padding: 1px 6px;
         border-radius: 8px;
-        padding: 20px;
+        min-width: 18px;
+        text-align: center;
+    }
+    .ag-tab.active .ag-tab-count {
+        background: var(--accent-light);
+        color: var(--accent);
+    }
+
+    /* ── Tab Content ── */
+    .ag-tab-body { display: none; }
+    .ag-tab-body.active { display: block; }
+
+    /* ── Sub Tabs (Pinjaman) ── */
+    .ag-subtabs {
+        display: flex;
+        gap: 0;
+        padding: 0 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+    }
+    .ag-subtab {
+        padding: 9px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-3);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color .15s, border-color .15s;
+        background: none;
+        border-top: none; border-left: none; border-right: none;
+    }
+    .ag-subtab:hover { color: var(--text-1); }
+    .ag-subtab.active {
+        color: var(--text-1);
+        border-bottom-color: var(--text-1);
+    }
+    .ag-sub-body { display: none; }
+    .ag-sub-body.active { display: block; }
+
+    /* ── Simpanan breakdown row ── */
+    .ag-breakdown {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 0 28px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+    }
+    .ag-bk-item {
+        padding: 12px 20px 12px 0;
+        margin-right: 20px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        gap: 1px;
     }
-    .stat-box-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
+    .ag-bk-item:not(:last-child) {
+        border-right: 1px solid var(--border);
+        padding-right: 20px;
     }
-    .stat-icon-wrap {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8f9fa;
-    }
-    .stat-icon-wrap svg { width: 18px; height: 18px; }
-    
-    /* Specific Icon Colors */
-    .icon-simpanan { background: #e8f0fe; color: #1a73e8; }
-    .icon-max { background: #fff3e0; color: #f57c00; }
-    .icon-pinjaman { background: #f1f3f4; color: #202124; }
-    .icon-sisa { background: #e6f4ea; color: #1e8e3e; }
-    
-    .stat-box-label {
-        font-size: 11px;
+    .ag-bk-label {
+        font-size: 10px;
         font-weight: 600;
-        color: #7f8c8d;
         text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-3);
     }
-    .stat-box-amount {
-        font-size: 22px;
+    .ag-bk-value {
+        font-size: 14px;
         font-weight: 700;
-        color: #111;
-        margin-bottom: 4px;
-    }
-    .stat-box-sub {
-        font-size: 12px;
-        color: #5f6368;
-    }
-    .sub-green { color: #1e8e3e; font-weight: 500;}
-    
-    /* Progress */
-    .pb-track {
-        background-color: #f1f3f4;
-        border-radius: 4px;
-        height: 6px;
-        width: 100%;
-        margin-top: 8px;
-    }
-    .pb-fill {
-        background-color: #1e8e3e;
-        height: 100%;
-        border-radius: 4px;
+        color: var(--text-1);
     }
 
-    /* Tabs */
-    .tabs-container {
-        border-bottom: 1px solid #e0e0e0;
-        display: flex;
-        gap: 32px;
-        margin-bottom: 24px;
+    /* ── Table ── */
+    .ag-table-wrap {
+        padding: 0;
     }
-    .tab-item {
-        padding: 12px 0;
-        font-size: 14px;
-        font-weight: 500;
-        color: #5f6368;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border-bottom: 2px solid transparent;
-        transition: all 0.2s;
-    }
-    .tab-item:hover { color: #1a73e8; }
-    .tab-item.active {
-        color: #1a73e8;
-        border-bottom-color: #1a73e8;
-    }
-    .tab-item svg { width: 16px; height: 16px; }
-    
-    /* Tab Contents */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    /* Simpanan Overview Cards */
-    .simpanan-overview {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 32px;
-    }
-    .so-card {
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 20px;
-    }
-    .so-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #5f6368;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-    }
-    .so-amount {
-        font-size: 20px;
-        font-weight: 700;
-        color: #111;
-    }
-    
-    /* Transaction History Table */
-    .history-section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-    .history-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #111;
-        margin: 0;
-    }
-    .history-link {
-        font-size: 12px;
-        font-weight: 600;
-        color: #1a73e8;
-        text-decoration: none;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .history-link:hover { text-decoration: underline; }
-    
-    .table-history {
+    .ag-table {
         width: 100%;
         border-collapse: collapse;
     }
-    .table-history th {
+    .ag-table thead th {
         text-align: left;
-        padding: 12px 0;
+        padding: 10px 28px;
         font-size: 11px;
-        font-weight: 600;
-        color: #9aa0a6;
+        font-weight: 700;
         text-transform: uppercase;
-        border-bottom: 1px solid #e0e0e0;
+        letter-spacing: 0.04em;
+        color: var(--text-3);
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+        white-space: nowrap;
     }
-    .table-history td {
-        padding: 16px 0;
+    .ag-table tbody td {
+        padding: 12px 28px;
         font-size: 13px;
-        color: #3c4043;
-        border-bottom: 1px solid #f1f3f4;
+        color: var(--text-1);
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
     }
-    .table-history tr:last-child td { border-bottom: none; }
-    
-    .type-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 8px;
+    .ag-table tbody tr:last-child td { border-bottom: none; }
+    .ag-table tbody tr:hover { background: var(--bg); }
+
+    .ag-empty {
+        text-align: center;
+        padding: 40px 28px !important;
+        color: var(--text-3);
+        font-size: 13px;
     }
-    .badge-success {
-        background-color: #e6f4ea;
-        color: #137333;
-        font-size: 11px;
-        font-weight: 600;
+
+    /* ── Inline badges ── */
+    .ag-badge {
+        display: inline-flex;
+        align-items: center;
         padding: 2px 8px;
+        font-size: 10px;
+        font-weight: 700;
         border-radius: 4px;
-        border: 1px solid #ceead6;
         text-transform: uppercase;
+        letter-spacing: 0.03em;
     }
+    .ag-badge-green  { background: var(--green-bg);  color: var(--green-text); }
+    .ag-badge-blue   { background: #E6F1FB; color: #185FA5; }
+    .ag-badge-amber  { background: var(--amber-bg);  color: var(--amber-text); }
+    .ag-badge-red    { background: var(--red-bg);    color: var(--red-text); }
+
+    /* ── Type dot ── */
+    .ag-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
+    .dot-pokok    { background: #F57C00; }
+    .dot-wajib    { background: var(--green-text); }
+    .dot-sukarela { background: var(--accent); }
+
+    /* ── Amount formatting ── */
+    .ag-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .ag-amount-red { color: var(--red-text); }
 </style>
 
-<div class="profile-wrap">
+<div class="ag-page">
 
-    {{-- 1. Top Card --}}
-    <div class="top-card">
-        <div class="top-card-banner"></div>
-        
-        <div class="avatar-wrapper">
-            @if($anggota->foto)
-                <img src="{{ Storage::url($anggota->foto) }}" alt="{{ $anggota->nama_anggota }}">
-            @else
-                <div style="color:#fff; font-size:36px; font-weight:bold;">
+    {{-- 1 ▸ Header Strip --}}
+    <div class="ag-header">
+        <div class="ag-header-left">
+            <div class="ag-avatar">
+                @if($anggota->foto)
+                    <img src="{{ Storage::url($anggota->foto) }}" alt="{{ $anggota->nama_anggota }}">
+                @else
                     {{ strtoupper(substr($anggota->nama_anggota, 0, 2)) }}
+                @endif
+            </div>
+            <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <h1 class="ag-name">{{ $anggota->nama_anggota }}</h1>
+                    <span class="ag-status-badge {{ strtolower($anggota->status_anggota ?? 'aktif') == 'aktif' || strtolower($anggota->status_anggota ?? '') == 'active' ? 'ag-status-aktif' : 'ag-status-nonaktif' }}">
+                        {{ strtoupper($anggota->status_anggota ?? 'Aktif') }}
+                    </span>
                 </div>
-            @endif
-            <div class="avatar-status-dot"></div>
-        </div>
-
-        <div class="top-card-body">
-            <div class="profile-info-main">
-                <div class="profile-info-top">
-                    <h1 class="profile-name-lg">{{ $anggota->nama_anggota }}</h1>
-                    <span class="badge-aktif">{{ strtoupper($anggota->status_anggota ?? 'Aktif') }}</span>
-                </div>
-                <div class="profile-meta">
-                    <div class="profile-meta-item">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <div class="ag-meta">
+                    <div class="ag-meta-item">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         {{ $anggota->nik ?? 'N/A' }}
                     </div>
-                    <div class="profile-meta-item">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                        {{ $anggota->departemen ? $anggota->departemen->nama : 'Operational' }}
+                    <div class="ag-meta-item">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        {{ $anggota->departemen ? $anggota->departemen->nama : '—' }}
                     </div>
-                    <div class="profile-meta-item">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        Joined {{ $anggota->tgl_bergabung ? \Carbon\Carbon::parse($anggota->tgl_bergabung)->format('d M Y') : 'N/A' }}
+                    <div class="ag-meta-item">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        {{ $anggota->tgl_bergabung ? \Carbon\Carbon::parse($anggota->tgl_bergabung)->format('d M Y') : '—' }}
                     </div>
                 </div>
             </div>
-            
-            <div class="profile-actions">
-                <a href="{{ route('anggota.edit', $anggota) }}" class="btn-outline">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                    Edit Profile
-                </a>
-                <button class="btn-primary-sc">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Export Data
-                </button>
-            </div>
+        </div>
+        <div class="ag-header-right">
+            <a href="{{ route('anggota.edit', $anggota) }}" class="btn-secondary">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                Edit
+            </a>
         </div>
     </div>
 
-    {{-- 2. Four Stats Grid --}}
-    <div class="four-stats-grid">
-        <div class="stat-box">
-            <div class="stat-box-row">
-                <div class="stat-icon-wrap icon-simpanan">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                </div>
-                <span class="stat-box-label">TOTAL SIMPANAN</span>
-            </div>
-            <div>
-                <div class="stat-box-amount">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</div>
-                <div class="stat-box-sub"><span class="sub-green">↗</span> Limit Plafond menyesuaikan</div>
-            </div>
+    {{-- 2 ▸ Summary Bar --}}
+    <div class="ag-summary">
+        <div class="ag-sum-item">
+            <span class="ag-sum-label">Total Simpanan</span>
+            <span class="ag-sum-value accent">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</span>
         </div>
-
-        <div class="stat-box">
-            <div class="stat-box-row">
-                <div class="stat-icon-wrap icon-max">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 22 7 12 2"></polygon><polyline points="2 17 22 17"></polyline><polyline points="2 12 22 12"></polyline></svg>
-                </div>
-                <span class="stat-box-label">MAX PINJAMAN</span>
-            </div>
-            <div>
-                <div class="stat-box-amount">Rp {{ number_format($max_pinjaman, 0, ',', '.') }}</div>
-                <div class="stat-box-sub">Threshold 5x Simpanan</div>
-            </div>
+        <div class="ag-sum-item">
+            <span class="ag-sum-label">Max Pinjaman</span>
+            <span class="ag-sum-value">Rp {{ number_format($max_pinjaman, 0, ',', '.') }}</span>
+            <span class="ag-sum-sub">Threshold 5× Simpanan</span>
         </div>
-
-        <div class="stat-box">
-            <div class="stat-box-row">
-                <div class="stat-icon-wrap icon-pinjaman">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-                </div>
-                <span class="stat-box-label">PINJAMAN AKTIF</span>
-            </div>
-            <div>
-                <div class="stat-box-amount">Rp {{ number_format($pinjaman_aktif_amount, 0, ',', '.') }}</div>
-                <div class="stat-box-sub">{{ $pinjaman_berjalan->count() }} fasilitas masih aktif/pending</div>
-            </div>
+        <div class="ag-sum-item">
+            <span class="ag-sum-label">Pinjaman Aktif</span>
+            <span class="ag-sum-value">Rp {{ number_format($pinjaman_aktif_amount, 0, ',', '.') }}</span>
+            <span class="ag-sum-sub">{{ $pinjaman_berjalan->count() }} fasilitas berjalan</span>
         </div>
-
-        <div class="stat-box">
-            <div class="stat-box-row">
-                <div class="stat-icon-wrap icon-sisa">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                </div>
-                <span class="stat-box-label">SISA PINJAMAN</span>
-            </div>
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                    <div>
-                        <div class="stat-box-label" style="font-size:9px; color:#5f6368; margin-bottom:2px;">SISA HUTANG AKTIF</div>
-                        <div class="stat-box-amount" style="font-size:16px;">Rp {{ number_format($sisa_pinjaman, 0, ',', '.') }}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="stat-box-label" style="font-size:9px; color:#1e8e3e; margin-bottom:2px;">SISA KUOTA MAX</div>
-                        <div class="stat-box-amount" style="font-size:16px; color:#1e8e3e;">Rp {{ number_format($sisa_kuota, 0, ',', '.') }}</div>
-                    </div>
-                </div>
-                @php $pct = ($sisa_pinjaman / max($max_pinjaman, 1)) * 100; @endphp
-                <div class="pb-track" style="margin-top:12px;"><div class="pb-fill" style="width:{{ $pct }}%;"></div></div>
-            </div>
+        <div class="ag-sum-item">
+            <span class="ag-sum-label">Sisa Hutang</span>
+            <span class="ag-sum-value red">Rp {{ number_format($sisa_pinjaman, 0, ',', '.') }}</span>
+            <span class="ag-sum-sub">Kuota tersisa: Rp {{ number_format($sisa_kuota, 0, ',', '.') }}</span>
         </div>
     </div>
 
-    {{-- 3. Tabs --}}
-    <div class="tabs-container">
-        <div class="tab-item active" onclick="switchTab(this, 'simpanan')">
-            <svg fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    {{-- 3 ▸ Main Tabs --}}
+    <div class="ag-tabs">
+        <button class="ag-tab active" onclick="switchMainTab(this, 'simpanan')">
             Simpanan
-        </div>
-        <div class="tab-item" onclick="switchTab(this, 'pinjaman')">
-            <svg fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <span class="ag-tab-count">{{ $riwayat_simpanan->count() }}</span>
+        </button>
+        <button class="ag-tab" onclick="switchMainTab(this, 'pinjaman')">
             Pinjaman
-        </div>
-        <div class="tab-item" onclick="switchTab(this, 'riwayat')">
-            <svg fill="none" class="tab-icon" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            Riwayat
-        </div>
+            <span class="ag-tab-count">{{ $pinjaman_berjalan->count() + $pinjaman_lunas->count() }}</span>
+        </button>
     </div>
 
-    {{-- 4. Tab Contents --}}
-    <div id="tab-simpanan" class="tab-content active">
-        {{-- Simpanan Overview --}}
-        <div class="simpanan-overview">
-            <div class="so-card">
-                <div class="so-label">BASIC SAVINGS</div>
-                <div class="so-amount">Rp {{ number_format($simpanan_pokok, 0, ',', '.') }}</div>
+    {{-- ─── TAB: SIMPANAN ─── --}}
+    <div id="main-simpanan" class="ag-tab-body active">
+
+        {{-- Breakdown --}}
+        <div class="ag-breakdown">
+            <div class="ag-bk-item">
+                <span class="ag-bk-label">Simpanan Pokok</span>
+                <span class="ag-bk-value">Rp {{ number_format($simpanan_pokok, 0, ',', '.') }}</span>
             </div>
-            <div class="so-card">
-                <div class="so-label">MANDATORY / MO</div>
-                <div class="so-amount">Rp {{ number_format($simpanan_wajib, 0, ',', '.') }}</div>
+            <div class="ag-bk-item">
+                <span class="ag-bk-label">Simpanan Wajib</span>
+                <span class="ag-bk-value">Rp {{ number_format($simpanan_wajib, 0, ',', '.') }}</span>
             </div>
-            <div class="so-card">
-                <div class="so-label">VOLUNTARY BALANCE</div>
-                <div class="so-amount">Rp {{ number_format($simpanan_sukarela, 0, ',', '.') }}</div>
+            <div class="ag-bk-item">
+                <span class="ag-bk-label">Simpanan Sukarela</span>
+                <span class="ag-bk-value">Rp {{ number_format($simpanan_sukarela, 0, ',', '.') }}</span>
             </div>
         </div>
 
-        {{-- Transaction History Table --}}
-        <div class="history-section-header">
-            <h3 class="history-title">Riwayat Transaksi Simpanan</h3>
-            <a href="#" class="history-link">VIEW FULL REPORT &rarr;</a>
+        {{-- Transaction Table --}}
+        <div class="ag-table-wrap">
+            <table class="ag-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Jenis</th>
+                        <th>Jumlah</th>
+                        <th>Periode</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($riwayat_simpanan as $rs)
+                    <tr>
+                        <td>{{ \Carbon\Carbon::parse($rs->transaction_date)->format('d M Y') }}</td>
+                        <td style="font-weight:500;">
+                            @php
+                                $type_name = strtolower($rs->jenisSimpanan->nama ?? '');
+                                $dotClass = 'dot-sukarela';
+                                if(str_contains($type_name, 'wajib')) $dotClass = 'dot-wajib';
+                                elseif(str_contains($type_name, 'pokok')) $dotClass = 'dot-pokok';
+                            @endphp
+                            <span class="ag-dot {{ $dotClass }}"></span>
+                            {{ $rs->jenisSimpanan->nama ?? 'Simpanan' }}
+                        </td>
+                        <td class="ag-amount">Rp {{ number_format($rs->amount, 0, ',', '.') }}</td>
+                        <td style="color:var(--text-2);">{{ $rs->periode }}</td>
+                        <td><span class="ag-badge ag-badge-green">Berhasil</span></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="5" class="ag-empty">Belum ada riwayat transaksi simpanan.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        
-        <table class="table-history">
-            <thead>
-                <tr>
-                    <th style="width: 20%;">DATE</th>
-                    <th style="width: 30%;">TYPE</th>
-                    <th style="width: 20%;">AMOUNT</th>
-                    <th style="width: 15%;">PERIOD</th>
-                    <th style="width: 15%;">STATUS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($riwayat_simpanan as $rs)
-                <tr>
-                    <td>{{ \Carbon\Carbon::parse($rs->transaction_date)->format('d M Y') }}</td>
-                    <td style="font-weight: 500;">
-                        @php
-                            $color = '#1a73e8';
-                            $type_name = strtolower($rs->jenisSimpanan->nama ?? '');
-                            if(str_contains($type_name, 'wajib')) { $color = '#1e8e3e'; }
-                            elseif(str_contains($type_name, 'pokok')) { $color = '#f57c00'; }
-                        @endphp
-                        <span class="type-dot" style="background-color: {{ $color }};"></span>
-                        {{ $rs->jenisSimpanan->nama ?? 'Simpanan' }}
-                    </td>
-                    <td style="font-weight: 600; color: #111;">Rp {{ number_format($rs->amount, 0, ',', '.') }}</td>
-                    <td style="color: #5f6368;">{{ $rs->periode }}</td>
-                    <td><span class="badge-success">BERHASIL</span></td>
-                </tr>
-                @empty
-                <tr><td colspan="5" style="text-align:center; padding: 24px;">Belum ada riwayat transaksi simpanan.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
     </div>
-    
-    <div id="tab-pinjaman" class="tab-content">
-        <div class="history-section-header">
-            <h3 class="history-title">Fasilitas Pinjaman (Aktif/Pending)</h3>
+
+    {{-- ─── TAB: PINJAMAN ─── --}}
+    <div id="main-pinjaman" class="ag-tab-body">
+
+        {{-- Sub-tabs --}}
+        <div class="ag-subtabs">
+            <button class="ag-subtab active" onclick="switchSubTab(this, 'berjalan')">
+                Berjalan ({{ $pinjaman_berjalan->count() }})
+            </button>
+            <button class="ag-subtab" onclick="switchSubTab(this, 'lunas')">
+                Lunas ({{ $pinjaman_lunas->count() }})
+            </button>
         </div>
-        <table class="table-history">
-            <thead>
-                <tr>
-                    <th>TANGGAL PENGAJUAN</th>
-                    <th>JENIS PINJAMAN</th>
-                    <th>JUMLAH KREDIT</th>
-                    <th>TENOR & BUNGA</th>
-                    <th>SISA TAGIHAN</th>
-                    <th>STATUS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($pinjaman_berjalan as $p)
-                <tr>
-                    <td>{{ \Carbon\Carbon::parse($p->created_at)->format('d M Y') }}</td>
-                    <td style="font-weight: 500; color: #1a73e8;">{{ $p->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
-                    <td style="font-weight: 600; color: #111;">Rp {{ number_format($p->jumlah_pinjaman ?? $p->jumlah_pengajuan, 0, ',', '.') }}</td>
-                    <td style="color: #5f6368;">{{ $p->tenor }} Bln | {{ $p->bunga }}%</td>
-                    <td style="font-weight: 600; color: #e53e3e;">Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pengajuan + ($p->jumlah_pengajuan * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}</td>
-                    <td>
-                        @if($p->status == 'berjalan')
-                            <span class="badge-success" style="color:#004085; background-color:#cce5ff; border-color:#b8daff;">BERJALAN</span>
-                        @else
-                            <span class="badge-success" style="color:#856404; background-color:#fff3cd; border-color:#ffeeba;">PENDING</span>
-                        @endif
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="6" style="text-align:center; padding: 24px;">Tidak ada pinjaman yang sedang berjalan.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    
-    <div id="tab-riwayat" class="tab-content">
-        <div class="history-section-header">
-            <h3 class="history-title">Riwayat Pinjaman Selesai</h3>
+
+        {{-- Sub: Berjalan --}}
+        <div id="sub-berjalan" class="ag-sub-body active">
+            <div class="ag-table-wrap">
+                <table class="ag-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jenis Pinjaman</th>
+                            <th>Jumlah Kredit</th>
+                            <th>Tenor / Bunga</th>
+                            <th>Sisa Tagihan</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pinjaman_berjalan as $p)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($p->created_at)->format('d M Y') }}</td>
+                            <td style="font-weight:500; color:var(--accent);">{{ $p->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                            <td class="ag-amount">Rp {{ number_format($p->jumlah_pinjaman ?? $p->jumlah_pengajuan, 0, ',', '.') }}</td>
+                            <td style="color:var(--text-2);">{{ $p->tenor }} Bln &middot; {{ $p->bunga }}%</td>
+                            <td class="ag-amount ag-amount-red">
+                                Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pengajuan + ($p->jumlah_pengajuan * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}
+                            </td>
+                            <td>
+                                @if($p->status == 'berjalan')
+                                    <span class="ag-badge ag-badge-blue">Berjalan</span>
+                                @else
+                                    <span class="ag-badge ag-badge-amber">Pending</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="6" class="ag-empty">Tidak ada pinjaman yang sedang berjalan.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <table class="table-history">
-            <thead>
-                <tr>
-                    <th>TANGGAL PENGAJUAN</th>
-                    <th>JENIS PINJAMAN</th>
-                    <th>TOTAL KREDIT</th>
-                    <th>SISA TAGIHAN</th>
-                    <th>STATUS</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($pinjaman_lunas as $pl)
-                <tr>
-                    <td>{{ \Carbon\Carbon::parse($pl->created_at)->format('d M Y') }}</td>
-                    <td style="font-weight: 500;">{{ $pl->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
-                    <td style="font-weight: 600; color: #111;">Rp {{ number_format($pl->jumlah_pinjaman ?? $pl->jumlah_pengajuan, 0, ',', '.') }}</td>
-                    <td style="color: #5f6368;">Rp {{ number_format($pl->sisa_pinjaman, 0, ',', '.') }}</td>
-                    <td>
-                        @if($pl->status == 'lunas')
-                            <span class="badge-success">LUNAS</span>
-                        @else
-                            <span class="badge-success" style="color:#721c24; background-color:#f8d7da; border-color:#f5c6cb;">DITOLAK</span>
-                        @endif
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="5" style="text-align:center; padding: 24px;">Tidak ada riwayat pinjaman masa lalu.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+
+        {{-- Sub: Lunas --}}
+        <div id="sub-lunas" class="ag-sub-body">
+            <div class="ag-table-wrap">
+                <table class="ag-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jenis Pinjaman</th>
+                            <th>Total Kredit</th>
+                            <th>Sisa Tagihan</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pinjaman_lunas as $pl)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($pl->created_at)->format('d M Y') }}</td>
+                            <td style="font-weight:500;">{{ $pl->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                            <td class="ag-amount">Rp {{ number_format($pl->jumlah_pinjaman ?? $pl->jumlah_pengajuan, 0, ',', '.') }}</td>
+                            <td style="color:var(--text-2);">Rp {{ number_format($pl->sisa_pinjaman, 0, ',', '.') }}</td>
+                            <td>
+                                @if($pl->status == 'lunas')
+                                    <span class="ag-badge ag-badge-green">Lunas</span>
+                                @else
+                                    <span class="ag-badge ag-badge-red">Ditolak</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="5" class="ag-empty">Tidak ada riwayat pinjaman.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 </div>
 
 <script>
-    function switchTab(element, tabId) {
-        // Hide all
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-        
-        // Show target
-        document.getElementById('tab-' + tabId).classList.add('active');
-        element.classList.add('active');
+    function switchMainTab(el, tabId) {
+        document.querySelectorAll('.ag-tab-body').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.ag-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('main-' + tabId).classList.add('active');
+        el.classList.add('active');
+    }
+
+    function switchSubTab(el, subId) {
+        document.querySelectorAll('.ag-sub-body').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.ag-subtab').forEach(t => t.classList.remove('active'));
+        document.getElementById('sub-' + subId).classList.add('active');
+        el.classList.add('active');
     }
 </script>
 @endsection

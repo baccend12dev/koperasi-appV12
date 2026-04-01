@@ -13,4 +13,14 @@ class PinjamanAngsuran extends Model
     {
         return $this->belongsTo(Pinjaman::class, 'loan_id');
     }
+
+    public function tagihan()
+    {
+        return $this->belongsTo(TagihanPinjaman::class, 'tagihan_pinjaman_id');
+    }
+
+    public function pembayaran()
+    {
+        return $this->belongsTo(PembayaranAngsuran::class, 'payment_id');
+    }
 }
