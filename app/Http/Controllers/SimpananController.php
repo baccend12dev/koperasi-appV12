@@ -21,6 +21,7 @@ class SimpananController extends Controller
 
     public function bayarTagihan(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'tagihan_id' => 'required|exists:tagihan_simpanans,id',
             'detail_ids' => 'required|array|min:1',
@@ -61,6 +62,10 @@ class SimpananController extends Controller
                         'periode' => $tagihan->periode,
                         'description' => 'Pembayaran Tagihan Pokok Periode ' . $tagihan->periode
                     ]);
+
+                    // Update flag agar bulan depan tidak dtgih lagi
+                    \App\Models\MasterSimpanan::where('anggota_id', $detail->anggota_id)
+                        ->update(['pokok_terbayar' => true]);
                 }
                 if ($detail->simpanan_sukarela > 0) {
                     \App\Models\TransaksiSimpanan::create([
@@ -143,12 +148,23 @@ class SimpananController extends Controller
             'transaksi', 'totalBulanIni', 'persenBulanIni', 'anggotaAktif', 'jenisSimpanan', 'years'
         ));
     }
-    public function index()
+    public function index(Request $request)
     {
-        $simpanan = MasterSimpanan::with('anggota')
-            ->latest()
-            ->paginate(10);
+        $query = MasterSimpanan::with('anggota')->latest();
+        if ($request->filled('dept')) {
+            $query->whereHas('anggota', function($q) use ($request) {
+                $q->where('department_id', $request->dept);
+            });
+        }
 
+        if ($request->filled('q')) {
+            $query->whereHas('anggota', function($q) use ($request) {
+                $q->where('nama_anggota', 'ilike', '%' . $request->q . '%')
+                  ->orWhere('nik', 'ilike', '%' . $request->q . '%')
+                  ->orWhere('no_ktp', 'ilike', '%' . $request->q . '%');
+            });
+        }
+        $simpanan = $query->paginate(10);
         $departemen = Departemen::withCount('anggota')
         ->orderBy('nama')
         ->get();
@@ -198,6 +214,9 @@ class SimpananController extends Controller
             foreach ($anggotas as $anggota) {
                 // If masterSimpanan doesn't exist, use 0
                 $simpananPokok = $anggota->masterSimpanan->simpanan_pokok ?? 0;
+                if ($anggota->masterSimpanan && $anggota->masterSimpanan->pokok_terbayar) {
+                    $simpananPokok = 0;
+                }
                 $simpananWajib = $anggota->masterSimpanan->simpanan_wajib ?? 0;
                 $simpananSukarela = $anggota->masterSimpanan->simpanan_sukarela ?? 0;
                 $totalAnggota = $simpananPokok + $simpananWajib + $simpananSukarela;

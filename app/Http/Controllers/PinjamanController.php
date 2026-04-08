@@ -289,7 +289,7 @@ class PinjamanController extends Controller
 
         $anggota = \App\Models\Anggota::with('transaksiSimpanan')
             ->where('nik', $q)
-            ->orWhere('no_pegawai', $q)
+            ->orWhere('no_ktp', $q)
             ->first();
 
         if (!$anggota) {

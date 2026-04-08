@@ -13,6 +13,7 @@ class MasterSimpanan extends Model
         'simpanan_sukarela',
         'tanggal_mulai',
         'tanggal_akhir',
+        'pokok_terbayar',
         'aktif',
     ];
 

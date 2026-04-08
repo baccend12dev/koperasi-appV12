@@ -180,6 +180,11 @@
                                     $wajib = $anggota->masterSimpanan->simpanan_wajib ?? 0;
                                     $sukarela = $anggota->masterSimpanan->simpanan_sukarela ?? 0;
                                     $pokok = $anggota->masterSimpanan->simpanan_pokok ?? 0;
+
+                                    if ($anggota->masterSimpanan && $anggota->masterSimpanan->pokok_terbayar) {
+                                        $pokok = 0;
+                                    }
+                                    
                                     $totalAnggota = $wajib + $sukarela + $pokok;
                                     
                                     $jenis = [];

@@ -13,7 +13,6 @@ class AnggotaController extends Controller
     public function index(Request $request)
     {
         $query = Anggota::query();
-
         if ($request->filled('dept')) {
             $query->where('department_id', $request->dept);
         }
@@ -21,13 +20,15 @@ class AnggotaController extends Controller
         if ($request->filled('q')) {
             $query->where(function($q) use ($request) {
                 $q->where('nama_anggota', 'ilike', '%' . $request->q . '%')
-                  ->orWhere('nokop', 'ilike', '%' . $request->q . '%');
+                  ->orWhere('nik', 'ilike', '%' . $request->q . '%')
+                  ->orWhere('no_ktp', 'ilike', '%' . $request->q . '%');
             });
         }
 
         $anggota = $query->paginate(10);
         $departemen = Departemen::withCount('anggota')->get();
-
+        // dd($departemen);
+        // dd($anggota);
         return view('anggota.index', compact('anggota', 'departemen'));
     }
 
@@ -36,8 +37,15 @@ class AnggotaController extends Controller
      */
     public function create()
     {
+        $ikatanKerjaOptions = Anggota::query()
+            ->whereNotNull('ikatan_kerja')
+            ->where('ikatan_kerja', '!=', '')
+            ->distinct()
+            ->orderBy('ikatan_kerja')
+            ->pluck('ikatan_kerja');
+
         $departemen = Departemen::all();
-        return view('anggota.create', compact('departemen'));
+        return view('anggota.create', compact('departemen', 'ikatanKerjaOptions'));
     }
 
     /**
@@ -46,39 +54,44 @@ class AnggotaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'nik' => 'required|string|max:16|unique:anggotas,nik',
-            'bagian' => 'nullable|string|max:255',
-            'department_id' => 'required|exists:departemens,id',
-            'no_pegawai' => 'nullable|string|max:255',
-            'tanggal_lahir' => 'nullable|date',
-            'no_hp' => 'nullable|string|max:255',
-            'jenis_kelamin' => 'nullable|string|in:L,P',
-            'ikatan_kerja' => 'nullable|string',
-            'status_anggota' => 'required|string',
-            'alamat' => 'nullable|string',
-            'tanggal_masuk' => 'required|date',
-            'simpanan_pokok' => 'nullable|numeric|min:0',
-            'simpanan_wajib' => 'nullable|numeric|min:0',
-            'simpanan_sukarela' => 'nullable|numeric|min:0',
+            'nama'             => 'required|string|max:255',
+            'nik'              => 'required|string|max:16|unique:anggotas,nik',
+            'no_ktp'           => 'nullable|string|max:16|unique:anggotas,no_ktp',
+            'department_id'    => 'required|exists:departemens,id',
+            'jabatan'          => 'nullable|string|max:255',
+            'tanggungan'       => 'nullable|integer|min:0|max:20',
+            'bagian'           => 'nullable|string|max:255',
+            'ket_bagian'       => 'nullable|string|max:500',
+            'tanggal_lahir'    => 'nullable|date',
+            'no_hp'            => 'nullable|string|max:255',
+            'jenis_kelamin'    => 'nullable|string|in:L,P',
+            'ikatan_kerja'     => 'nullable|string|max:100',
+            'status_anggota'   => 'required|string',
+            'alamat'           => 'nullable|string',
+            'tanggal_masuk'    => 'required|date',
+            'simpanan_pokok'   => 'nullable|numeric|min:0',
+            'simpanan_wajib'   => 'nullable|numeric|min:0',
+            'simpanan_sukarela'=> 'nullable|numeric|min:0',
         ]);
         // dd($validated);
         \DB::beginTransaction();
         try {
             $anggota = Anggota::create([
-                'nama_anggota' => $validated['nama'],
-                'nik' => $validated['nik'],
-                'ket_bagian' => $validated['bagian'] ?? null,
-                'bagian_id' => 1, // Fallback int if required
+                'nama_anggota'  => $validated['nama'],
+                'nik'           => $validated['nik'],
+                'no_ktp'        => $validated['no_ktp'] ?? null,
                 'department_id' => $validated['department_id'],
-                'no_pegawai' => $validated['no_pegawai'] ?? null,
-                'tgl_lahir' => $validated['tanggal_lahir'] ?? null,
-                'no_hp' => $validated['no_hp'] ?? null,
-                'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
-                'ikatan_kerja' => $validated['ikatan_kerja'] ?? null,
-                'alamat' => $validated['alamat'] ?? null,
-                'status_anggota' => $validated['status_anggota'],
-                'tgl_bergabung' => $validated['tanggal_masuk'],
+                'jabatan'       => $validated['jabatan'] ?? null,
+                'tanggungan'    => $validated['tanggungan'] ?? null,
+                'bagian'        => $validated['bagian'] ?? null,
+                'ket_bagian'    => $validated['ket_bagian'] ?? null,
+                'tgl_lahir'     => $validated['tanggal_lahir'] ?? null,
+                'no_hp'         => $validated['no_hp'] ?? null,
+                'sex'           => $validated['jenis_kelamin'] ?? null,
+                'ikatan_kerja'  => $validated['ikatan_kerja'] ?? null,
+                'alamat'        => $validated['alamat'] ?? null,
+                'status_anggota'=> $validated['status_anggota'],
+                'tgl_msk'       => $validated['tanggal_masuk'],
             ]);
 
             \App\Models\MasterSimpanan::create([

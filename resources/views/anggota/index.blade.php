@@ -132,8 +132,8 @@
                                onclick="document.querySelectorAll('.row-check').forEach(c=>c.checked=this.checked)">
                     </th>
                     <th style="width:40px"></th>
-                    <th>Nama & NIK</th>
-                    <th>No. HP</th>
+                    <th>Nama & No HP</th>
+                    <th>No KTP & NIK Otto</th>
                     <th>Tanggal Bergabung</th>
                     <th>Departemen</th>
                     <th>Bagian</th>
@@ -168,20 +168,23 @@
                         </td>
                         <td>
                             <div class="td-name">
-                                <span style="font-weight:500">{{ $item->nama_anggota }}</span>
+                                <span style="font-weight:500">{{ $item->nama_anggota }}</span>  
                             </div>
+                            <div class="td-muted" style="font-size:12px; margin-top:2px;">{{ $item->no_hp ?? '—' }}</div>
+                        </td>
+                        <td>
+                            {{ $item->no_ktp ?? '—' }}
                             <div class="td-muted" style="font-size:12px; margin-top:2px;">{{ $item->nik ?? '—' }}</div>
                         </td>
-                        <td>{{ $item->no_hp ?? '—' }}</td>
-                        <td>{{ $item->tgl_bergabung ?? '—' }}</td>
+                        <td>{{ $item->tgl_msk ? \Carbon\Carbon::parse($item->tgl_msk)->format('d M Y') : '—' }}</td>
                         <td>{{ $item->department_id ? $item->departemen?->nama : '—' }}</td>
-                        <td>{{ $item->bagian_id ? $item->bagian?->nama : '—' }}</td>
-                        <td>{{ $item->alamat ?? '—' }}</td>
+                        <td>{{ $item->bagian ?? '—' }}</td>
+                            <td>{{ $item->alamat ?? '—' }}</td>
                         <td>
-                            @if($item->status_anggota == 'active' || $item->status_anggota == 'Aktif')
-                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#e6f4ea; color:#137333; font-weight:600;">{{ ucfirst($item->status_anggota) }}</span>
+                            @if($item->ikatan_kerja == 'Permanent')
+                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#e6f4ea; color:#137333; font-weight:600;">{{ ucfirst($item->ikatan_kerja) }}</span>
                             @else
-                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#fce8e6; color:#c5221f; font-weight:600;">{{ ucfirst($item->status_anggota) }}</span>
+                                <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#fce8e6; color:#c5221f; font-weight:600;">{{ ucfirst($item->ikatan_kerja) }}</span>
                             @endif
                         </td>
                         <td></td>

@@ -111,7 +111,7 @@
             <a href="{{ route('simpanan.index', ['dept' => $dept->id, 'q' => request('q')]) }}"
                class="sd-link {{ request('dept') == $dept->id ? 'active' : '' }}">
                 {{ $dept->nama }}
-                <span class="sd-badge">{{ $dept->simpanan_count }}</span>
+                <span class="sd-badge">{{ $dept->anggota_count }}</span>
             </a>
         @endforeach
     </div>
@@ -130,9 +130,10 @@
                     <th style="width:40px"></th>
                     <th>Nama & NIK</th>
                     <th>Tanggal Bergabung</th>
-                    <th>Simpanan Wajib</th>
                     <th>Simpanan Pokok</th>
+                    <th>Simpanan Wajib</th>
                     <th>Simpanan Sukarela</th>
+                    <th>Total Simpanan</th>
                     <th>Status Anggota</th>
                     <th class="th-settings">
                         Aksi
@@ -160,10 +161,11 @@
                             </div>
                             <div class="td-muted" style="font-size:12px; margin-top:2px;">{{ $item->anggota->nik ?? '—' }}</div>
                         </td>
-                        <td>{{ $item->anggota->tgl_bergabung ?? '—' }}</td>
-                        <td>{{ number_format($item->simpanan_wajib, 2, ',', '.') }}</td>
+                        <td>{{ $item->anggota->tgl_msk ?? '—' }}</td>
                         <td>{{ number_format($item->simpanan_pokok, 2, ',', '.') }}</td>
+                        <td>{{ number_format($item->simpanan_wajib, 2, ',', '.') }}</td>
                         <td>{{ number_format($item->simpanan_sukarela, 2, ',', '.') }}</td>
+                        <td>{{ number_format($item->total_simpanan, 2, ',', '.') }}</td>
                         <td>
                             @if($item->anggota->status_anggota == 'active' || $item->anggota->status_anggota == 'Aktif')
                                 <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#e6f4ea; color:#137333; font-weight:600;">{{ ucfirst($item->anggota->status_anggota) }}</span>

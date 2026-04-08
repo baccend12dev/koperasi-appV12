@@ -10,6 +10,8 @@ class Departemen extends Model
 {
     use HasFactory;
 
+    protected $table = 'departemens';
+    protected $primaryKey = 'id';
     protected $fillable = ['nama', 'kode', 'deskripsi'];
 
     /** Anggota di departemen ini */

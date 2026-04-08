@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('simpanan_sukarela', 15, 2)->default(0);
             $table->date('tanggal_mulai');
             $table->date('tanggal_akhir')->nullable();
-            $table->boolean('aktif')->default(true);
+            $table->boolean('pokok_terbayar')->default(false);
             $table->timestamps();
         });
     }

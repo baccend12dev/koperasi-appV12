@@ -26,517 +26,593 @@
 
 @section('content')
 <style>
-    /* ── Page Container ── */
-    .ag-page { padding: 0; }
-
-    /* ── Header Strip ── */
-    .ag-header {
+    /* ── Layout ── */
+    .profile-layout {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 28px;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
+        align-items: flex-start;
+        gap: 24px;
+        padding: 24px;
     }
-    .ag-header-left {
+    
+    /* ── Sidebar ── */
+    .profile-sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        background: #fff;
+        border: 1px solid var(--border, #E5E7EB);
+        border-radius: 12px;
+        padding: 24px;
         display: flex;
-        align-items: center;
-        gap: 14px;
+        flex-direction: column;
+        gap: 20px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
-    .ag-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 8px;
-        background: var(--accent);
+    .ps-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+    .ps-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--accent, #1a56db);
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 28px;
         font-weight: 700;
-        flex-shrink: 0;
         overflow: hidden;
     }
-    .ag-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .ag-name {
-        font-size: 16px;
+    .ps-avatar img { width:100%; height:100%; object-fit:cover; }
+    .ps-name {
+        font-size: 18px;
         font-weight: 700;
-        color: var(--text-1);
-        margin: 0;
+        color: var(--text-1, #111827);
         line-height: 1.3;
+        margin: 0;
     }
-    .ag-meta {
+    .ps-badges {
         display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-top: 2px;
-        font-size: 12px;
-        color: var(--text-2);
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
     }
-    .ag-meta-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .ag-status-badge {
+    .ps-badge {
         font-size: 10px;
         font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 10px;
+        padding: 4px 10px;
+        border-radius: 12px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
-    .ag-status-aktif { background: var(--green-bg); color: var(--green-text); }
-    .ag-status-nonaktif { background: var(--red-bg); color: var(--red-text); }
+    .badge-green { background: #DEF7EC; color: #03543F; }
+    .badge-red { background: #FDE8E8; color: #9B1C1C; }
+    .badge-blue { background: #E1EFFE; color: #1E429F; }
 
-    .ag-header-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    .ps-divider {
+        height: 1px;
+        background: var(--border, #E5E7EB);
+        margin: 0;
+        border: none;
     }
-
-    /* ── Summary Bar ── */
-    .ag-summary {
+    .ps-info-list {
         display: flex;
-        align-items: stretch;
-        border-bottom: 1px solid var(--border);
-        background: var(--bg);
+        flex-direction: column;
+        gap: 12px;
     }
-    .ag-sum-item {
-        flex: 1;
-        padding: 16px 28px;
-        border-right: 1px solid var(--border);
+    .ps-info-item {
         display: flex;
         flex-direction: column;
         gap: 2px;
     }
-    .ag-sum-item:last-child { border-right: none; }
-    .ag-sum-label {
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-3);
-    }
-    .ag-sum-value {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--text-1);
-        line-height: 1.3;
-    }
-    .ag-sum-value.accent { color: var(--accent); }
-    .ag-sum-value.green  { color: var(--green-text); }
-    .ag-sum-value.red    { color: var(--red-text); }
-    .ag-sum-sub {
+    .ps-info-label {
         font-size: 11px;
-        color: var(--text-3);
-        margin-top: 1px;
+        font-weight: 600;
+        color: var(--text-3, #6B7280);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    .ps-info-value {
+        font-size: 13px;
+        color: var(--text-1, #111827);
+        font-weight: 500;
     }
 
-    /* ── Tabs ── */
+    /* ── Main Content ── */
+    .profile-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Summary Cards */
+    .pm-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    .pm-sum-card {
+        background: #fff;
+        border: 1px solid var(--border, #E5E7EB);
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .pm-sum-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-3, #6B7280);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .pm-sum-val {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-1, #111827);
+        line-height: 1.2;
+    }
+    .pm-sum-val.accent { color: var(--accent, #1a56db); }
+    .pm-sum-val.red { color: #E02424; }
+    .pm-sum-sub {
+        font-size: 12px;
+        color: var(--text-2, #4b5563);
+    }
+
+    /* Main Container (Tabs) */
+    .pm-container {
+        background: #fff;
+        border: 1px solid var(--border, #E5E7EB);
+        border-radius: 12px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    /* Tabs Header */
     .ag-tabs {
         display: flex;
         gap: 0;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
-        padding: 0 28px;
+        border-bottom: 1px solid var(--border, #E5E7EB);
+        background: var(--surface, #fff);
+        padding: 0 16px;
     }
     .ag-tab {
-        padding: 11px 20px;
+        padding: 14px 24px;
         font-size: 13px;
         font-weight: 600;
-        color: var(--text-2);
+        color: var(--text-2, #4b5563);
         cursor: pointer;
         border-bottom: 2px solid transparent;
         transition: color .15s, border-color .15s;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         background: none;
         border-top: none;
         border-left: none;
         border-right: none;
     }
-    .ag-tab:hover { color: var(--accent); }
+    .ag-tab:hover { color: var(--accent, #1a56db); }
     .ag-tab.active {
-        color: var(--accent);
-        border-bottom-color: var(--accent);
+        color: var(--accent, #1a56db);
+        border-bottom-color: var(--accent, #1a56db);
     }
     .ag-tab-count {
         font-size: 10px;
         font-weight: 700;
-        background: var(--bg);
-        color: var(--text-3);
-        padding: 1px 6px;
-        border-radius: 8px;
-        min-width: 18px;
+        background: var(--bg, #F3F4F6);
+        color: var(--text-3, #6B7280);
+        padding: 2px 8px;
+        border-radius: 10px;
+        min-width: 20px;
         text-align: center;
     }
     .ag-tab.active .ag-tab-count {
-        background: var(--accent-light);
-        color: var(--accent);
+        background: rgba(26,86,219,0.1);
+        color: var(--accent, #1a56db);
     }
-
-    /* ── Tab Content ── */
+    
+    /* Tab Bodies */
     .ag-tab-body { display: none; }
     .ag-tab-body.active { display: block; }
+    
+    /* Simpanan Breakdown */
+    .pm-breakdown {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-bottom: 1px solid var(--border, #E5E7EB);
+        background: #FAFAFA;
+    }
+    .pm-bk-item {
+        padding: 16px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        border-right: 1px solid var(--border, #E5E7EB);
+    }
+    .pm-bk-item:last-child { border-right: none; }
+    .pm-bk-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-3, #6B7280);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .pm-bk-val {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-1, #111827);
+    }
 
-    /* ── Sub Tabs (Pinjaman) ── */
+    /* Sub Tabs Pinjaman */
     .ag-subtabs {
         display: flex;
         gap: 0;
-        padding: 0 28px;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
+        padding: 0 16px;
+        border-bottom: 1px solid var(--border, #E5E7EB);
+        background: #FAFAFA;
     }
     .ag-subtab {
-        padding: 9px 16px;
+        padding: 12px 20px;
         font-size: 12px;
         font-weight: 600;
-        color: var(--text-3);
+        color: var(--text-2, #4b5563);
         cursor: pointer;
         border-bottom: 2px solid transparent;
         transition: color .15s, border-color .15s;
         background: none;
         border-top: none; border-left: none; border-right: none;
     }
-    .ag-subtab:hover { color: var(--text-1); }
+    .ag-subtab:hover { color: var(--text-1, #111827); }
     .ag-subtab.active {
-        color: var(--text-1);
-        border-bottom-color: var(--text-1);
+        color: var(--text-1, #111827);
+        border-bottom-color: var(--text-1, #111827);
     }
     .ag-sub-body { display: none; }
     .ag-sub-body.active { display: block; }
 
-    /* ── Simpanan breakdown row ── */
-    .ag-breakdown {
-        display: flex;
-        align-items: center;
-        gap: 0;
-        padding: 0 28px;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
-    }
-    .ag-bk-item {
-        padding: 12px 20px 12px 0;
-        margin-right: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 1px;
-    }
-    .ag-bk-item:not(:last-child) {
-        border-right: 1px solid var(--border);
-        padding-right: 20px;
-    }
-    .ag-bk-label {
-        font-size: 10px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-3);
-    }
-    .ag-bk-value {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text-1);
-    }
-
-    /* ── Table ── */
-    .ag-table-wrap {
-        padding: 0;
-    }
-    .ag-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+    /* Tables */
+    .ag-table-wrap { overflow-x: auto; }
+    .ag-table { width: 100%; border-collapse: collapse; }
     .ag-table thead th {
         text-align: left;
-        padding: 10px 28px;
+        padding: 12px 24px;
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-3);
-        border-bottom: 1px solid var(--border);
-        background: var(--bg);
-        white-space: nowrap;
+        color: var(--text-3, #6B7280);
+        border-bottom: 1px solid var(--border, #E5E7EB);
+        background: #fff;
     }
     .ag-table tbody td {
-        padding: 12px 28px;
+        padding: 16px 24px;
         font-size: 13px;
-        color: var(--text-1);
-        border-bottom: 1px solid var(--border);
+        color: var(--text-1, #111827);
+        border-bottom: 1px solid var(--border, #E5E7EB);
         vertical-align: middle;
     }
-    .ag-table tbody tr:last-child td { border-bottom: none; }
-    .ag-table tbody tr:hover { background: var(--bg); }
+    .ag-table tbody tr:hover { background: #F9FAFB; }
+    .ag-empty { text-align: center; padding: 40px !important; color: var(--text-3, #6B7280); font-size: 13px; }
 
-    .ag-empty {
-        text-align: center;
-        padding: 40px 28px !important;
-        color: var(--text-3);
-        font-size: 13px;
-    }
-
-    /* ── Inline badges ── */
-    .ag-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 8px;
-        font-size: 10px;
-        font-weight: 700;
-        border-radius: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-    .ag-badge-green  { background: var(--green-bg);  color: var(--green-text); }
-    .ag-badge-blue   { background: #E6F1FB; color: #185FA5; }
-    .ag-badge-amber  { background: var(--amber-bg);  color: var(--amber-text); }
-    .ag-badge-red    { background: var(--red-bg);    color: var(--red-text); }
-
-    /* ── Type dot ── */
     .ag-dot {
-        display: inline-block;
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        margin-right: 6px;
-        flex-shrink: 0;
+        display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
     }
-    .dot-pokok    { background: #F57C00; }
-    .dot-wajib    { background: var(--green-text); }
-    .dot-sukarela { background: var(--accent); }
-
-    /* ── Amount formatting ── */
-    .ag-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
-    .ag-amount-red { color: var(--red-text); }
+    .dot-pokok { background: #F57C00; }
+    .dot-wajib { background: #059669; }
+    .dot-sukarela { background: #1a56db; }
 </style>
 
-<div class="ag-page">
-
-    {{-- 1 ▸ Header Strip --}}
-    <div class="ag-header">
-        <div class="ag-header-left">
-            <div class="ag-avatar">
+<div class="profile-layout">
+    
+    {{-- ── SIDEBAR (Informasi Pribadi) ── --}}
+    <div class="profile-sidebar">
+        <div class="ps-header">
+            <div class="ps-avatar">
                 @if($anggota->foto)
                     <img src="{{ Storage::url($anggota->foto) }}" alt="{{ $anggota->nama_anggota }}">
                 @else
                     {{ strtoupper(substr($anggota->nama_anggota, 0, 2)) }}
                 @endif
             </div>
-            <div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <h1 class="ag-name">{{ $anggota->nama_anggota }}</h1>
-                    <span class="ag-status-badge {{ strtolower($anggota->status_anggota ?? 'aktif') == 'aktif' || strtolower($anggota->status_anggota ?? '') == 'active' ? 'ag-status-aktif' : 'ag-status-nonaktif' }}">
-                        {{ strtoupper($anggota->status_anggota ?? 'Aktif') }}
-                    </span>
+            <h1 class="ps-name">{{ $anggota->nama_anggota }}</h1>
+            <div class="ps-badges">
+                <span class="ps-badge {{ strtolower($anggota->status_anggota ?? 'aktif') == 'aktif' ? 'badge-green' : 'badge-red' }}">
+                    {{ strtoupper($anggota->status_anggota ?? 'Aktif') }}
+                </span>
+                <span class="ps-badge badge-blue">{{ strtoupper($anggota->ikatan_kerja ?? 'Permanent') }}</span>
+            </div>
+        </div>
+
+        <a href="{{ route('anggota.edit', $anggota) }}" class="btn-secondary" style="justify-content:center; width:100%;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            Edit Profil
+        </a>
+
+        <hr class="ps-divider">
+
+        <div class="ps-info-list">
+            <div class="ps-info-item">
+                <span class="ps-info-label">NIK OTTO</span>
+                <span class="ps-info-value">{{ $anggota->nik ?? '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">KTP / No. Identitas</span>
+                <span class="ps-info-value">{{ $anggota->no_ktp ?? '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">Departemen</span>
+                <span class="ps-info-value">{{ $anggota->departemen ? $anggota->departemen->nama : '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">Bagian / Unit</span>
+                <span class="ps-info-value">{{ $anggota->bagian ?? '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">Jabatan</span>
+                <span class="ps-info-value">{{ $anggota->jabatan ?? '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">Tgl Masuk</span>
+                <span class="ps-info-value">{{ $anggota->tgl_msk ? \Carbon\Carbon::parse($anggota->tgl_msk)->format('d M Y') : '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">No. HP</span>
+                <span class="ps-info-value">{{ $anggota->no_hp ?? '—' }}</span>
+            </div>
+            <div class="ps-info-item">
+                <span class="ps-info-label">Jml Tanggungan</span>
+                <span class="ps-info-value">{{ $anggota->tanggungan . ' Orang' ?? '—' }}</span>
+            </div>
+            @if($anggota->alamat)
+            <div class="ps-info-item">
+                <span class="ps-info-label">Alamat</span>
+                <span class="ps-info-value" style="line-height:1.4;">{{ $anggota->alamat }}</span>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- ── MAIN CONTENT (Simpanan / Pinjaman) ── --}}
+    <div class="profile-main">
+        
+        {{-- Summary Grid --}}
+        <div class="pm-summary-grid">
+            <div class="pm-sum-card">
+                <span class="pm-sum-label">Total Simpanan</span>
+                <span class="pm-sum-val accent">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</span>
+                <span class="pm-sum-sub">Kumulatif saldo</span>
+            </div>
+            <div class="pm-sum-card">
+                <span class="pm-sum-label">Max Pinjaman</span>
+                <span class="pm-sum-val">Rp {{ number_format($max_pinjaman, 0, ',', '.') }}</span>
+                <span class="pm-sum-sub">Limit plafond</span>
+            </div>
+            <div class="pm-sum-card">
+                <span class="pm-sum-label">Sisa Hutang</span>
+                <span class="pm-sum-val red">Rp {{ number_format($sisa_pinjaman, 0, ',', '.') }}</span>
+                <span class="pm-sum-sub">Dari {{ $pinjaman_berjalan->count() }} pinjaman aktif</span>
+            </div>
+            <div class="pm-sum-card">
+                <span class="pm-sum-label">Sisa Kuota</span>
+                <span class="pm-sum-val">Rp {{ number_format($sisa_kuota, 0, ',', '.') }}</span>
+                <span class="pm-sum-sub">Plafond tersedia</span>
+            </div>
+        </div>
+
+        {{-- Detail Container (Tabs) --}}
+        <div class="pm-container">
+            <div class="ag-tabs">
+                <button class="ag-tab active" onclick="switchMainTab(this, 'simpanan')">
+                    Data Simpanan
+                    <span class="ag-tab-count">{{ $riwayat_simpanan->count() }}</span>
+                </button>
+                <button class="ag-tab" onclick="switchMainTab(this, 'pinjaman')">
+                    Data Pinjaman
+                    <span class="ag-tab-count">{{ $pinjaman_berjalan->count() + $pinjaman_lunas->count() }}</span>
+                </button>
+            </div>
+
+            {{-- ── TAB: SIMPANAN ── --}}
+            <div id="main-simpanan" class="ag-tab-body active">
+                <div class="pm-breakdown">
+                    <div class="pm-bk-item">
+                        <span class="pm-bk-label">Simpanan Pokok</span>
+                        <span class="pm-bk-val">Rp {{ number_format($simpanan_pokok, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="pm-bk-item">
+                        <span class="pm-bk-label">Simpanan Wajib</span>
+                        <span class="pm-bk-val">Rp {{ number_format($simpanan_wajib, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="pm-bk-item">
+                        <span class="pm-bk-label">Simpanan Sukarela</span>
+                        <span class="pm-bk-val">Rp {{ number_format($simpanan_sukarela, 0, ',', '.') }}</span>
+                    </div>
                 </div>
-                <div class="ag-meta">
-                    <div class="ag-meta-item">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        {{ $anggota->nik ?? 'N/A' }}
+
+                @php
+                    $groupedByYear = $riwayat_simpanan->groupBy(function($item) {
+                        return \Carbon\Carbon::parse($item->transaction_date)->format('Y');
+                    })->sortKeysDesc();
+                @endphp
+
+                @forelse($groupedByYear as $year => $transactionsYear)
+                <div class="year-section" style="margin-top: 16px;">
+                    <div style="display: flex; gap: 16px; align-items: center; padding: 12px 16px; background: #fff; border-top: 1px solid var(--border, #E5E7EB); border-bottom: 1px solid var(--border, #E5E7EB);">
+                        <span style="font-weight: 700; color: var(--text-3, #6B7280); font-size: 13px; text-transform: uppercase;">TAHUN</span>
+                        <span style="font-weight: 700; color: var(--text-1, #111827); font-size: 14px;">{{ $year }}</span>
                     </div>
-                    <div class="ag-meta-item">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                        {{ $anggota->departemen ? $anggota->departemen->nama : '—' }}
+                    
+                    <div class="ag-table-wrap">
+                        <table class="ag-table">
+                            <thead>
+                                <tr>
+                                    <th>PERIODE</th>
+                                    <th style="text-align:right;">POKOK</th>
+                                    <th style="text-align:right;">WAJIB</th>
+                                    <th style="text-align:right;">SUKARELA</th>
+                                    <th style="text-align:right;">BUNGA</th>
+                                    <th style="text-align:right;">SHU {{ $year - 1 }}</th>
+                                    <th style="text-align:right;">PENGAMBILAN</th>
+                                    <th style="text-align:right;">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $saldo_awal = 0;
+                                    foreach($riwayat_simpanan as $rs) {
+                                        if (\Carbon\Carbon::parse($rs->transaction_date)->format('Y') < $year) {
+                                            $type_name = strtolower($rs->jenisSimpanan->nama ?? '');
+                                            if (str_contains($type_name, 'tarik') || str_contains($type_name, 'ambil')) {
+                                                $saldo_awal -= $rs->amount;
+                                            } else {
+                                                $saldo_awal += $rs->amount;
+                                            }
+                                        }
+                                    }
+
+                                    $groupedByPeriod = $transactionsYear->groupBy(function($item) {
+                                        return \Carbon\Carbon::parse($item->transaction_date)->format('Y-m');
+                                    })->sortKeys();
+                                    
+                                    $running_total = $saldo_awal;
+                                @endphp
+                                
+                                <tr>
+                                    <td style="font-weight:500;">saldo awal {{ $year }}</td>
+                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right; font-weight:600;">{{ number_format($running_total, 0, ',', '.') }}</td>
+                                </tr>
+
+                                @foreach($groupedByPeriod as $periodKey => $transactions)
+                                    @php
+                                        $pokok = 0;
+                                        $wajib = 0;
+                                        $sukarela = 0;
+                                        $pengambilan = 0;
+                                        foreach($transactions as $t) {
+                                            $type_name = strtolower($t->jenisSimpanan->nama ?? '');
+                                            if(str_contains($type_name, 'pokok')) { $pokok += $t->amount; }
+                                            elseif(str_contains($type_name, 'wajib')) { $wajib += $t->amount; }
+                                            elseif(str_contains($type_name, 'sukarela')) { $sukarela += $t->amount; }
+                                            elseif(str_contains($type_name, 'tarik') || str_contains($type_name, 'ambil')) { $pengambilan += $t->amount; }
+                                        }
+                                        $row_total = $pokok + $wajib + $sukarela - $pengambilan;
+                                        $running_total += $row_total;
+                                        $period_label = \Carbon\Carbon::parse($periodKey . '-01')->translatedFormat('M-y');
+                                    @endphp
+                                    <tr>
+                                        <td style="font-weight:500;">{{ $period_label }}</td>
+                                        <td style="text-align:right;">{{ $pokok > 0 ? number_format($pokok, 0, ',', '.') : '-' }}</td>
+                                        <td style="text-align:right;">{{ $wajib > 0 ? number_format($wajib, 0, ',', '.') : '-' }}</td>
+                                        <td style="text-align:right;">{{ $sukarela > 0 ? number_format($sukarela, 0, ',', '.') : '-' }}</td>
+                                        <td style="text-align:right;">-</td>
+                                        <td style="text-align:right;">-</td>
+                                        <td style="text-align:right;">{{ $pengambilan > 0 ? number_format($pengambilan, 0, ',', '.') : '-' }}</td>
+                                        <td style="text-align:right; font-weight:600;">{{ number_format($running_total, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="ag-meta-item">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        {{ $anggota->tgl_bergabung ? \Carbon\Carbon::parse($anggota->tgl_bergabung)->format('d M Y') : '—' }}
+                </div>
+                @empty
+                <div class="ag-empty" style="padding: 40px; text-align: center; color: var(--text-3);">Belum ada riwayat transaksi simpanan.</div>
+                @endforelse
+            </div>
+
+            {{-- ── TAB: PINJAMAN ── --}}
+            <div id="main-pinjaman" class="ag-tab-body">
+                <div class="ag-subtabs">
+                    <button class="ag-subtab active" onclick="switchSubTab(this, 'berjalan')">
+                        Sedang Berjalan ({{ $pinjaman_berjalan->count() }})
+                    </button>
+                    <button class="ag-subtab" onclick="switchSubTab(this, 'lunas')">
+                        Histori Selesai/Ditolak ({{ $pinjaman_lunas->count() }})
+                    </button>
+                </div>
+
+                <div id="sub-berjalan" class="ag-sub-body active">
+                    <div class="ag-table-wrap">
+                        <table class="ag-table">
+                            <thead>
+                                <tr>
+                                    <th>Tgl Pengajuan</th>
+                                    <th>Program Pinjaman</th>
+                                    <th>Tenor/Bunga</th>
+                                    <th style="text-align:right;">Kredit</th>
+                                    <th style="text-align:right;">Sisa Tagihan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pinjaman_berjalan as $p)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($p->created_at)->format('d M Y') }}</td>
+                                    <td style="font-weight:500; color:var(--accent);">{{ $p->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                                    <td style="color:var(--text-3);">{{ $p->tenor }} bln &middot; {{ $p->bunga }}%</td>
+                                    <td style="text-align:right; font-weight:600;">Rp {{ number_format($p->jumlah_pinjaman ?? $p->jumlah_pengajuan, 0, ',', '.') }}</td>
+                                    <td style="text-align:right; font-weight:600; color:#E02424;">
+                                        Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pengajuan + ($p->jumlah_pengajuan * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr><td colspan="5" class="ag-empty">Tidak ada pinjaman yang sedang berjalan.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="sub-lunas" class="ag-sub-body">
+                    <div class="ag-table-wrap">
+                        <table class="ag-table">
+                            <thead>
+                                <tr>
+                                    <th>Tgl Pengajuan</th>
+                                    <th>Program Pinjaman</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Kredit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pinjaman_lunas as $pl)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($pl->created_at)->format('d M Y') }}</td>
+                                    <td style="font-weight:500;">{{ $pl->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                                    <td>
+                                        @if($pl->status == 'lunas')
+                                            <span class="ps-badge badge-green">Lunas</span>
+                                        @else
+                                            <span class="ps-badge badge-red">Ditolak</span>
+                                        @endif
+                                    </td>
+                                    <td style="text-align:right; font-weight:600;">Rp {{ number_format($pl->jumlah_pinjaman ?? $pl->jumlah_pengajuan, 0, ',', '.') }}</td>
+                                </tr>
+                                @empty
+                                <tr><td colspan="4" class="ag-empty">Tidak ada riwayat pinjaman di masa lalu.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="ag-header-right">
-            <a href="{{ route('anggota.edit', $anggota) }}" class="btn-secondary">
-                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                Edit
-            </a>
+
         </div>
     </div>
-
-    {{-- 2 ▸ Summary Bar --}}
-    <div class="ag-summary">
-        <div class="ag-sum-item">
-            <span class="ag-sum-label">Total Simpanan</span>
-            <span class="ag-sum-value accent">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</span>
-        </div>
-        <div class="ag-sum-item">
-            <span class="ag-sum-label">Max Pinjaman</span>
-            <span class="ag-sum-value">Rp {{ number_format($max_pinjaman, 0, ',', '.') }}</span>
-            <span class="ag-sum-sub">Threshold 5× Simpanan</span>
-        </div>
-        <div class="ag-sum-item">
-            <span class="ag-sum-label">Pinjaman Aktif</span>
-            <span class="ag-sum-value">Rp {{ number_format($pinjaman_aktif_amount, 0, ',', '.') }}</span>
-            <span class="ag-sum-sub">{{ $pinjaman_berjalan->count() }} fasilitas berjalan</span>
-        </div>
-        <div class="ag-sum-item">
-            <span class="ag-sum-label">Sisa Hutang</span>
-            <span class="ag-sum-value red">Rp {{ number_format($sisa_pinjaman, 0, ',', '.') }}</span>
-            <span class="ag-sum-sub">Kuota tersisa: Rp {{ number_format($sisa_kuota, 0, ',', '.') }}</span>
-        </div>
-    </div>
-
-    {{-- 3 ▸ Main Tabs --}}
-    <div class="ag-tabs">
-        <button class="ag-tab active" onclick="switchMainTab(this, 'simpanan')">
-            Simpanan
-            <span class="ag-tab-count">{{ $riwayat_simpanan->count() }}</span>
-        </button>
-        <button class="ag-tab" onclick="switchMainTab(this, 'pinjaman')">
-            Pinjaman
-            <span class="ag-tab-count">{{ $pinjaman_berjalan->count() + $pinjaman_lunas->count() }}</span>
-        </button>
-    </div>
-
-    {{-- ─── TAB: SIMPANAN ─── --}}
-    <div id="main-simpanan" class="ag-tab-body active">
-
-        {{-- Breakdown --}}
-        <div class="ag-breakdown">
-            <div class="ag-bk-item">
-                <span class="ag-bk-label">Simpanan Pokok</span>
-                <span class="ag-bk-value">Rp {{ number_format($simpanan_pokok, 0, ',', '.') }}</span>
-            </div>
-            <div class="ag-bk-item">
-                <span class="ag-bk-label">Simpanan Wajib</span>
-                <span class="ag-bk-value">Rp {{ number_format($simpanan_wajib, 0, ',', '.') }}</span>
-            </div>
-            <div class="ag-bk-item">
-                <span class="ag-bk-label">Simpanan Sukarela</span>
-                <span class="ag-bk-value">Rp {{ number_format($simpanan_sukarela, 0, ',', '.') }}</span>
-            </div>
-        </div>
-
-        {{-- Transaction Table --}}
-        <div class="ag-table-wrap">
-            <table class="ag-table">
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Jenis</th>
-                        <th>Jumlah</th>
-                        <th>Periode</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($riwayat_simpanan as $rs)
-                    <tr>
-                        <td>{{ \Carbon\Carbon::parse($rs->transaction_date)->format('d M Y') }}</td>
-                        <td style="font-weight:500;">
-                            @php
-                                $type_name = strtolower($rs->jenisSimpanan->nama ?? '');
-                                $dotClass = 'dot-sukarela';
-                                if(str_contains($type_name, 'wajib')) $dotClass = 'dot-wajib';
-                                elseif(str_contains($type_name, 'pokok')) $dotClass = 'dot-pokok';
-                            @endphp
-                            <span class="ag-dot {{ $dotClass }}"></span>
-                            {{ $rs->jenisSimpanan->nama ?? 'Simpanan' }}
-                        </td>
-                        <td class="ag-amount">Rp {{ number_format($rs->amount, 0, ',', '.') }}</td>
-                        <td style="color:var(--text-2);">{{ $rs->periode }}</td>
-                        <td><span class="ag-badge ag-badge-green">Berhasil</span></td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="ag-empty">Belum ada riwayat transaksi simpanan.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {{-- ─── TAB: PINJAMAN ─── --}}
-    <div id="main-pinjaman" class="ag-tab-body">
-
-        {{-- Sub-tabs --}}
-        <div class="ag-subtabs">
-            <button class="ag-subtab active" onclick="switchSubTab(this, 'berjalan')">
-                Berjalan ({{ $pinjaman_berjalan->count() }})
-            </button>
-            <button class="ag-subtab" onclick="switchSubTab(this, 'lunas')">
-                Lunas ({{ $pinjaman_lunas->count() }})
-            </button>
-        </div>
-
-        {{-- Sub: Berjalan --}}
-        <div id="sub-berjalan" class="ag-sub-body active">
-            <div class="ag-table-wrap">
-                <table class="ag-table">
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Jenis Pinjaman</th>
-                            <th>Jumlah Kredit</th>
-                            <th>Tenor / Bunga</th>
-                            <th>Sisa Tagihan</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pinjaman_berjalan as $p)
-                        <tr>
-                            <td>{{ \Carbon\Carbon::parse($p->created_at)->format('d M Y') }}</td>
-                            <td style="font-weight:500; color:var(--accent);">{{ $p->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
-                            <td class="ag-amount">Rp {{ number_format($p->jumlah_pinjaman ?? $p->jumlah_pengajuan, 0, ',', '.') }}</td>
-                            <td style="color:var(--text-2);">{{ $p->tenor }} Bln &middot; {{ $p->bunga }}%</td>
-                            <td class="ag-amount ag-amount-red">
-                                Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pengajuan + ($p->jumlah_pengajuan * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}
-                            </td>
-                            <td>
-                                @if($p->status == 'berjalan')
-                                    <span class="ag-badge ag-badge-blue">Berjalan</span>
-                                @else
-                                    <span class="ag-badge ag-badge-amber">Pending</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="6" class="ag-empty">Tidak ada pinjaman yang sedang berjalan.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {{-- Sub: Lunas --}}
-        <div id="sub-lunas" class="ag-sub-body">
-            <div class="ag-table-wrap">
-                <table class="ag-table">
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Jenis Pinjaman</th>
-                            <th>Total Kredit</th>
-                            <th>Sisa Tagihan</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pinjaman_lunas as $pl)
-                        <tr>
-                            <td>{{ \Carbon\Carbon::parse($pl->created_at)->format('d M Y') }}</td>
-                            <td style="font-weight:500;">{{ $pl->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
-                            <td class="ag-amount">Rp {{ number_format($pl->jumlah_pinjaman ?? $pl->jumlah_pengajuan, 0, ',', '.') }}</td>
-                            <td style="color:var(--text-2);">Rp {{ number_format($pl->sisa_pinjaman, 0, ',', '.') }}</td>
-                            <td>
-                                @if($pl->status == 'lunas')
-                                    <span class="ag-badge ag-badge-green">Lunas</span>
-                                @else
-                                    <span class="ag-badge ag-badge-red">Ditolak</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="5" class="ag-empty">Tidak ada riwayat pinjaman.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script>

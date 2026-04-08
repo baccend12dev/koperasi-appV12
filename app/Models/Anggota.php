@@ -11,18 +11,18 @@ class Anggota extends Model
     use HasFactory;
 
     protected $fillable = [
-        'no_pegawai',
+        'no_ktp',
         'nik',
         'nama_anggota',
         'department_id',
         'bagian_id',
         'alamat',
         'no_hp',
-        'jenis_kelamin',
+        'sex',
         'tgl_lahir',
         'jabatan',
         'ket_bagian',
-        'tgl_bergabung',
+        'tgl_msk',
         'ikatan_kerja',
         'status_anggota',
     ];

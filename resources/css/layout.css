@@ -425,6 +425,7 @@ input, select, textarea { font-family: var(--font); }
    ------------------------------------------------------------- */
 #layout-body {
     display: flex;
+    align-items: flex-start;
     min-height: calc(100vh - var(--topbar-h) - var(--subbar-h));
 }
 
@@ -432,23 +433,43 @@ input, select, textarea { font-family: var(--font); }
    6. SIDEBAR
    ------------------------------------------------------------- */
 #sidebar {
-    position: relative;
+    position: sticky;
+    top: calc(var(--topbar-h) + var(--subbar-h));
+    height: calc(100vh - var(--topbar-h) - var(--subbar-h));
     width: var(--sidebar-w);
     flex-shrink: 0;
     background: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
     transition: width .2s ease;
     overflow: visible;
+    align-self: flex-start;
 }
 #sidebar.collapsed {
     width: 0;
 }
 .sidebar-inner {
     width: var(--sidebar-w);
+    height: 100%;
     padding: 10px 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     transition: opacity .2s ease;
     opacity: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-md) transparent;
+}
+.sidebar-inner::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-inner::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-inner::-webkit-scrollbar-thumb {
+    background: var(--border-md);
+    border-radius: 4px;
+}
+.sidebar-inner::-webkit-scrollbar-thumb:hover {
+    background: var(--text-3);
 }
 #sidebar.collapsed .sidebar-inner {
     opacity: 0;

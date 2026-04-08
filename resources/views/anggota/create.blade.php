@@ -18,6 +18,8 @@
 @section('page-title', '')
 
 @push('styles')
+    {{-- Select2 CSS --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
     /* ── Form page header ────────────────────────────── */
     .form-topbar{
@@ -154,6 +156,83 @@
         background-position:right 13px center;
         padding-right:34px;
         cursor:pointer;
+    }
+
+    /* ── Select2 overrides ────────────────── */
+    .select2-container .select2-selection--single,
+    .select2-container .select2-selection--multiple {
+        height: 42px !important;
+        border: 1.5px solid #D1D5DB !important;
+        border-radius: 8px !important;
+        display: flex;
+        align-items: center;
+        font-family: inherit;
+        font-size: 13px;
+        background: #fff !important;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--focus .select2-selection--multiple,
+    .select2-container--default.select2-container--open .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--multiple {
+        border-color: #1a56db !important;
+        box-shadow: 0 0 0 3px rgba(26,86,219,.12) !important;
+        outline: none !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 40px !important;
+        padding-left: 13px !important;
+        padding-right: 34px !important;
+        color: #111827 !important;
+        font-size: 13px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #9CA3AF !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+        right: 10px !important;
+    }
+    .select2-container--default .select2-selection--multiple {
+        padding: 3px 6px !important;
+        min-height: 42px !important;
+        height: auto !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #EFF6FF !important;
+        border: 1px solid #BFDBFE !important;
+        color: #1a56db !important;
+        border-radius: 6px !important;
+        font-size: 12px !important;
+        padding: 2px 8px !important;
+        margin-top: 4px !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        color: #1a56db !important;
+        margin-right: 4px !important;
+    }
+    .select2-dropdown {
+        border: 1.5px solid #D1D5DB !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,.1) !important;
+        font-size: 13px !important;
+        font-family: inherit;
+    }
+    .select2-container--default .select2-results__option--highlighted {
+        background-color: #EFF6FF !important;
+        color: #1a56db !important;
+    }
+    .select2-search--dropdown .select2-search__field {
+        border: 1.5px solid #D1D5DB !important;
+        border-radius: 6px !important;
+        padding: 6px 10px !important;
+        font-size: 13px !important;
+        font-family: inherit;
+        outline: none;
+    }
+    .select2-search--dropdown .select2-search__field:focus {
+        border-color: #1a56db !important;
+        box-shadow: 0 0 0 2px rgba(26,86,219,.1);
     }
 
     input[type="date"].form-control{ cursor:pointer; }
@@ -404,36 +483,77 @@
                                 @error('nama')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="nik">NIK (Nomor Induk Kependudukan)</label>
+                                <label class="form-label" for="no_ktp">NIK (Nomor Induk Kependudukan)</label>
+                                <input id="no_ktp" name="no_ktp" type="text"
+                                       class="form-control @error('no_ktp') is-invalid @enderror"
+                                       placeholder="16 Digit NIK" maxlength="16"
+                                       value="{{ old('no_ktp') }}">
+                                @error('no_ktp')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+
+                        {{-- Department + NIK OTTO --}}
+                        <div class="field-row">
+                            <div class="form-group">
+                                <label class="form-label" for="department_id">Departemen <span style="color:#DC2626">*</span></label>
+                                <select id="department_id" name="department_id"
+                                       class="form-control select2-dept @error('department_id') is-invalid @enderror">
+                                    <option value="">Pilih Departemen...</option>
+                                    @foreach ($departemen as $dept)
+                                        <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>
+                                            {{ $dept->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('department_id')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="nik">NIK OTTO</label>
                                 <input id="nik" name="nik" type="text"
                                        class="form-control @error('nik') is-invalid @enderror"
-                                       placeholder="16 Digit NIK" maxlength="16"
+                                       placeholder="Contoh: OPI091283"
                                        value="{{ old('nik') }}">
                                 @error('nik')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                         </div>
 
-                        {{-- department + No Pegawai --}}
+                        {{-- Jabatan + Tanggungan --}}
                         <div class="field-row">
                             <div class="form-group">
-                                <label class="form-label" for="department_id">Department</label>
-                                <select id="department_id" name="department_id" type="text"
-                                       class="form-control @error('department_id') is-invalid @enderror"
-                                       placeholder="Masukkan department"
-                                       value="{{ old('department_id') }}">
-                                       <option value="">Pilih Department</option>
-                                       @foreach ($departemen as $dept)
-                                           <option value="{{ $dept->id }}">{{ $dept->nama }}</option>
-                                       @endforeach
-                                </select>
+                                <label class="form-label" for="jabatan">Jabatan</label>
+                                <input id="jabatan" name="jabatan" type="text"
+                                       class="form-control @error('jabatan') is-invalid @enderror"
+                                       placeholder="cth: Staff, Supervisor, Manager"
+                                       value="{{ old('jabatan') }}">
+                                @error('jabatan')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                             <div class="form-group">
-                                <label class="form-label" for="no_pegawai">No. Pegawai</label>
-                                <input id="no_pegawai" name="no_pegawai" type="text"
-                                       class="form-control @error('no_pegawai') is-invalid @enderror"
-                                       placeholder="Contoh: 08123456789"
-                                       value="{{ old('no_pegawai') }}">
-                                @error('no_pegawai')<span class="field-error">{{ $message }}</span>@enderror
+                                <label class="form-label" for="tanggungan">Jumlah Tanggungan</label>
+                                <input id="tanggungan" name="tanggungan" type="number"
+                                       class="form-control @error('tanggungan') is-invalid @enderror"
+                                       placeholder="cth: 2" min="0" max="20"
+                                       value="{{ old('tanggungan') }}">
+                                @error('tanggungan')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                        </div>
+
+                        {{-- Bagian + Keterangan Bagian --}}
+                        <div class="field-row">
+                            <div class="form-group">
+                                <label class="form-label" for="bagian">Bagian / Unit</label>
+                                <input id="bagian" name="bagian" type="text"
+                                       class="form-control @error('bagian') is-invalid @enderror"
+                                       placeholder="cth: Produksi, Keuangan, IT"
+                                       value="{{ old('bagian') }}">
+                                @error('bagian')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ket_bagian">Keterangan Bagian</label>
+                                <input id="ket_bagian" name="ket_bagian" type="text"
+                                       class="form-control @error('ket_bagian') is-invalid @enderror"
+                                       placeholder="Keterangan tambahan bagian (opsional)"
+                                       value="{{ old('ket_bagian') }}">
+                                @error('ket_bagian')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                         </div>
 
@@ -471,12 +591,15 @@
                             <div class="form-group">
                                 <label class="form-label" for="ikatan_kerja">Ikatan Kerja</label>
                                 <select id="ikatan_kerja" name="ikatan_kerja"
-                                       class="form-control @error('ikatan_kerja') is-invalid @enderror"
-                                       value="{{ old('ikatan_kerja') }}">
-                                    <option value="">Pilih Ikatan Kerja</option>
-                                    <option value="Kontrak">Kontrak</option>
-                                    <option value="Tetap">Tetap</option>
+                                       class="form-control select2-ikatan @error('ikatan_kerja') is-invalid @enderror">
+                                    <option value="">Pilih atau ketik ikatan kerja...</option>
+                                    @foreach($ikatanKerjaOptions as $opt)
+                                        <option value="{{ $opt }}" {{ old('ikatan_kerja') === $opt ? 'selected' : '' }}>
+                                            {{ $opt }}
+                                        </option>
+                                    @endforeach
                                 </select>
+                                <span style="font-size:10px;color:#9CA3AF;margin-top:3px;">Ketik jika tidak ada di daftar</span>
                                 @error('ikatan_kerja')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                         </div>
@@ -713,6 +836,10 @@
 @endsection
 
 @push('scripts')
+{{-- jQuery (required by Select2) --}}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+{{-- Select2 JS --}}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 /* Hapus subbar bawaan karena halaman ini punya header sendiri */
 const subbar = document.getElementById('subbar');
@@ -755,7 +882,7 @@ function toggleDefault(cb) {
 }
 
 /* NIK — hanya angka, max 16 */
-document.getElementById('nik')?.addEventListener('input', function() {
+document.getElementById('no_ktp')?.addEventListener('input', function() {
     this.value = this.value.replace(/\D/g, '').slice(0, 16);
 });
 
@@ -763,6 +890,43 @@ document.getElementById('nik')?.addEventListener('input', function() {
 document.addEventListener('DOMContentLoaded', () => {
     toggleDefault(document.getElementById('defaultToggle'));
     updateSummary();
+
+    /* ── Select2: Departemen (searchable) ─────────────── */
+    $('.select2-dept').select2({
+        placeholder: 'Pilih Departemen...',
+        allowClear: true,
+        width: '100%',
+        language: {
+            noResults: function() { return 'Departemen tidak ditemukan'; },
+            searching: function() { return 'Mencari...'; }
+        }
+    });
+
+    /* ── Select2: Ikatan Kerja (tags — bisa input custom) ─ */
+    $('.select2-ikatan').select2({
+        placeholder: 'Pilih atau ketik jenis ikatan kerja...',
+        allowClear: true,
+        tags: true,
+        width: '100%',
+        createTag: function(params) {
+            var term = $.trim(params.term);
+            if (term === '') return null;
+            return { id: term, text: term, newTag: true };
+        },
+        language: {
+            noResults: function() { return 'Ketik untuk menambah pilihan baru'; }
+        }
+    });
+
+    /* Restore old value for select2 after validation error */
+    @if(old('ikatan_kerja'))
+        var oldIkatan = '{{ old("ikatan_kerja") }}';
+        if ($('.select2-ikatan option[value="' + oldIkatan + '"]').length === 0) {
+            var newOpt = new Option(oldIkatan, oldIkatan, true, true);
+            $('.select2-ikatan').append(newOpt);
+        }
+        $('.select2-ikatan').val(oldIkatan).trigger('change');
+    @endif
 });
 </script>
 @endpush
