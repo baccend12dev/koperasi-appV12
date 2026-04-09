@@ -5,8 +5,8 @@
 
 {{-- ── Topbar nav ── --}}
 @section('topbar-nav')
-    <a href="#" class="tb-link">Dashboard</a>
-    <a href="#" class="tb-link active">Tagihan Generator</a>
+    <a href="{{ route('penagihan.index') }}" class="tb-link">Dashboard</a>
+    <a href="{{ route('penagihan.generator') }}" class="tb-link active">Tagihan Generator</a>
 @endsection
 
 @section('subbar-actions')

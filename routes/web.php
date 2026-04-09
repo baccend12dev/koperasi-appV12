@@ -43,6 +43,14 @@ Route::get('/', function () {
         ->name('simpanan.transaksi');
     Route::post('simpanan/tagihangenerator', [SimpananController::class, 'storeTagihanGenerator'])
         ->name('simpanan.tagihangenerator.store');
+    Route::get('simpanan/tambah-saldo', [SimpananController::class, 'tambahSaldo'])
+        ->name('simpanan.tambah_saldo');
+    Route::post('simpanan/tambah-saldo', [SimpananController::class, 'storeTambahSaldo'])
+        ->name('simpanan.tambah_saldo.store');
+    Route::get('simpanan/tarik-saldo', [SimpananController::class, 'tarikSimpanan'])
+        ->name('simpanan.tarik');
+    Route::post('simpanan/tarik-saldo', [SimpananController::class, 'storeTarikSimpanan'])
+        ->name('simpanan.tarik.store');
     Route::get('simpanan/tagihangenerator/{id}', [SimpananController::class, 'showTagihan'])
         ->name('simpanan.tagihangenerator.show');
     Route::post('simpanan/tagihangenerator/bayar', [SimpananController::class, 'bayarTagihan'])
@@ -54,7 +62,6 @@ Route::get('/', function () {
     Route::post('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'storePengajuan'])->name('pinjaman.pengajuan.store');
     Route::get('pinjaman/pengajuan/search-anggota', [App\Http\Controllers\PinjamanController::class, 'searchAnggota'])->name('pinjaman.pengajuan.searchAnggota');
     Route::get('pinjaman/pengajuan/create', [App\Http\Controllers\PinjamanController::class, 'create'])->name('pinjaman.pengajuan.create');
-    Route::get('pinjaman/approval', [App\Http\Controllers\PinjamanController::class, 'approval'])->name('pinjaman.approval');
     Route::post('pinjaman/approval/{id}/approve', [App\Http\Controllers\PinjamanController::class, 'approve'])->name('pinjaman.approval.approve');
     Route::post('pinjaman/approval/{id}/reject', [App\Http\Controllers\PinjamanController::class, 'reject'])->name('pinjaman.approval.reject');
     Route::get('pinjaman/aktif', [App\Http\Controllers\PinjamanController::class, 'aktif'])->name('pinjaman.aktif');
@@ -67,11 +74,19 @@ Route::get('/', function () {
     Route::post('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'storeMasterJenis'])->name('pinjaman.masterJenis.store');
 
     // ── Penagihan ──────────────────────────────────────────
-    Route::get('penagihan/tagihan-generator', [App\Http\Controllers\PenagihanController::class, 'index'])->name('penagihan.generator');
+    Route::get('penagihan', [App\Http\Controllers\PenagihanController::class, 'index'])->name('penagihan.index');
+    Route::get('penagihan/tagihan-generator', [App\Http\Controllers\PenagihanController::class, 'generator'])->name('penagihan.generator');
     Route::post('penagihan/tagihan-generator/generate', [App\Http\Controllers\PenagihanController::class, 'storeGenerate'])->name('penagihan.storeGenerate');
     Route::post('penagihan/tagihan-generator/bayar', [App\Http\Controllers\PenagihanController::class, 'bayar'])->name('penagihan.bayar');
     Route::get('penagihan/tagihan-generator/{id}', [App\Http\Controllers\PenagihanController::class, 'show'])->name('penagihan.show');
     Route::delete('penagihan/tagihan-generator/detail/{id}', [App\Http\Controllers\PenagihanController::class, 'destroyDetail'])->name('penagihan.destroyDetail');
+
+
+    // ── Persetujuan (Approval) ───────────────────────────
+    Route::get('persetujuan/pinjaman', [App\Http\Controllers\PersetujuanController::class, 'pinjaman'])->name('persetujuan.pinjaman');
+    Route::get('persetujuan/pengambilan', [App\Http\Controllers\PersetujuanController::class, 'pengambilan'])->name('persetujuan.pengambilan');
+    Route::post('persetujuan/pengambilan/{id}/approve', [App\Http\Controllers\PersetujuanController::class, 'approvePengambilan'])->name('persetujuan.pengambilan.approve');
+    Route::post('persetujuan/pengambilan/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPengambilan'])->name('persetujuan.pengambilan.reject');
 
     // ── Konfigurasi ───────────────────────────────────────
     Route::get('konfigurasi', fn() => view('konfigurasi.index'))->name('konfigurasi.index');

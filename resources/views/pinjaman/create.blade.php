@@ -7,7 +7,7 @@
 @section('topbar-nav')
     <a href="{{ route('pinjaman.index') }}" class="tb-link">Dashboard</a>
     <a href="{{ route('pinjaman.pengajuan') }}" class="tb-link active">Pengajuan Pinjaman</a>
-    <a href="{{ route('pinjaman.approval') }}" class="tb-link">Approval Pinjaman</a>
+    <a href="{{ route('persetujuan.pinjaman') }}" class="tb-link">Approval Pinjaman</a>
     <a href="{{ route('pinjaman.aktif') }}" class="tb-link">Pinjaman Aktif</a>
     <a href="{{ route('pinjaman.angsuran') }}" class="tb-link">Pembayaran Angsuran</a>
     <a href="{{ route('pinjaman.masterJenis') }}" class="tb-link">Master Jenis Pinjaman</a>

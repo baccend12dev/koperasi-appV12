@@ -289,7 +289,15 @@
                 </div>
             </div>
         </div>
-        <div>
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ route('simpanan.tarik', ['anggota_id' => $master->anggota_id]) }}" class="btn-secondary" style="display:flex; align-items:center; color: #E02424; border-color: #F8B4B4; background: #FDF2F2;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Tarik Simpanan
+            </a>
+            <a href="{{ route('simpanan.tambah_saldo', ['anggota_id' => $master->anggota_id]) }}" class="btn-primary" style="display:flex; align-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M12 5v14M5 12h14"></path></svg>
+                Tambah Saldo
+            </a>
             <a href="{{ route('anggota.show', $master->anggota_id) }}" class="btn-secondary">
                 Lihat Profil Anggota
             </a>
@@ -322,15 +330,15 @@
 
     {{-- 3 ▸ Tabs --}}
     <div class="sp-tabs">
-        <button class="sp-tab active" onclick="spTab(this,'konfigurasi')">Konfigurasi</button>
-        <button class="sp-tab" onclick="spTab(this,'riwayat')">
+        <button class="sp-tab active" onclick="spTab(this,'riwayat')">
             Riwayat Transaksi
             <span style="font-size:10px;font-weight:700;background:var(--bg);color:var(--text-3);padding:1px 6px;border-radius:8px;margin-left:4px;">{{ $riwayatTransaksi->count() }}</span>
         </button>
+        <button class="sp-tab" onclick="spTab(this,'konfigurasi')">Konfigurasi</button>
     </div>
 
     {{-- ─── TAB: KONFIGURASI ─── --}}
-    <div id="sp-konfigurasi" class="sp-tab-body active">
+    <div id="sp-konfigurasi" class="sp-tab-body">
 
         {{-- Inline edit form --}}
         <div class="sp-form-panel">
@@ -415,7 +423,7 @@
     </div>
 
     {{-- ─── TAB: RIWAYAT TRANSAKSI ─── --}}
-    <div id="sp-riwayat" class="sp-tab-body">
+    <div id="sp-riwayat" class="sp-tab-body active">
         <table class="sp-table">
             <thead>
                 <tr>

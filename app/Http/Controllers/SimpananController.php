@@ -250,10 +250,12 @@ class SimpananController extends Controller
 
     public function show($id)
     {
+        // dd($id);
         $master = \App\Models\MasterSimpanan::with('anggota')->findOrFail($id);
         
         // Calculate total keseluruhan from transactions
-        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
+        $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $master->anggota_id)->sum('nominal');
+        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela')) + $saldoAwal;
         
         // History of transactions
         $riwayatTransaksi = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)
@@ -293,8 +295,103 @@ class SimpananController extends Controller
         return back()->with('success', 'Konfigurasi simpanan ' . $request->jenis_simpanan . ' berhasil diperbarui.');
     }
 
-    public function destroy(Simpanan $simpanan)
+    public function destroy($id)
     {
      
+    }
+
+    public function tambahSaldo(Request $request)
+    {
+        $anggotas = Anggota::whereIn('status_anggota', ['active', 'aktif'])->get();
+        $selectedAnggotaId = $request->anggota_id;
+
+        return view('simpanan.tambah_saldo', compact('anggotas', 'selectedAnggotaId'));
+    }
+
+    public function storeTambahSaldo(Request $request)
+    {
+        $request->validate([
+            'anggota_id' => 'required|exists:anggotas,id',
+            'nominal' => 'required|numeric|min:1',
+            'tanggal_transaksi' => 'required|date',
+            'description' => 'required|string|max:255'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $periode = \Carbon\Carbon::parse($request->tanggal_transaksi)->format('F Y');
+
+            \App\Models\TransaksiSimpanan::create([
+                'anggota_id' => $request->anggota_id,
+                'simpanan_pokok' => 0,
+                'simpanan_wajib' => 0,
+                'simpanan_sukarela' => $request->nominal,
+                'transaction_date' => $request->tanggal_transaksi,
+                'periode' => $periode,
+                'description' => $request->description,
+            ]);
+
+            DB::commit();
+            
+            // Redirect back or to show depending on if they came from show
+            if ($request->redirect_to_show == 1) {
+                // Find master simpanan id
+                $master = \App\Models\MasterSimpanan::where('anggota_id', $request->anggota_id)->first();
+                if ($master) {
+                    return redirect()->route('simpanan.show', $master->id)->with('success', 'Tambah Saldo (Sukarela) berhasil ditambahkan.');
+                }
+            }
+
+            return redirect()->route('simpanan.transaksi')->with('success', 'Tambah Saldo (Sukarela) berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function tarikSimpanan(Request $request)
+    {
+        $request->validate([
+            'anggota_id' => 'required|exists:anggotas,id'
+        ]);
+
+        $anggota = Anggota::findOrFail($request->anggota_id);
+        
+        $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $anggota->id)
+            ->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela')) + $saldoAwal;
+            
+        $master = \App\Models\MasterSimpanan::where('anggota_id', $anggota->id)->firstOrFail();
+        
+        return view('simpanan.tarik_saldo', compact('anggota', 'totalKeseluruhan', 'master'));
+    }
+
+    public function storeTarikSimpanan(Request $request)
+    {
+        $request->validate([
+            'anggota_id' => 'required|exists:anggotas,id',
+            'nominal' => 'required|numeric|min:1',
+            'alasan_pengajuan' => 'required|string'
+        ]);
+
+        $anggota = Anggota::findOrFail($request->anggota_id);
+        
+        $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $anggota->id)
+            ->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela')) + $saldoAwal;
+
+        if ($request->nominal > $totalKeseluruhan) {
+            return back()->withInput()->with('error', 'Nominal penarikan tidak boleh melebihi total simpanan (Rp ' . number_format($totalKeseluruhan, 0, ',', '.') . ').');
+        }
+
+        \App\Models\PengambilanSimpanan::create([
+            'anggota_id' => $request->anggota_id,
+            'nominal' => $request->nominal,
+            'alasan_pengajuan' => $request->alasan_pengajuan,
+            'status' => 'pending'
+        ]);
+
+        $master = \App\Models\MasterSimpanan::where('anggota_id', $request->anggota_id)->first();
+        return redirect()->route('simpanan.show', $master->id)->with('success', 'Pengajuan penarikan simpanan berhasil dibuat dan menunggu persetujuan.');
     }
 }

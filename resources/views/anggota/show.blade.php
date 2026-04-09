@@ -14,12 +14,12 @@
 
 {{-- ── Subbar ── --}}
 @section('subbar-actions')
-    <a href="{{ route('anggota.index') }}" class="btn-secondary" style="margin-right: 10px;">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline; margin-right:4px;">
-            <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Kembali
-    </a>
+    <a href="javascript:history.back()" class="btn-secondary" style="margin-right: 10px;">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline; margin-right:4px;">
+        <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Kembali
+</a>
 @endsection
 
 @section('page-title', 'Detail Pekerja')
@@ -468,7 +468,8 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $saldo_awal = 0;
+                                    $saldo_awal_db = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+                                    $saldo_awal = $saldo_awal_db;
                                     foreach($riwayat_simpanan as $rs) {
                                         if (\Carbon\Carbon::parse($rs->transaction_date)->format('Y') < $year) {
                                             $saldo_awal += ($rs->simpanan_pokok + $rs->simpanan_wajib + $rs->simpanan_sukarela);
@@ -500,16 +501,25 @@
                                         $sukarela = 0;
                                         $pengambilan = 0;
                                         foreach($transactions as $t) {
-                                            $pokok += $t->simpanan_pokok;
-                                            $wajib += $t->simpanan_wajib;
-                                            $sukarela += $t->simpanan_sukarela;
+                                            if ($t->simpanan_pokok > 0) $pokok += $t->simpanan_pokok;
+                                            else if ($t->simpanan_pokok < 0) $pengambilan += abs($t->simpanan_pokok);
+                                            
+                                            if ($t->simpanan_wajib > 0) $wajib += $t->simpanan_wajib;
+                                            else if ($t->simpanan_wajib < 0) $pengambilan += abs($t->simpanan_wajib);
+                                            
+                                            if ($t->simpanan_sukarela > 0) $sukarela += $t->simpanan_sukarela;
+                                            else if ($t->simpanan_sukarela < 0) $pengambilan += abs($t->simpanan_sukarela);
                                         }
                                         $row_total = $pokok + $wajib + $sukarela - $pengambilan;
                                         $running_total += $row_total;
                                         $period_label = \Carbon\Carbon::parse($periodKey . '-01')->translatedFormat('M-y');
+                                        $rowId = 'simpanan-' . $year . '-' . $loop->iteration;
                                     @endphp
-                                    <tr>
-                                        <td style="font-weight:500;">{{ $period_label }}</td>
+                                    <tr onclick="toggleSimpananRow('{{ $rowId }}')" style="cursor: pointer;">
+                                        <td style="font-weight:500;">
+                                            <svg id="icon-{{ $rowId }}" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; margin-right:4px; transition: transform 0.2s;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                            {{ $period_label }}
+                                        </td>
                                         <td style="text-align:right;">{{ $pokok > 0 ? number_format($pokok, 0, ',', '.') : '-' }}</td>
                                         <td style="text-align:right;">{{ $wajib > 0 ? number_format($wajib, 0, ',', '.') : '-' }}</td>
                                         <td style="text-align:right;">{{ $sukarela > 0 ? number_format($sukarela, 0, ',', '.') : '-' }}</td>
@@ -517,6 +527,32 @@
                                         <td style="text-align:right;">-</td>
                                         <td style="text-align:right;">{{ $pengambilan > 0 ? number_format($pengambilan, 0, ',', '.') : '-' }}</td>
                                         <td style="text-align:right; font-weight:600;">{{ number_format($running_total, 0, ',', '.') }}</td>
+                                    </tr>
+                                    <tr id="{{ $rowId }}" style="display: none; background: #fafafa; border-bottom: 2px solid #e5e7eb;">
+                                        <td colspan="8" style="padding: 16px 24px;">
+                                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                                <thead>
+                                                    <tr style="border-bottom: 2px solid #e0e0e0; color: #5f6368; background: #f1f3f4;">
+                                                        <th style="padding: 10px; text-align: left;">Tanggal</th>
+                                                        <th style="padding: 10px; text-align: left;">Deskripsi</th>
+                                                        <th style="padding: 10px; text-align: right;">Pokok</th>
+                                                        <th style="padding: 10px; text-align: right;">Wajib</th>
+                                                        <th style="padding: 10px; text-align: right;">Sukarela</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($transactions as $t)
+                                                    <tr style="border-bottom: 1px solid #f1f3f4;">
+                                                        <td style="padding: 8px 10px;">{{ \Carbon\Carbon::parse($t->transaction_date)->format('d M Y') }}</td>
+                                                        <td style="padding: 8px 10px; font-weight: 500;">{{ $t->description ?: '-' }}</td>
+                                                        <td style="padding: 8px 10px; text-align: right; color: {{ $t->simpanan_pokok < 0 ? '#DC2626' : '#111827' }}">{{ $t->simpanan_pokok != 0 ? number_format($t->simpanan_pokok, 0, ',', '.') : '-' }}</td>
+                                                        <td style="padding: 8px 10px; text-align: right; color: {{ $t->simpanan_wajib < 0 ? '#DC2626' : '#111827' }}">{{ $t->simpanan_wajib != 0 ? number_format($t->simpanan_wajib, 0, ',', '.') : '-' }}</td>
+                                                        <td style="padding: 8px 10px; text-align: right; color: {{ $t->simpanan_sukarela < 0 ? '#DC2626' : '#111827' }}">{{ $t->simpanan_sukarela != 0 ? number_format($t->simpanan_sukarela, 0, ',', '.') : '-' }}</td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -547,7 +583,9 @@
                                     <th>Tgl Pengajuan</th>
                                     <th>Program Pinjaman</th>
                                     <th>Tenor/Bunga</th>
-                                    <th style="text-align:right;">Kredit</th>
+                                    <th style="text-align:right;">Pinjaman</th>
+                                    <th style="text-align:right;">Total Pinjaman + Bunga</th>
+                                    <th style="text-align:right;">Angsuran</th>
                                     <th style="text-align:right;">Sisa Tagihan</th>
                                 </tr>
                             </thead>
@@ -555,11 +593,13 @@
                                 @forelse($pinjaman_berjalan as $p)
                                 <tr>
                                     <td>{{ \Carbon\Carbon::parse($p->created_at)->format('d M Y') }}</td>
-                                    <td style="font-weight:500; color:var(--accent);">{{ $p->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
-                                    <td style="color:var(--text-3);">{{ $p->tenor }} bln &middot; {{ $p->bunga }}%</td>
+                                    <td style="font-weight:500; color:var(--accent);">{{ $p->jenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                                    <td style="color:var(--text-3);">{{ $p->tenor }} bln &nbsp; {{ $p->bunga }}%</td>
                                     <td style="text-align:right; font-weight:600;">Rp {{ number_format($p->jumlah_pinjaman ?? $p->jumlah_pengajuan, 0, ',', '.') }}</td>
+                                    <td style="text-align:right; font-weight:600;">Rp {{ number_format($p->jumlah_pinjaman + ($p->jumlah_pinjaman * ($p->bunga/100) * $p->tenor), 0, ',', '.') }}</td>
+                                    <td style="text-align:right; font-weight:600;">Rp {{ number_format($p->cicilan_per_bulan, 0, ',', '.') }}</td>
                                     <td style="text-align:right; font-weight:600; color:#E02424;">
-                                        Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pengajuan + ($p->jumlah_pengajuan * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}
+                                        Rp {{ number_format($p->status == 'berjalan' ? $p->sisa_pinjaman : ($p->jumlah_pinjaman + ($p->jumlah_pinjaman * ($p->bunga/100) * $p->tenor)), 0, ',', '.') }}
                                     </td>
                                 </tr>
                                 @empty
@@ -585,7 +625,7 @@
                                 @forelse($pinjaman_lunas as $pl)
                                 <tr>
                                     <td>{{ \Carbon\Carbon::parse($pl->created_at)->format('d M Y') }}</td>
-                                    <td style="font-weight:500;">{{ $pl->masterJenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
+                                    <td style="font-weight:500;">{{ $pl->jenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</td>
                                     <td>
                                         @if($pl->status == 'lunas')
                                             <span class="ps-badge badge-green">Lunas</span>
@@ -621,6 +661,19 @@
         document.querySelectorAll('.ag-subtab').forEach(t => t.classList.remove('active'));
         document.getElementById('sub-' + subId).classList.add('active');
         el.classList.add('active');
+    }
+
+    function toggleSimpananRow(id) {
+        var row = document.getElementById(id);
+        var icon = document.getElementById('icon-' + id);
+        if (!row) return;
+        if (row.style.display === 'none' || row.style.display === '') {
+            row.style.display = 'table-row';
+            icon.style.transform = 'rotate(90deg)';
+        } else {
+            row.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
     }
 </script>
 @endsection

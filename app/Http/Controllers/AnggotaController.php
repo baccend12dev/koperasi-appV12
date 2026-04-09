@@ -119,7 +119,8 @@ class AnggotaController extends Controller
     {
         $anggota = Anggota::with(['departemen', 'masterSimpanan'])->findOrFail($id);
         
-        $total_simpanan = $anggota->transaksiSimpanan()->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
+        $saldo_awal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+        $total_simpanan = $anggota->transaksiSimpanan()->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela')) + $saldo_awal;
         $max_pinjaman = $total_simpanan > 0 ? $total_simpanan * 5 : 20000000;
         
         $pinjaman_aktif_amount = $anggota->pinjamanAktif()->sum('jumlah_pinjaman');
@@ -138,7 +139,7 @@ class AnggotaController extends Controller
                                 ->whereIn('status', ['berjalan', 'pending'])
                                 ->with('jenisPinjaman')
                                 ->latest()->get();
-                                
+        // dd($pinjaman_berjalan);                        
         $pinjaman_lunas = \App\Models\Pinjaman::where('user_id', $anggota->id)
                                 ->whereIn('status', ['lunas', 'rejected'])
                                 ->with('jenisPinjaman')
@@ -165,7 +166,10 @@ class AnggotaController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $anggota = Anggota::findOrFail($id);
+        $departemen = \App\Models\Departemen::all();
+        
+        return view('anggota.edit', compact('anggota', 'departemen'));
     }
 
     /**
@@ -173,7 +177,23 @@ class AnggotaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $anggota = Anggota::findOrFail($id);
+
+        $validated = $request->validate([
+            'nik' => 'required|string|max:16|unique:anggotas,nik,'.$id,
+            'no_ktp' => 'nullable|string|max:16|unique:anggotas,no_ktp,'.$id,
+            'department_id' => 'required|exists:departemens,id',
+            'bagian' => 'nullable|string|max:255',
+            'jabatan' => 'nullable|string|max:255',
+            'tgl_msk' => 'nullable|date',
+            'no_hp' => 'nullable|string|max:255',
+            'tanggungan' => 'nullable|integer|min:0|max:20',
+            'alamat' => 'nullable|string',
+        ]);
+
+        $anggota->update($validated);
+
+        return redirect()->route('anggota.show', $id)->with('success', 'Data profil anggota berhasil diperbarui.');
     }
 
     /**

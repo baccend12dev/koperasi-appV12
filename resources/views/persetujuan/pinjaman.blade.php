@@ -1,20 +1,16 @@
-{{-- resources/views/pinjaman/approval.blade.php --}}
+{{-- resources/views/persetujuan/pinjaman.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Approval Pinjaman')
+@section('title', 'Persetujuan Pinjaman')
 
 {{-- ── Topbar nav ── --}}
 @section('topbar-nav')
-    <a href="{{ route('pinjaman.index') }}" class="tb-link">Dashboard</a>
-    <a href="{{ route('pinjaman.pengajuan') }}" class="tb-link">Pengajuan Pinjaman</a>
-    <a href="{{ route('pinjaman.approval') }}" class="tb-link active">Approval Pinjaman</a>
-    <a href="{{ route('pinjaman.aktif') }}" class="tb-link">Pinjaman Aktif</a>
-    <a href="{{ route('pinjaman.angsuran') }}" class="tb-link">Pembayaran Angsuran</a>
-    <a href="{{ route('pinjaman.masterJenis') }}" class="tb-link">Master Jenis Pinjaman</a>
+    <a href="{{ route('persetujuan.pinjaman') }}" class="tb-link active">Persetujuan Pinjaman</a>
+    <a href="{{ route('persetujuan.pengambilan') }}" class="tb-link">Persetujuan Pengambilan Simpanan</a>
 @endsection
 
-@section('page-title', 'Approval Pinjaman')
-@section('page-subtitle', 'Daftar pengajuan pinjaman yang menunggu persetujuan')
+@section('page-title', 'Persetujuan Pinjaman')
+@section('page-subtitle', 'Daftar pengajuan pinjaman karyawan')
 
 {{-- ── Sidebar ── --}}
 @section('sidebar')
@@ -31,7 +27,7 @@
             </div>
         </div>
 
-        <a href="{{ route('pinjaman.approval') }}" class="sd-link {{ !request('jenis') ? 'active' : '' }}" style="width: 100%; display: block; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px;">
+        <a href="{{ route('persetujuan.pinjaman') }}" class="sd-link {{ !request('jenis') ? 'active' : '' }}" style="width: 100%; display: block; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px;">
             <span style="font-weight: 600;">Semua Pengajuan</span>
         </a>
 
@@ -46,7 +42,7 @@
                     </button>
                     <div x-show="expanded" x-collapse style="margin-left: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 2px;">
                         @foreach($jpParent->children as $jpChild)
-                            <a href="{{ route('pinjaman.approval', ['jenis' => $jpChild->id]) }}"
+                            <a href="{{ route('persetujuan.pinjaman', ['jenis' => $jpChild->id]) }}"
                                class="sd-link {{ request('jenis') == $jpChild->id ? 'active' : '' }}"
                                style="padding: 6px 12px; font-size: 13px;">
                                 {{ $jpChild->nama_pinjaman }}
@@ -54,7 +50,7 @@
                         @endforeach
                     </div>
                 @else
-                    <a href="{{ route('pinjaman.approval', ['jenis' => $jpParent->id]) }}"
+                    <a href="{{ route('persetujuan.pinjaman', ['jenis' => $jpParent->id]) }}"
                        class="sd-link {{ request('jenis') == $jpParent->id ? 'active' : '' }}"
                        style="padding: 6px 12px; font-size: 14px; font-weight: 600;">
                         {{ $jpParent->nama_pinjaman }}
@@ -100,6 +96,9 @@
             font-weight: 600;
         }
         .badge-pending { background: #FEF3C7; color: #D97706; }
+        .badge-approved { background: #D1FAE5; color: #059669; }
+        .badge-rejected { background: #FEE2E2; color: #DC2626; }
+
         .btn-approve {
             background: #ECFDF5;
             color: #059669;
@@ -156,7 +155,7 @@
     {{-- Main Table Section --}}
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="font-bold text-sm text-gray-800 tracking-wide">DAFTAR MENUNGGU PERSETUJUAN</h3>
+            <h3 class="font-bold text-sm text-gray-800 tracking-wide">DAFTAR PENGAJUAN PINJAMAN</h3>
         </div>
         
         <div class="overflow-x-auto">
@@ -167,6 +166,7 @@
                         <th class="px-6 py-4">NAMA ANGGOTA</th>
                         <th class="px-6 py-4">JENIS</th>
                         <th class="px-6 py-4">NOMINAL / TENOR</th>
+                        <th class="px-6 py-4">STATUS</th>
                         <th class="px-6 py-4 text-center">AKSI</th>
                     </tr>
                 </thead>
@@ -186,7 +186,7 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="badge badge-pending">
+                                <span class="badge bg-gray-100 text-gray-700">
                                     {{ strtoupper($item->jenisPinjaman?->nama_pinjaman ?? '-') }}
                                 </span>
                             </td>
@@ -194,7 +194,17 @@
                                 <div class="font-bold text-gray-800">Rp {{ number_format($item->jumlah_pengajuan, 0, ',', '.') }}</div>
                                 <div class="text-xs text-gray-500 mt-0.5">{{ $item->tenor }} Bulan / Bunga {{ $item->bunga }}%</div>
                             </td>
+                            <td class="px-6 py-4">
+                                @if($item->status == 'pending')
+                                    <span class="badge badge-pending">PENDING</span>
+                                @elseif($item->status == 'approved')
+                                    <span class="badge badge-approved">APPROVED</span>
+                                @else
+                                    <span class="badge badge-rejected">REJECTED</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-center">
+                                @if($item->status == 'pending')
                                 <div class="flex items-center justify-center gap-2">
                                     <form action="{{ route('pinjaman.approval.approve', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menyetujui pengajuan ini?');" style="margin:0;">
                                         @csrf
@@ -206,12 +216,15 @@
                                         <button type="submit" class="btn-reject" title="Tolak Pengajuan">Tolak</button>
                                     </form>
                                 </div>
+                                @else
+                                    <span class="text-xs text-gray-400">Tidak ada aksi</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">
-                                Tidak ada pengajuan pinjaman yang menunggu persetujuan.
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                                Tidak ada data pengajuan pinjaman.
                             </td>
                         </tr>
                     @endforelse

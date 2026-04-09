@@ -11,13 +11,42 @@ use Illuminate\Support\Facades\DB;
 
 class PenagihanController extends Controller
 {
-    public function index(Request $request)
+    public function generator(Request $request)
     {
         $bills = PenagihanBill::latest()->paginate(10);
         $anggotaAktif = Anggota::whereIn('status_anggota', ['active', 'aktif'])->count();
         $pinjamanAktif = Pinjaman::where('status', 'berjalan')->count();
         
         return view('penagihan.tagihan_generator', compact('bills', 'anggotaAktif', 'pinjamanAktif'));
+    }
+
+    public function index(Request $request)
+    {
+        $availableBills = PenagihanBill::orderBy('tgl_generate', 'desc')->get();
+        
+        $selectedYear = $request->input('year', date('Y'));
+        $selectedMonth = $request->input('month', date('n')); // n is numeric month without leading zeros
+
+        $currentBill = PenagihanBill::whereYear('tgl_generate', $selectedYear)
+            ->whereMonth('tgl_generate', $selectedMonth)
+            ->first();
+            
+        // If no select provided in request, but we have bills, default to latest bill's year and month
+        if (!$request->has('year') && !$request->has('month') && $availableBills->isNotEmpty()) {
+            $latestTgl = \Carbon\Carbon::parse($availableBills->first()->tgl_generate);
+            $selectedYear = $latestTgl->format('Y');
+            $selectedMonth = $latestTgl->format('n');
+            $currentBill = $availableBills->first();
+        }
+            
+        $details = collect();
+        if ($currentBill) {
+            $details = \App\Models\PenagihanBillDetail::with('anggota')
+                ->where('penagihan_bill_id', $currentBill->id)
+                ->get();
+        }
+
+        return view('penagihan.index', compact('availableBills', 'selectedYear', 'selectedMonth', 'currentBill', 'details'));
     }
 
     public function storeGenerate(Request $request)

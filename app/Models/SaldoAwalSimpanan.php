@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TransaksiSimpanan extends Model
+class SaldoAwalSimpanan extends Model
 {
     protected $guarded = [];
 
@@ -12,5 +12,4 @@ class TransaksiSimpanan extends Model
     {
         return $this->belongsTo(Anggota::class);
     }
-
 }
