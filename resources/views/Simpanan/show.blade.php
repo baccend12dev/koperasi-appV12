@@ -8,7 +8,7 @@
     <a href="{{ route('simpanan.index') }}" class="tb-link active">Simpanan Anggota</a>
     <a href="{{ route('simpanan.transaksi') }}" class="tb-link">Transaksi</a>
     <a href="{{ route('laporan.index') }}" class="tb-link">Laporan</a>
-    <a href="{{ route('simpanan.tagihangenerator') }}" class="tb-link">Tagih Simpanan</a>
+   
 @endsection
 
 @section('subbar-actions')
@@ -421,9 +421,11 @@
                 <tr>
                     <th>Tanggal</th>
                     <th>Periode</th>
-                    <th>Jenis</th>
+                    <th>Pokok</th>
+                    <th>Wajib</th>
+                    <th>Sukarela</th>
                     <th>Keterangan</th>
-                    <th style="text-align:right;">Nominal</th>
+                    <th style="text-align:right;">Total Nominal</th>
                 </tr>
             </thead>
             <tbody>
@@ -431,21 +433,14 @@
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($trx->transaction_date)->format('d M Y') }}</td>
                     <td style="color:var(--text-2);">{{ $trx->periode }}</td>
-                    <td>
-                        @php
-                            $nama = strtolower($trx->jenisSimpanan->nama ?? '');
-                            $dotClass = 'dot-sukarela';
-                            $badgeClass = 'sp-badge-blue';
-                            if(str_contains($nama, 'wajib'))  { $dotClass = 'dot-wajib';    $badgeClass = 'sp-badge-green';  }
-                            if(str_contains($nama, 'pokok'))  { $dotClass = 'dot-pokok';    $badgeClass = 'sp-badge-orange'; }
-                        @endphp
-                        <span class="sp-badge {{ $badgeClass }}">{{ strtoupper($trx->jenisSimpanan->nama ?? '—') }}</span>
-                    </td>
+                    <td>Rp {{ number_format($trx->simpanan_pokok, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($trx->simpanan_wajib, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($trx->simpanan_sukarela, 0, ',', '.') }}</td>
                     <td style="color:var(--text-2);">{{ $trx->description ?? '—' }}</td>
-                    <td style="text-align:right;" class="sp-amount-value">Rp {{ number_format($trx->amount, 0, ',', '.') }}</td>
+                    <td style="text-align:right;" class="sp-amount-value">Rp {{ number_format($trx->simpanan_pokok + $trx->simpanan_wajib + $trx->simpanan_sukarela, 0, ',', '.') }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="sp-empty">Belum ada riwayat transaksi.</td></tr>
+                <tr><td colspan="7" class="sp-empty">Belum ada riwayat transaksi.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -14,9 +14,6 @@
     <a href="{{ route('laporan.index') }}" class="tb-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
         Laporan
     </a>
-    <a href="{{ route('simpanan.tagihangenerator') }}" class="tb-link">
-        Tagih Simpanan
-    </a>
 @endsection
 
 @section('page-title', 'Riwayat Transaksi')
@@ -176,17 +173,7 @@
                 <input type="text" name="q" value="{{ request('q') }}" class="form-input pl-9" placeholder="Cari anggota...">
             </div>
         </div>
-        <div class="flex-1">
-            <label class="label-text">Jenis Simpanan</label>
-            <select name="jenis" class="form-select">
-                <option value="">Semua Jenis</option>
-                @foreach($jenisSimpanan as $js)
-                    <option value="{{ $js->id }}" {{ request('jenis') == $js->id ? 'selected' : '' }}>
-                        {{ $js->nama }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+
         <div>
             <button type="submit" class="btn-search">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -254,8 +241,10 @@
                 <tr>
                     <th class="px-6 py-4">TANGGAL</th>
                     <th class="px-6 py-4">NAMA ANGGOTA</th>
-                    <th class="px-6 py-4">JENIS</th>
-                    <th class="px-6 py-4">NOMINAL</th>
+                    <th class="px-6 py-4">POKOK</th>
+                    <th class="px-6 py-4">WAJIB</th>
+                    <th class="px-6 py-4">S.RELA</th>
+                    <th class="px-6 py-4">TOTAL</th>
                     <th class="px-6 py-4">PERIODE</th>
                     <th class="px-6 py-4">REFERENSI</th>
                     <th class="px-6 py-4 text-center">AKSI</th>
@@ -276,19 +265,11 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
-                            @php
-                                $jenisClass = 'badge-sukarela';
-                                $namaJenis = strtolower($trx->jenisSimpanan->nama ?? '');
-                                if (str_contains($namaJenis, 'wajib')) $jenisClass = 'badge-wajib';
-                                elseif (str_contains($namaJenis, 'pokok')) $jenisClass = 'badge-pokok';
-                            @endphp
-                            <span class="badge {{ $jenisClass }}">
-                                {{ strtoupper($trx->jenisSimpanan->nama ?? '-') }}
-                            </span>
-                        </td>
+                        <td class="px-6 py-4">Rp {{ number_format($trx->simpanan_pokok, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4">Rp {{ number_format($trx->simpanan_wajib, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4">Rp {{ number_format($trx->simpanan_sukarela, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 font-bold text-gray-800">
-                            Rp {{ number_format($trx->amount, 0, ',', '.') }}
+                            Rp {{ number_format($trx->simpanan_pokok + $trx->simpanan_wajib + $trx->simpanan_sukarela, 0, ',', '.') }}
                         </td>
                         <td class="px-6 py-4 text-gray-500">
                             {{ $trx->periode }}
@@ -304,7 +285,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                        <td colspan="9" class="px-6 py-12 text-center text-gray-400">
                             Tidak ada transaksi ditemukan.
                         </td>
                     </tr>

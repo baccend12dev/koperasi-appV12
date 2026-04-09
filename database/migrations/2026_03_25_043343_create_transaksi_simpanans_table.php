@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('transaksi_simpanans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('anggota_id')->constrained('anggotas')->cascadeOnDelete();
-            $table->foreignId('jenis_simpanan_id')->constrained('jenis_simpanans')->cascadeOnDelete();
-            $table->decimal('amount', 15, 2);
+            $table->decimal('simpanan_pokok', 15, 2)->default(0);
+            $table->decimal('simpanan_wajib', 15, 2)->default(0);
+            $table->decimal('simpanan_sukarela', 15, 2)->default(0);
             $table->date('transaction_date');
             $table->string('periode', 50);
             $table->string('description')->nullable();

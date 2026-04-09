@@ -471,12 +471,7 @@
                                     $saldo_awal = 0;
                                     foreach($riwayat_simpanan as $rs) {
                                         if (\Carbon\Carbon::parse($rs->transaction_date)->format('Y') < $year) {
-                                            $type_name = strtolower($rs->jenisSimpanan->nama ?? '');
-                                            if (str_contains($type_name, 'tarik') || str_contains($type_name, 'ambil')) {
-                                                $saldo_awal -= $rs->amount;
-                                            } else {
-                                                $saldo_awal += $rs->amount;
-                                            }
+                                            $saldo_awal += ($rs->simpanan_pokok + $rs->simpanan_wajib + $rs->simpanan_sukarela);
                                         }
                                     }
 
@@ -505,11 +500,9 @@
                                         $sukarela = 0;
                                         $pengambilan = 0;
                                         foreach($transactions as $t) {
-                                            $type_name = strtolower($t->jenisSimpanan->nama ?? '');
-                                            if(str_contains($type_name, 'pokok')) { $pokok += $t->amount; }
-                                            elseif(str_contains($type_name, 'wajib')) { $wajib += $t->amount; }
-                                            elseif(str_contains($type_name, 'sukarela')) { $sukarela += $t->amount; }
-                                            elseif(str_contains($type_name, 'tarik') || str_contains($type_name, 'ambil')) { $pengambilan += $t->amount; }
+                                            $pokok += $t->simpanan_pokok;
+                                            $wajib += $t->simpanan_wajib;
+                                            $sukarela += $t->simpanan_sukarela;
                                         }
                                         $row_total = $pokok + $wajib + $sukarela - $pengambilan;
                                         $running_total += $row_total;

@@ -13,8 +13,5 @@ class TransaksiSimpanan extends Model
         return $this->belongsTo(Anggota::class);
     }
 
-    public function jenisSimpanan()
-    {
-        return $this->belongsTo(JenisSimpanan::class);
-    }
+
 }

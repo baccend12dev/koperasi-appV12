@@ -298,7 +298,9 @@ class PinjamanController extends Controller
 
         $simpananTotal = 0;
         if ($anggota->transaksiSimpanan) {
-            $simpananTotal = $anggota->transaksiSimpanan->sum('amount');
+            $simpananTotal = $anggota->transaksiSimpanan->sum(function ($item) {
+                return $item->simpanan_pokok + $item->simpanan_wajib + $item->simpanan_sukarela;
+            });
         }
 
         // Active loans (status berjalan)
@@ -432,22 +434,22 @@ class PinjamanController extends Controller
 
     public function bayarAngsuran(Request $request) {
         $request->validate([
-            'tagihan_id' => 'required|exists:tagihan_pinjamans,id',
+            'tagihan_id' => 'required|exists:penagihan_bills,id',
             'detail_ids' => 'required|array|min:1',
             'detail_ids.*' => 'exists:pinjaman_angsurans,id',
         ]);
 
         DB::beginTransaction();
         try {
-            $tagihan = \App\Models\TagihanPinjaman::findOrFail($request->tagihan_id);
+            $tagihan = \App\Models\PenagihanBill::findOrFail($request->tagihan_id);
             $details = PinjamanAngsuran::whereIn('id', $request->detail_ids)
-                ->where('tagihan_pinjaman_id', $tagihan->id)
+                ->where('penagihan_bill_id', $tagihan->id)
                 ->where('status', 'belum_bayar')
                 ->get();
 
             foreach ($details as $angsuran) {
                 // 1. Create payment transaction record
-                $pembayaran = PembayaranAngsuran::create([
+                $pembayaran = \App\Models\PembayaranAngsuran::create([
                     'type_bayar' => 'normal',
                     'jumlah' => $angsuran->jumlah_tagihan,
                     'user_id' => $angsuran->pinjaman->user_id,
@@ -482,8 +484,8 @@ class PinjamanController extends Controller
             }
 
             // 5. Update tagihan batch status
-            $totalDetails = PinjamanAngsuran::where('tagihan_pinjaman_id', $tagihan->id)->count();
-            $lunasDetails = PinjamanAngsuran::where('tagihan_pinjaman_id', $tagihan->id)->where('status', 'sudah_bayar')->count();
+            $totalDetails = PinjamanAngsuran::where('penagihan_bill_id', $tagihan->id)->count();
+            $lunasDetails = PinjamanAngsuran::where('penagihan_bill_id', $tagihan->id)->where('status', 'sudah_bayar')->count();
 
             if ($lunasDetails == $totalDetails) {
                 $tagihan->update(['status' => 'Paid']);

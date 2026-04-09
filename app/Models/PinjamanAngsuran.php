@@ -14,9 +14,9 @@ class PinjamanAngsuran extends Model
         return $this->belongsTo(Pinjaman::class, 'loan_id');
     }
 
-    public function tagihan()
+    public function penagihanBill()
     {
-        return $this->belongsTo(TagihanPinjaman::class, 'tagihan_pinjaman_id');
+        return $this->belongsTo(PenagihanBill::class, 'penagihan_bill_id');
     }
 
     public function pembayaran()

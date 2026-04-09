@@ -17,10 +17,7 @@
        class="tb-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
         Laporan
     </a>
-    <a href="{{ route('simpanan.tagihangenerator') }}"
-       class="tb-link {{ request()->routeIs('simpanan.tagihangenerator') ? 'active' : '' }}">
-        Tagih Simpanan
-    </a>
+    
 @endsection
 
 {{-- ── Subbar kiri ── --}}

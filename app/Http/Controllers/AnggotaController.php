@@ -119,7 +119,7 @@ class AnggotaController extends Controller
     {
         $anggota = Anggota::with(['departemen', 'masterSimpanan'])->findOrFail($id);
         
-        $total_simpanan = $anggota->transaksiSimpanan()->sum('amount');
+        $total_simpanan = $anggota->transaksiSimpanan()->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
         $max_pinjaman = $total_simpanan > 0 ? $total_simpanan * 5 : 20000000;
         
         $pinjaman_aktif_amount = $anggota->pinjamanAktif()->sum('jumlah_pinjaman');
@@ -131,7 +131,7 @@ class AnggotaController extends Controller
         $simpanan_wajib = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_wajib : 0;
         $simpanan_sukarela = $anggota->masterSimpanan ? $anggota->masterSimpanan->simpanan_sukarela : 0;
 
-        $riwayat_simpanan = $anggota->transaksiSimpanan()->with('jenisSimpanan')->latest()->get();
+        $riwayat_simpanan = $anggota->transaksiSimpanan()->latest()->get();
         
         // Pinjaman fasilitas aktif & pengajuan
         $pinjaman_berjalan = \App\Models\Pinjaman::where('user_id', $anggota->id)

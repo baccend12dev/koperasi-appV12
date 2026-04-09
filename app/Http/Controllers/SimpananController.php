@@ -23,7 +23,7 @@ class SimpananController extends Controller
     {
         // dd($request->all());
         $request->validate([
-            'tagihan_id' => 'required|exists:tagihan_simpanans,id',
+            'tagihan_id' => 'required|exists:penagihan_bills,id',
             'detail_ids' => 'required|array|min:1',
             'detail_ids.*' => 'exists:tagihan_simpanan_details,id',
             'tanggal_transaksi' => 'required|date',
@@ -31,9 +31,9 @@ class SimpananController extends Controller
 
         DB::beginTransaction();
         try {
-            $tagihan = TagihanSimpanan::findOrFail($request->tagihan_id);
+            $tagihan = \App\Models\PenagihanBill::findOrFail($request->tagihan_id);
             $details = TagihanSimpananDetail::whereIn('id', $request->detail_ids)
-                ->where('tagihan_simpanan_id', $tagihan->id)
+                ->where('penagihan_bill_id', $tagihan->id)
                 ->where('status', '!=', 'Lunas')
                 ->get();
 
@@ -83,8 +83,8 @@ class SimpananController extends Controller
             }
 
             // Check global status of Tagihan
-            $totalDetails = TagihanSimpananDetail::where('tagihan_simpanan_id', $tagihan->id)->count();
-            $lunasDetails = TagihanSimpananDetail::where('tagihan_simpanan_id', $tagihan->id)->where('status', 'Lunas')->count();
+            $totalDetails = TagihanSimpananDetail::where('penagihan_bill_id', $tagihan->id)->count();
+            $lunasDetails = TagihanSimpananDetail::where('penagihan_bill_id', $tagihan->id)->where('status', 'Lunas')->count();
 
             if ($lunasDetails == $totalDetails) {
                 $tagihan->update(['status' => 'Paid']);
@@ -102,7 +102,7 @@ class SimpananController extends Controller
     }
     public function transaksi(Request $request)
     {
-        $query = \App\Models\TransaksiSimpanan::with(['anggota', 'jenisSimpanan'])->latest();
+        $query = \App\Models\TransaksiSimpanan::with(['anggota'])->latest();
 
         $tahun = $request->tahun ?? date('Y');
         $query->whereYear('transaction_date', $tahun);
@@ -118,17 +118,15 @@ class SimpananController extends Controller
             });
         }
 
-        if ($request->jenis) {
-            $query->where('jenis_simpanan_id', $request->jenis);
-        }
+
 
         $selectedBulan = $request->bulan ?? date('m');
-        $totalBulanIni = (clone $query)->sum('amount');
+        $totalBulanIni = (clone $query)->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
 
         $prevDate = \Carbon\Carbon::createFromDate($tahun, $selectedBulan, 1)->subMonth();
         $totalBulanLalu = \App\Models\TransaksiSimpanan::whereMonth('transaction_date', $prevDate->month)
                             ->whereYear('transaction_date', $prevDate->year)
-                            ->sum('amount');
+                            ->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
         $persenBulanIni = $totalBulanLalu > 0 ? (($totalBulanIni - $totalBulanLalu) / $totalBulanLalu) * 100 : 0;
 
         $anggotaAktif = Anggota::whereIn('status_anggota', ['active', 'aktif'])->count();
@@ -255,10 +253,10 @@ class SimpananController extends Controller
         $master = \App\Models\MasterSimpanan::with('anggota')->findOrFail($id);
         
         // Calculate total keseluruhan from transactions
-        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)->sum('amount');
+        $totalKeseluruhan = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
         
         // History of transactions
-        $riwayatTransaksi = \App\Models\TransaksiSimpanan::with('jenisSimpanan')
+        $riwayatTransaksi = \App\Models\TransaksiSimpanan::where('anggota_id', $master->anggota_id)
             ->where('anggota_id', $master->anggota_id)
             ->orderBy('transaction_date', 'desc')
             ->get();
