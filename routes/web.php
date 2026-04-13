@@ -88,6 +88,10 @@ Route::get('/', function () {
     Route::post('persetujuan/pengambilan/{id}/approve', [App\Http\Controllers\PersetujuanController::class, 'approvePengambilan'])->name('persetujuan.pengambilan.approve');
     Route::post('persetujuan/pengambilan/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPengambilan'])->name('persetujuan.pengambilan.reject');
 
+    // ── Pencairan ─────────────────────────────────────────
+    Route::get('pencairan', [App\Http\Controllers\PencairanController::class, 'index'])->name('pencairan.index');
+    Route::post('pencairan/bayar', [App\Http\Controllers\PencairanController::class, 'markPaid'])->name('pencairan.bayar');
+
     // ── Konfigurasi ───────────────────────────────────────
     Route::get('konfigurasi', fn() => view('konfigurasi.index'))->name('konfigurasi.index');
 

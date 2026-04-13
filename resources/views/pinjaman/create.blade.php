@@ -494,6 +494,7 @@ async function cari(){
       
       if(data.success) {
           const d = data.data;
+          console.log(d);
           document.getElementById('m-nama').textContent = d.nama;
           document.getElementById('m-nik').textContent = `NIK: ${d.nik}`;
           document.getElementById('m-tgl').textContent = d.tgl_masuk;

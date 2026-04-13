@@ -205,16 +205,151 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($item->status == 'pending')
-                                <div class="flex items-center justify-center gap-2">
-                                    <form action="{{ route('pinjaman.approval.approve', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menyetujui pengajuan ini?');" style="margin:0;">
-                                        @csrf
-                                        <button type="submit" class="btn-approve" title="Setujui Pengajuan">Setujui</button>
-                                    </form>
-                                    <form action="{{ route('pinjaman.approval.reject', $item->id) }}" method="POST" onsubmit="return promptReject(this);" style="margin:0;">
-                                        @csrf
-                                        <input type="hidden" name="alasan" class="alasan-input">
-                                        <button type="submit" class="btn-reject" title="Tolak Pengajuan">Tolak</button>
-                                    </form>
+                                <div x-data="{ openModal: false }" class="relative">
+                                    <button @click="openModal = true" class="btn-approve" style="background:#EEF2FF;color:#4F46E5;border-color:#C7D2FE;" title="Review Pengajuan">Review Detail</button>
+
+                                    <!-- Modal View -->
+                                    <template x-teleport="body">
+                                        <div x-show="openModal" class="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 backdrop-blur-sm p-4" x-transition.opacity="" style="display: none;">
+                                            <div @click.away="openModal = false" class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden p-6" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
+                                                
+                                                <div class="flex justify-between items-start border-b border-gray-100 pb-4 mb-4">
+                                                    <div>
+                                                        <h3 class="text-lg font-bold text-gray-900">Review Pengajuan Pinjaman</h3>
+                                                        <p class="text-sm text-gray-500 mt-1">{{ $item->anggota->nama_anggota }} ({{ $item->anggota->nik }})</p>
+                                                    </div>
+                                                    <button @click="openModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                    </button>
+                                                </div>
+
+                                                <div class="grid grid-cols-2 gap-4 mb-6">
+                                                    <!-- Data Pinjaman -->
+                                                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Detail Pengajuan</h4>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-400">Jenis Pinjaman</span>
+                                                            <strong class="text-sm text-gray-800">{{ $item->jenisPinjaman?->nama_pinjaman ?? '-' }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-400">Nominal Pengajuan</span>
+                                                            <strong class="text-sm text-gray-800">Rp {{ number_format($item->jumlah_pengajuan, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-400">Tenor & Bunga</span>
+                                                            <strong class="text-sm text-gray-800">{{ $item->tenor }} Bulan / {{ $item->bunga }}%</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-400">Cicilan Pengajuan (Per Bulan)</span>
+                                                            <strong class="text-sm text-blue-600">Rp {{ number_format($item->cicilan_per_bulan, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-400">Total Hutang (Pengajuan + Berjalan)</span>
+                                                            <strong class="text-sm text-blue-600">Rp {{ number_format($item->total_pinjaman + $item->pinjaman_berjalan_saat_ini, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Data Finansial Karyawan -->
+                                                    <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
+                                                        <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Kondisi Finansial saat ini</h4>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-500">Total Simpanan </span>
+                                                            <strong class="text-sm text-gray-800">Rp {{ number_format($item->total_simpanan_saat_ini ?? 0, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-500">Pinjaman Berjalan (Sisa)</span>
+                                                            <strong class="text-sm text-gray-800">Rp {{ number_format($item->pinjaman_berjalan_saat_ini ?? 0, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-500">Cicilan Saat Ini (Per Bulan)</span>
+                                                            <strong class="text-sm text-gray-800">Rp {{ number_format($item->cicilan_saat_ini ?? 0, 0, ',', '.') }}</strong>*<small>{{ $item->sisa_tenor }}</small>
+                                                        </div>
+                                                        <div>
+                                                            <span class="block text-[11px] text-gray-500">Simpanan Wajib & Sukarela (Per Bulan)</span>
+                                                            <strong class="text-sm text-gray-800">Rp {{ number_format($item->simpanan_perbulan ?? 0, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                        <div class="pt-2 border-t border-blue-200">
+                                                            <span class="block text-[11px] text-blue-700 font-bold">Total Cicilan Jika Disetujui (Per Bulan)</span>
+                                                            <strong class="text-lg text-blue-700">Rp {{ number_format($item->total_cicilan_baru ?? 0, 0, ',', '.') }}</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Accordion Detail Pinjaman Aktif -->
+                                                <div x-data="{ showLoans: false }" class="mb-4 border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm">
+                                                    <button @click="showLoans = !showLoans" type="button" class="w-full flex justify-between items-center bg-gray-50/80 p-3 text-sm font-bold text-gray-700 hover:bg-gray-100 transition-colors">
+                                                        <div class="flex items-center gap-2">
+                                                            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                            </svg>
+                                                            View Active Loans Details
+                                                        </div>
+                                                        <svg :class="showLoans ? 'transform rotate-180' : ''" class="w-4 h-4 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                    </button>
+                                                    <div x-show="showLoans" x-collapse style="display: none;">
+                                                        <div class="p-4 border-t border-gray-100">
+                                                            @if($item->anggota && $item->anggota->pinjamanAktif->count() > 0)
+                                                                <div class="overflow-x-auto">
+                                                                    <table class="w-full text-left text-[11px] text-gray-600">
+                                                                        <thead class="text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                                                                            <tr>
+                                                                                <th class="pb-2 font-bold w-1/3">Jenis Pinjaman</th>
+                                                                                <th class="pb-2 font-bold text-right">Sisa Pinjaman</th>
+                                                                                <th class="pb-2 font-bold text-right">Cicilan</th>
+                                                                                <th class="pb-2 font-bold text-center">Tenor</th>
+                                                                                <th class="pb-2 font-bold text-center">Status</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody class="divide-y divide-gray-50">
+                                                                            @foreach($item->anggota->pinjamanAktif as $loan)
+                                                                                <tr>
+                                                                                    <td class="py-2 font-bold text-gray-700">{{ $loan->jenisPinjaman?->nama_pinjaman ?? 'Pinjaman' }}</td>
+                                                                                    <td class="py-2 text-right font-medium">Rp {{ number_format($loan->sisa_pinjaman, 0, ',', '.') }}</td>
+                                                                                    <td class="py-2 text-right">Rp {{ number_format($loan->cicilan_per_bulan, 0, ',', '.') }}</td>
+                                                                                    <td class="py-2 text-center text-gray-500">{{ $loan->sisa_tenor }} mos</td>
+                                                                                    <td class="py-2 text-center">
+                                                                                        <span class="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-bold uppercase">{{ $loan->status }}</span>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            @endforeach
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            @else
+                                                                <div class="text-center py-4 text-xs text-gray-400">Tidak ada pinjaman berjalan.</div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div x-data="{ action: null, alasan: '' }" class="border-t border-gray-100 pt-5">
+                                                    <div class="flex flex-col gap-4">
+                                                        <div>
+                                                            <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan / Alasan (Opsional)</label>
+                                                            <textarea x-model="alasan" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3" placeholder="Masukkan catatan persetujuan atau alasan penolakan..."></textarea>
+                                                        </div>
+                                                        
+                                                        <div class="flex justify-end gap-3 mt-2">
+                                                            <button @click="openModal = false" type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+                                                            
+                                                            <form action="{{ route('pinjaman.approval.reject', $item->id) }}" method="POST" class="inline-block m-0" onsubmit="return confirm('Yakin ingin menolak pengajuan ini?');">
+                                                                @csrf
+                                                                <input type="hidden" name="alasan" x-model="alasan">
+                                                                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-100">Tolak Pengajuan</button>
+                                                            </form>
+
+                                                            <form action="{{ route('pinjaman.approval.approve', $item->id) }}" method="POST" class="inline-block m-0" onsubmit="return confirm('Yakin ingin menyetujui pengajuan ini?');">
+                                                                @csrf
+                                                                <!-- We can pass reason to approve if backend supports it, but currently backend might not -->
+                                                                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100">Setujui Pengajuan</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                                 @else
                                     <span class="text-xs text-gray-400">Tidak ada aksi</span>
@@ -235,12 +370,4 @@
 
 </div>
 
-<script>
-function promptReject(form) {
-    const alasan = prompt('Masukkan alasan penolakan (opsional):');
-    if (alasan === null) return false;
-    form.querySelector('.alasan-input').value = alasan;
-    return true;
-}
-</script>
 @endsection

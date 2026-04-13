@@ -296,12 +296,14 @@ class PinjamanController extends Controller
             return response()->json(['success' => false, 'message' => 'Anggota tidak ditemukan']);
         }
 
+        $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
         $simpananTotal = 0;
         if ($anggota->transaksiSimpanan) {
             $simpananTotal = $anggota->transaksiSimpanan->sum(function ($item) {
                 return $item->simpanan_pokok + $item->simpanan_wajib + $item->simpanan_sukarela;
             });
         }
+        $simpananTotal += $saldoAwal;
 
         // Active loans (status berjalan)
         $pinjamanAktifDb = \App\Models\Pinjaman::where('user_id', $anggota->id)
