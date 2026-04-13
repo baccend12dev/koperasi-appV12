@@ -3,11 +3,10 @@
 
 @section('title', 'Tambah Pinjaman')
 
-{{-- ── Topbar nav ── --}}
 @section('topbar-nav')
     <a href="{{ route('pinjaman.index') }}" class="tb-link">Dashboard</a>
     <a href="{{ route('pinjaman.pengajuan') }}" class="tb-link active">Pengajuan Pinjaman</a>
-    <a href="{{ route('persetujuan.pinjaman') }}" class="tb-link">Approval Pinjaman</a>
+    <a href="{{ route('persetujuan.pinjaman') }}" class="tb-link">Persetujuan Pinjaman</a>
     <a href="{{ route('pinjaman.aktif') }}" class="tb-link">Pinjaman Aktif</a>
     <a href="{{ route('pinjaman.angsuran') }}" class="tb-link">Pembayaran Angsuran</a>
     <a href="{{ route('pinjaman.masterJenis') }}" class="tb-link">Master Jenis Pinjaman</a>
@@ -17,644 +16,759 @@
 @section('page-subtitle', 'Buat pengajuan pinjaman baru dengan validasi otomatis')
 
 @section('subbar-actions')
-    <a href="{{ route('pinjaman.pengajuan') }}" class="btn-secondary" style="margin-right: 10px;">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline; margin-right:4px;">
-            <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <a href="{{ route('pinjaman.pengajuan') }}" class="btn-secondary" style="margin-right:10px;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline;margin-right:4px;"><path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Kembali
     </a>
 @endsection
 
 @section('content')
 <style>
-/* Scoped styles based on the provided preview */
-.pinjaman-create-container {
-    font-family: system-ui, sans-serif;
-    font-size: 13px;
-    color: #111827;
-    margin: 0 auto;
-    padding: 24px;
-    max-width: 1200px;
+/* ─────────────────────────────────────────────
+   GLOBAL & RESET
+───────────────────────────────────────────── */
+:root {
+    --navy: #0B1C3F;
+    --navy-light: #132E63;
+    --blue-btn: #0B214F;
+    --bg-gray: #F4F6F8;
+    --text-main: #111827;
+    --text-muted: #6B7280;
+    --green-light: #E4F3E8;
+    --green-dark: #065F46;
+    --green-accent: #10B981;
+    --brown-bg: #5D2A00;
+    --orange-text: #F97316;
 }
 
-/* grid */
-.grid-layout {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 16px;
-    align-items: start;
+body { font-family: 'Inter', system-ui, sans-serif; background-color: #F9FAFB; }
+
+.pc-wrap {
+    margin: 0 auto; padding: 20px 24px 48px;
+    max-width: 1100px;
 }
 
-/* card */
-.create-card {
-    background: #fff;
-    border: 1px solid #E5E7EB;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 16px;
+/* ─────────────────────────────────────────────
+   SEARCH SECTION
+───────────────────────────────────────────── */
+.search-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
 }
-.create-card:last-child { margin-bottom: 0; }
-.cc-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px 9px;
-    border-bottom: 1px solid #F3F4F6;
-    font-size: 13px;
-    font-weight: 700;
-    color: #111827;
+.search-box {
+    display: flex; gap: 12px; margin-bottom: 20px;
 }
-.cc-head svg { color: #1a56db; flex-shrink: 0; }
-.ch-badge {
-    margin-left: auto;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    background: #EFF6FF;
-    color: #1a56db;
+.search-input-wrap {
+    flex: 1; display: flex; align-items: center;
+    background: #EAECEF; border-radius: 8px; padding: 0 16px;
+    height: 48px;
 }
-.cc-body { padding: 16px; }
-.cb-sm { padding: 12px 16px; }
-
-/* form */
-.fg {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 12px;
+.search-input-wrap svg { color: #8C94A1; margin-right: 12px; }
+.search-input {
+    border: none; background: transparent; outline: none;
+    width: 100%; font-size: 15px; font-weight: 500; color: var(--text-main);
 }
-.fg:last-child { margin-bottom: 0; }
-.lbl { font-size: 11px; font-weight: 600; color: #374151; }
-.lbl .req { color: #dc2626; }
-.lbl .hint { font-weight: 400; color: #9CA3AF; font-size: 10px; }
-.fc {
-    display: block;
-    width: 100%;
-    height: 37px;
-    padding: 0 10px;
-    font-size: 12px;
-    color: #111827;
-    background: #fff;
-    border: 1.5px solid #D1D5DB;
-    border-radius: 7px;
-    outline: none;
-    transition: border-color .15s;
-    font-family: inherit;
+.search-btn {
+    background: var(--blue-btn); color: #fff; border: none;
+    border-radius: 8px; padding: 0 24px; font-weight: 600;
+    font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: 0.2s;
 }
-.fc::placeholder { color: #9CA3AF; }
-.fc:focus { border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,.09); }
-select.fc {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 28px;
-    cursor: pointer;
+.search-btn:hover { background: var(--navy); }
+
+/* ─────────────────────────────────────────────
+   MEMBER BANNER
+───────────────────────────────────────────── */
+#mb-expand-container { display: none; margin-bottom: 24px; }
+.mbanner {
+    background: var(--navy); border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 30px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
 }
-textarea.fc { height: 70px; padding: 8px 10px; resize: none; }
-.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ig { display: flex; align-items: center; }
-.ia {
-    height: 37px;
-    padding: 0 10px;
-    background: #F9FAFB;
-    border: 1.5px solid #D1D5DB;
-    font-size: 11px;
-    font-weight: 600;
-    color: #4B5563;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
+.mb-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center; color: #fff;
 }
-.ia-l { border-right: none; border-radius: 7px 0 0 7px; }
-.ia-r { border-left: none; border-radius: 0 7px 7px 0; }
-.ig .fc { border-radius: 0 7px 7px 0; }
-.ig .fc.fcl { border-radius: 7px 0 0 7px; }
+.mb-info { flex: 1; display: flex; align-items: center; gap: 16px; }
+.mb-text h3 { margin: 0; color: #fff; font-size: 16px; font-weight: 800; text-transform: uppercase; }
+.mb-text p { margin: 4px 0 0; color: #9CA3AF; font-size: 12px; }
+.mb-stats { display: flex; gap: 40px; }
+.mb-stat-box p { margin: 0 0 4px; font-size: 10px; color: #9CA3AF; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+.mb-stat-box h4 { margin: 0; font-size: 18px; color: #fff; font-weight: 700; }
+.mb-stat-box h4.text-green { color: #4ADE80; }
 
-/* search */
-.sw { display: flex; gap: 8px; align-items: flex-end; }
-.btn-srch {
-    height: 37px;
-    padding: 0 14px;
-    background: #1a56db;
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-    font-family: inherit;
+.btn-expand-loans {
+    background: rgba(255,255,255,0.1); border: none; border-radius: 4px;
+    padding: 4px; color: #fff; cursor: pointer; transition: 0.2s;
+    display: flex; align-items: center; justify-content: center;
 }
-.btn-srch:hover { background: #1447c0; }
+.btn-expand-loans:hover { background: rgba(255,255,255,0.2); }
+.btn-expand-loans.active { transform: rotate(180deg); background: rgba(74, 222, 128, 0.2); }
 
-.spinner-row { display: none; align-items: center; gap: 7px; font-size: 11px; color: #9CA3AF; margin-top: 8px; }
-.spinner-row.show { display: flex; }
-.sp { width: 13px; height: 13px; border: 2px solid #E5E7EB; border-top-color: #1a56db; border-radius: 50%; animation: spin .6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.detail-wrap {
+    display: none; background: #fff; border: 1px solid #E5E7EB;
+    border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+    margin-top: -12px; margin-bottom: 24px; padding: 20px 24px;
+    animation: slideDown 0.3s ease-out;
+}
+.detail-wrap.show { display: block; }
 
-.nf { display: none; align-items: center; gap: 8px; padding: 11px 14px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 7px; font-size: 12px; color: #991b1b; font-weight: 500; margin-top: 10px; }
-.nf.show { display: flex; }
+.dt-header { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 15px; }
+.dt-table { width: 100%; border-collapse: collapse; }
+.dt-table th { text-align: left; font-size: 10px; color: var(--text-muted); text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid #F3F4F6; }
+.dt-table td { padding: 12px 0; border-bottom: 1px solid #F3F4F6; font-size: 12px; }
+.dt-table tr:last-child td { border-bottom: none; }
 
-/* member panel */
-#mp { display: none; }
-#mp.show { display: block; }
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-.mav-row { display: flex; align-items: center; gap: 10px; padding: 10px 0 12px; border-bottom: 1px solid #F3F4F6; margin-bottom: 12px; }
-.mav { width: 40px; height: 40px; border-radius: 9px; background: #EFF6FF; border: 2px solid #BFDBFE; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #1a56db; flex-shrink: 0; }
-.mnb strong { display: block; font-size: 14px; font-weight: 700; color: #111827; }
-.mnb span { display: block; font-size: 11px; color: #9CA3AF; }
-.mpill { margin-left: auto; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; background: #F0FDF4; color: #15803d; border: 1px solid #BBF7D0; }
+/* ─────────────────────────────────────────────
+   MAIN GRID & CARDS
+───────────────────────────────────────────── */
+.main-grid {
+    display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start;
+}
+.card {
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 24px;
+}
+.card-title {
+    font-size: 16px; font-weight: 700; color: var(--navy);
+    display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+}
 
-.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.ic { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 7px; padding: 9px 12px; }
-.ic-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #9CA3AF; margin-bottom: 3px; }
-.ic-val { font-size: 13px; font-weight: 700; color: #111827; }
-.ic.blue { background: #EFF6FF; border-color: #BFDBFE; }
-.ic.blue .ic-lbl { color: #1d4ed8; } .ic.blue .ic-val { color: #1a56db; }
-.ic.green { background: #F0FDF4; border-color: #BBF7D0; }
-.ic.green .ic-lbl { color: #15803d; } .ic.green .ic-val { color: #15803d; }
-.ic.amber { background: #FFFBEB; border-color: #FDE68A; }
-.ic.amber .ic-lbl { color: #b45309; } .ic.amber .ic-val { color: #b45309; }
+/* ─────────────────────────────────────────────
+   FORM ELEMENTS
+───────────────────────────────────────────── */
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.f-group { display: flex; flex-direction: column; gap: 8px; }
+.f-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.f-input-wrap {
+    background: var(--bg-gray); border-radius: 8px;
+    height: 48px; display: flex; align-items: center; padding: 0 16px;
+}
+.f-input, select.f-input {
+    width: 100%; border: none; background: transparent; outline: none;
+    font-size: 15px; font-weight: 600; color: var(--text-main); font-family: inherit;
+}
+select.f-input { cursor: pointer; appearance: none; }
 
-.bar-track { height: 5px; background: #E5E7EB; border-radius: 10px; overflow: hidden; margin: 10px 0 3px; }
-.bar-fill { height: 100%; border-radius: 10px; background: #15803d; transition: width .3s, background .3s; }
-.bar-lbl { display: flex; justify-content: space-between; font-size: 10px; color: #9CA3AF; }
+/* Range Slider */
+.slider-wrap { display: flex; align-items: center; gap: 16px; }
+.range-slider {
+    flex: 1; -webkit-appearance: none; width: 100%; height: 6px;
+    background: #E5E7EB; border-radius: 4px; outline: none;
+}
+.range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--navy); cursor: pointer; border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.tenor-badge {
+    background: var(--navy); color: #fff; padding: 6px 12px;
+    border-radius: 6px; font-size: 13px; font-weight: 700;
+}
 
-/* pinjaman aktif */
-.mt { width: 100%; border-collapse: collapse; font-size: 11px; }
-.mt thead th { padding: 7px 10px; font-size: 10px; font-weight: 700; color: #9CA3AF; text-align: left; border-bottom: 1px solid #F3F4F6; background: #F9FAFB; }
-.mt tbody td { padding: 8px 10px; border-bottom: 1px solid #F3F4F6; color: #4B5563; vertical-align: middle; }
-.mt tbody tr:last-child td { border-bottom: none; }
-.mt tbody tr:hover td { background: #F9FAFB; }
-.sp-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; }
-.sp-pill::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
-.sp-aktif { background: #F0FDF4; color: #15803d; }
-.sp-telat { background: #FEF2F2; color: #dc2626; }
+/* ─────────────────────────────────────────────
+   REFINANCING SECTION
+───────────────────────────────────────────── */
+.refinance-box {
+    background: var(--bg-gray); border-radius: 12px; padding: 20px; margin-top: 32px;
+}
+.ref-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+}
+.ref-title { font-size: 14px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
-/* alerts */
-.aw { display: none; align-items: flex-start; gap: 7px; padding: 9px 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 7px; font-size: 11px; color: #92400e; margin-top: 7px; font-weight: 500; }
-.aw.show { display: flex; } .aw svg { color: #b45309; flex-shrink: 0; margin-top: 1px; }
-.ad { display: none; align-items: flex-start; gap: 7px; padding: 9px 12px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 7px; font-size: 11px; color: #991b1b; margin-top: 7px; font-weight: 500; }
-.ad.show { display: flex; } .ad svg { color: #dc2626; flex-shrink: 0; margin-top: 1px; }
-.fhint { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #9CA3AF; margin-top: 4px; }
+/* Toggle Switch */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider-sw { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #D1D5DB; transition: .3s; border-radius: 34px; }
+.slider-sw:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider-sw { background-color: var(--green-accent); }
+input:checked + .slider-sw:before { transform: translateX(20px); }
+.sw-wrap { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: var(--text-main); }
 
-/* right */
-.cr { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F3F4F6; }
-.cr:last-of-type { border: none; }
-.cr-lbl { font-size: 11px; color: #9CA3AF; font-weight: 500; }
-.cr-val { font-size: 12px; font-weight: 700; color: #111827; }
-.ctotal { margin-top: 12px; padding: 12px; background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 8px; }
-.ctotal-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #1a56db; margin-bottom: 2px; }
-.ctotal-amt { font-size: 20px; font-weight: 800; color: #1a56db; }
-.ctotal-sub { font-size: 10px; color: #3b82f6; margin-top: 2px; }
-.ccil { margin-top: 8px; padding: 11px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; }
-.ccil-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #15803d; }
-.ccil-amt { font-size: 17px; font-weight: 800; color: #15803d; margin-top: 2px; }
-.ccil-sub { font-size: 10px; color: #22c55e; margin-top: 1px; }
+/* Loan List */
+#refinance-list { display: none; flex-direction: column; gap: 12px; }
+#refinance-list.show { display: flex; }
+.ref-item {
+    display: flex; align-items: center; background: #fff; border: 2px solid transparent;
+    padding: 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; gap: 16px;
+}
+.ref-item:hover { border-color: #E5E7EB; }
+.ref-item.selected { border-color: var(--green-accent); }
 
-.sim-btn { background: transparent; border: none; font-size: 11px; font-weight: 600; color: #1a56db; cursor: pointer; padding: 8px 0 0; display: flex; align-items: center; gap: 4px; font-family: inherit; margin-top: 8px; }
-.sim-wrap { display: none; margin-top: 8px; overflow: auto; max-height: 200px; }
-.sim-wrap.show { display: block; }
-.stbl { width: 100%; border-collapse: collapse; font-size: 10px; }
-.stbl th { padding: 5px 7px; background: #F9FAFB; border: 1px solid #E5E7EB; font-weight: 700; color: #4B5563; text-align: center; }
-.stbl td { padding: 4px 7px; border: 1px solid #F3F4F6; color: #4B5563; text-align: right; }
-.stbl td:first-child { text-align: center; font-weight: 600; }
-.stbl tbody tr:nth-child(even) td { background: #F9FAFB; }
+.cb-custom {
+    width: 20px; height: 20px; border: 2px solid #D1D5DB; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; transition: 0.2s;
+}
+.ref-item.selected .cb-custom { background: var(--green-accent); border-color: var(--green-accent); }
+.cb-custom svg { width: 12px; height: 12px; color: #fff; opacity: 0; }
+.ref-item.selected .cb-custom svg { opacity: 1; }
 
-.rumus { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 14px; margin-top: 16px; }
-.rumus-h { font-size: 10px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 7px; }
-.rumus-row { font-size: 10px; color: #4B5563; line-height: 2.2; }
+.ref-info { flex: 1; display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.2fr; align-items: center; }
+.ref-name { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.ref-id { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.ref-val { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.ref-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.ref-orange { color: #D97706; font-weight: 600; }
 
-/* actions */
-.abar { display: flex; align-items: center; gap: 8px; padding-top: 4px; }
-.btn-reset { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: #dc2626; background: #fff; border: 1.5px solid #FECACA; border-radius: 7px; cursor: pointer; font-family: inherit; margin-left: auto; }
-.btn-save { display: inline-flex; align-items: center; gap: 5px; padding: 8px 18px; font-size: 12px; font-weight: 700; color: #fff; background: #1a56db; border: none; border-radius: 7px; cursor: pointer; font-family: inherit; }
-.btn-save:hover { background: #1447c0; }
-.sdiv { height: 1px; background: #F3F4F6; margin: 12px 0; }
+/* ─────────────────────────────────────────────
+   RIGHT SIDEBAR (SUMMARY)
+───────────────────────────────────────────── */
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+/* Top Green Card */
+.sum-card-top {
+    background: var(--green-light); border-radius: 12px; padding: 24px;
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+}
+.s-label-green { font-size: 11px; font-weight: 700; color: var(--green-dark); display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px; }
+.s-label-muted { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 16px; }
+.s-val-large { font-size: 28px; font-weight: 900; color: var(--navy); margin-top: 4px; }
+.s-row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 16px; }
+.s-row-label { font-size: 12px; color: var(--text-muted); }
+.s-row-val { font-size: 14px; font-weight: 700; color: #DC2626; }
+
+/* Middle Brown Card */
+.sum-card-mid { background: var(--brown-bg); padding: 20px 24px; position: relative; }
+.s-label-white { font-size: 11px; font-weight: 600; color: #fff; }
+.s-val-orange { font-size: 24px; font-weight: 900; color: var(--orange-text); margin-top: 4px; }
+.s-note { font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 8px; line-height: 1.4; font-style: italic; }
+.icon-wallet { position: absolute; right: 20px; top: 20px; opacity: 0.5; color: #fff; }
+
+/* Bottom Grey Card */
+.sum-card-bot { background: var(--bg-gray); padding: 20px 24px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; position: relative;}
+.s-label-gray { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
+.s-val-green { font-size: 22px; font-weight: 800; color: var(--green-dark); margin-top: 4px; }
+.icon-calc { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #E5E7EB; border-radius: 50%; padding: 8px; color: var(--green-dark); }
+
+/* Submit Button */
+.btn-submit {
+    background: var(--navy); color: #fff; width: 100%; padding: 16px;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 800;
+    text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: 0.2s;
+}
+.btn-submit:hover { background: #081530; }
+
+/* Hidden Fields */
+.hidden-inputs { display: none; }
+
+/* Info chip bunga */
+.bunga-info {
+    display: none; align-items: center; gap: 6px;
+    margin-top: 6px; padding: 6px 10px;
+    background: #EFF6FF; border: 1px solid #BFDBFE;
+    border-radius: 6px; font-size: 11px; color: #1d4ed8; font-weight: 600;
+}
+.bunga-info.show { display: flex; }
+.bunga-info svg { flex-shrink: 0; }
+
+/* Limit notice */
+.limit-notice {
+    display: none; align-items: flex-start; gap: 7px;
+    margin-top: 8px; padding: 8px 12px;
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 7px; font-size: 11px; color: #92400e; font-weight: 500;
+    line-height: 1.5;
+}
+.limit-notice.show { display: flex; }
+.limit-notice svg { flex-shrink: 0; margin-top: 1px; color: #b45309; }
 </style>
 
-<div class="pinjaman-create-container">
-    <div class="grid-layout">
-      <!-- LEFT -->
-      <div>
-
-        <!-- SECTION 1: Cari anggota -->
-        <div class="create-card">
-          <div class="cc-head">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M11 11l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-            Pencarian Anggota
-          </div>
-          <div class="cc-body">
-            <div class="sw">
-              <div class="fg" style="flex:1;margin-bottom:0">
-                <label class="lbl">User ID / NIK <span class="hint">— ketik & tekan Enter</span></label>
-                <div class="ig">
-                  <span class="ia ia-l">
-                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M9 9l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                  </span>
-                  <input class="fc" id="nik" placeholder="Masukkan NIK 16 digit atau User ID..." autofocus onkeydown="if(event.key==='Enter')cari()">
-                </div>
-              </div>
-              <button class="btn-srch" onclick="cari()">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 8l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-                Cari
-              </button>
-            </div>
-            <div class="spinner-row" id="spr"><div class="sp"></div>Mencari data anggota...</div>
-            <div class="nf" id="nf">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4.5v4M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-              Anggota tidak ditemukan. Periksa kembali NIK atau ID.
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 2 & 3: Member panel -->
-        <div id="mp">
-          <div class="create-card">
-            <div class="cc-head">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.5 2.5-5 5.5-5s5.5 1.5 5.5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-              Informasi Anggota
-              <span class="ch-badge">Aktif</span>
-            </div>
-            <div class="cb-sm">
-              <div class="mav-row">
-                <div class="mav" id="av">EG</div>
-                <div class="mnb">
-                  <strong id="m-nama">Emma Granger</strong>
-                  <span id="m-nik">NIK: 3201234567890001</span>
-                </div>
-                <span class="mpill">Aktif</span>
-              </div>
-              <div class="info-grid">
-                <div class="ic"><div class="ic-lbl">Tanggal Masuk</div><div class="ic-val" id="m-tgl">01 Jan 2022</div></div>
-                <div class="ic green"><div class="ic-lbl">Total Simpanan</div><div class="ic-val" id="m-simp">Rp 15 jt</div></div>
-                <div class="ic blue"><div class="ic-lbl">Maks. Pinjaman</div><div class="ic-val" id="m-maks">Rp 25 jt</div></div>
-                <div class="ic amber"><div class="ic-lbl">Pinjaman Aktif</div><div class="ic-val" id="m-aktif">Rp 5 jt</div></div>
-                <div class="ic" style="grid-column: span 2;"><div class="ic-lbl">Sisa Limit</div><div class="ic-val" id="m-sisa">Rp 20 jt</div></div>
-              </div>
-              <div style="margin-top:12px">
-                <div style="font-size:11px;font-weight:600;color:#4B5563;margin-bottom:4px">Penggunaan Limit Pinjaman</div>
-                <div class="bar-track"><div class="bar-fill" id="bar" style="width:20%"></div></div>
-                <div class="bar-lbl"><span>20% terpakai</span><span>Sisa Rp 20 jt</span></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- pinjaman aktif -->
-          <div class="create-card">
-            <div class="cc-head">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="2.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 7h7M4 10h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Pinjaman Berjalan
-              <span class="ch-badge" id="badge-n">1</span>
-            </div>
-            <table class="mt">
-              <thead><tr><th>Jenis Pinjaman</th><th style="text-align:center">Sisa Tenor</th><th style="text-align:right">Sisa Tagihan</th><th>Status</th></tr></thead>
-              <tbody id="ptbody">
-                <tr>
-                  <td>Pinjaman Reguler</td>
-                  <td style="text-align:center">8 bulan</td>
-                  <td style="text-align:right">Rp 5.000.000</td>
-                  <td><span class="sp-pill sp-aktif">aktif</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- SECTION 4: Form pinjaman -->
-        <form id="form-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}">
-        @csrf
-        <input type="hidden" name="user_id" id="user_id_input">
-        
-        @if ($errors->any())
-            <div style="background: #FEF2F2; border: 1px solid #FECACA; padding: 12px; border-radius: 8px; margin-bottom: 16px; color: #991b1b; font-size: 13px;">
-                <ul style="margin: 0; padding-left: 20px;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <div class="create-card">
-          <div class="cc-head">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 13V7.5l4.5-4.5 4.5 4.5V13" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><rect x="5.5" y="9" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1.1"/></svg>
-            Form Pinjaman Baru
-          </div>
-          <div class="cc-body">
-            <div class="fg">
-              <label class="lbl">Jenis Pinjaman <span class="req">*</span></label>
-              <select class="fc" id="jenis" name="jenis_pinjaman_id" onchange="onJenis()">
-                <option value="">— Pilih Jenis Pinjaman —</option>
-                @foreach($jenisPinjamanList as $jpParent)
-                    @if($jpParent->children->count() > 0)
-                        <optgroup label="{{ $jpParent->nama_pinjaman }}">
-                            @foreach($jpParent->children as $jpChild)
-                                <option value="{{ $jpChild->id }}" data-bunga="{{ $jpChild->bunga }}" data-nama="{{ $jpChild->nama_pinjaman }}" data-parent="{{ $jpParent->id }}" data-limit="{{ $jpParent->limit_maksimal ?? 0 }}">
-                                    {{ $jpChild->nama_pinjaman }}
-                                </option>
-                            @endforeach
-                        </optgroup>
-                    @else
-                        <option value="{{ $jpParent->id }}" data-bunga="{{ $jpParent->bunga }}" data-nama="{{ $jpParent->nama_pinjaman }}" data-parent="{{ $jpParent->id }}" data-limit="{{ $jpParent->limit_maksimal ?? 0 }}">
-                            {{ $jpParent->nama_pinjaman }}
-                        </option>
-                    @endif
-                @endforeach
-              </select>
-              <div class="aw" id="warn-jenis">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-                Anggota ini sudah memiliki pinjaman jenis ini yang masih berjalan.
-              </div>
-            </div>
-            <div class="frow">
-              <div class="fg">
-                <label class="lbl">Jumlah Pinjaman <span class="req">*</span></label>
-                <div class="ig">
-                  <span class="ia ia-l">Rp</span>
-                  <input class="fc" id="jumlah" name="jumlah_pengajuan" type="number" placeholder="0" min="100000" step="100000" oninput="hitung()" required>
-                </div>
-                <div class="ad" id="warn-limit">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v4M7 10h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-                  Melebihi sisa batas maksimal pinjaman anggota.
-                </div>
-                <div class="fhint">
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1"/><path d="M5.5 4v3M5.5 8h.01" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
-                  Maks bisa diajukan: <strong id="hint-maks">Rp 20.000.000</strong>
-                </div>
-              </div>
-              <div class="fg">
-                <label class="lbl">Tenor <span class="req">*</span></label>
-                <select class="fc" id="tenor" name="tenor" onchange="hitung()" required>
-                  <option value="">— Pilih Tenor —</option>
-                  <option value="6">6 bulan</option>
-                  <option value="12">12 bulan</option>
-                  <option value="18">18 bulan</option>
-                  <option value="24">24 bulan</option>
-                  <option value="36">36 bulan</option>
-                </select>
-              </div>
-            </div>
-            <div class="fg">
-              <label class="lbl">Bunga (% / bulan) <span class="hint">— otomatis dari jenis pinjaman</span></label>
-              <div class="ig">
-                <input class="fc fcl" id="bunga" name="bunga" type="number" placeholder="0.00" step="0.1" min="0" max="100" oninput="hitung()" readonly>
-                <span class="ia ia-r">% / bln</span>
-              </div>
-            </div>
-            <div class="fg">
-              <label class="lbl">Keterangan</label>
-              <textarea class="fc" name="keterangan" placeholder="Masukkan keterangan tambahan jika diperlukan..."></textarea>
-            </div>
-            <div class="sdiv"></div>
-            <div class="abar">
-              <button class="btn-reset" type="button" onclick="resetF()">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6a4 4 0 1 1 1.3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 9.5V6h3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Reset
-              </button>
-              <button class="btn-save" type="submit">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 6l3 3.5 6-5.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Buat Pengajuan
-              </button>
-            </div>
-          </div>
-        </div>
-        </form>
-      </div>
-
-      <!-- RIGHT -->
-      <div>
-        <div class="create-card">
-          <div class="cc-head">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="1.5" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 6l2 2 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 11h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Perhitungan Otomatis
-          </div>
-          <div class="cc-body">
-            <div class="cr"><span class="cr-lbl">Jumlah Pinjaman</span><span class="cr-val" id="c-pokok">Rp 0</span></div>
-            <div class="cr"><span class="cr-lbl">Tenor</span><span class="cr-val" id="c-tenor">— bulan</span></div>
-            <div class="cr"><span class="cr-lbl">Bunga / Bulan</span><span class="cr-val" id="c-bunga">0%</span></div>
-            <div class="cr"><span class="cr-lbl">Total Bunga</span><span class="cr-val" id="c-tbunga">Rp 0</span></div>
-            <div class="ctotal">
-              <div class="ctotal-lbl">Total Bayar</div>
-              <div class="ctotal-amt" id="c-total">Rp 0</div>
-              <div class="ctotal-sub" id="c-tsub">Pokok + Bunga</div>
-            </div>
-            <div class="ccil">
-              <div class="ccil-lbl">Cicilan / Bulan</div>
-              <div class="ccil-amt" id="c-cicilan">Rp 0</div>
-              <div class="ccil-sub" id="c-csub">Belum ada data</div>
-            </div>
-            <button type="button" class="sim-btn" onclick="toggleSim(this)">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 3.5l3.5 3.5 3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Lihat simulasi angsuran
-            </button>
-            <div class="sim-wrap" id="sim-wrap">
-              <table class="stbl">
-                <thead><tr><th>Bln</th><th>Pokok</th><th>Bunga</th><th>Cicilan</th><th>Sisa</th></tr></thead>
-                <tbody id="sim-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="rumus">
-          <div class="rumus-h">Panduan Perhitungan</div>
-          <div class="rumus-row">
-            <div>Total Bunga = Pokok × Bunga% × Tenor</div>
-            <div>Total Bayar = Pokok + Total Bunga</div>
-            <div>Cicilan per Bulan = Total Bayar ÷ Tenor</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<form id="form-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}">
+@csrf
+<div class="hidden-inputs">
+    <input type="hidden" name="user_id" id="user_id_input">
+    <input type="hidden" name="bunga" id="bunga_input">
+    <input type="hidden" name="include_pelunasan" id="include_pelunasan" value="0">
+    <div id="pelunasan_inputs"></div>
 </div>
 
+<div class="pc-wrap">
+
+    {{-- ══ SEARCH AREA ══ --}}
+    <div class="search-label">CARI IDENTIFIKASI ANGGOTA</div>
+    <div class="search-box">
+        <div class="search-input-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <input type="text" id="nik" class="search-input" placeholder="Masukkan NIK atau User ID..." onkeydown="if(event.key==='Enter'){ event.preventDefault(); cari(); }">
+        </div>
+        <button type="button" class="search-btn" onclick="cari()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Cari
+        </button>
+    </div>
+
+    {{-- ══ MEMBER BANNER ══ --}}
+    <div id="mb-expand-container" style="flex-direction: column;">
+        <div id="member-banner" class="mbanner" style="margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+            <div class="mb-info">
+                <div class="mb-avatar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="mb-text">
+                    <h3 id="m-nama"></h3>
+                    <p id="m-nik">NIK: • Gold Member</p>
+                </div>
+            </div>
+            <div class="mb-stats">
+                <div class="mb-stat-box">
+                    <p>Total Simpanan</p>
+                    <h4 id="m-simp"></h4>
+                </div>
+                <div class="mb-stat-box">
+                    <p>Pinjaman Aktif</p>
+                    <h4 id="m-aktif"></h4>
+                </div>
+            </div>
+            <div class="mb-divider"></div>
+            <div class="mb-stat-box">
+                <p>Cicilan Saat Ini</p>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h4 class="text-green" id="m-cicilan"> <span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.6)">/bln</span></h4>
+                    <button type="button" id="btn-expand-loans" class="btn-expand-loans" onclick="toggleLoansDetail()" title="Lihat rincian pinjaman">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {{-- Detail Table (Expandable) --}}
+        <div id="active-loans-detail" class="detail-wrap">
+            <div class="dt-header">Rincian Pinjaman Aktif</div>
+            <div id="detail-table-content"></div>
+        </div>
+    </div>
+
+    {{-- ══ MAIN GRID ══ --}}
+    <div class="main-grid">
+
+        {{-- LEFT COLUMN: FORM --}}
+        <div>
+            <div class="card">
+                <div class="card-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Pengajuan Pinjaman Baru
+                </div>
+
+                <div class="f-row">
+                    <div class="f-group">
+                        <label class="f-label">Jenis Pinjaman</label>
+                        <div class="f-input-wrap" style="background: #fff; border: 1.5px solid #E5E7EB;">
+                            <select class="f-input" id="jenis" name="jenis_pinjaman_id" onchange="onJenis()">
+                                <option value="">— Pilih Jenis —</option>
+                                @foreach($jenisPinjamanList as $jpParent)
+                                    @if($jpParent->children->count() > 0)
+                                        <optgroup label="{{ $jpParent->nama_pinjaman }}">
+                                        @foreach($jpParent->children as $jpChild)
+                                            <option value="{{ $jpChild->id }}"
+                                                data-bunga="{{ $jpChild->bunga }}"
+                                                data-parent="{{ $jpParent->id }}"
+                                                data-limit="{{ $jpParent->limit_maksimal ?? 0 }}"
+                                                data-parent-nama="{{ $jpParent->nama_pinjaman }}">
+                                                {{ $jpChild->nama_pinjaman }}
+                                            </option>
+                                        @endforeach
+                                        </optgroup>
+                                    @else
+                                        <option value="{{ $jpParent->id }}"
+                                            data-bunga="{{ $jpParent->bunga }}"
+                                            data-parent="{{ $jpParent->id }}"
+                                            data-limit="{{ $jpParent->limit_maksimal ?? 0 }}"
+                                            data-parent-nama="{{ $jpParent->nama_pinjaman }}">
+                                            {{ $jpParent->nama_pinjaman }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        {{-- Info bunga otomatis --}}
+                        <div class="bunga-info" id="bunga-info">
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 5v3.5M6.5 9.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                            Bunga: <strong id="bunga-val">0%</strong> / bulan &nbsp;|&nbsp; Dihitung otomatis dari jenis pinjaman
+                        </div>
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Jumlah Pinjaman (IDR)</label>
+                        <div class="f-input-wrap">
+                            <input type="number" class="f-input" id="jumlah" name="jumlah_pengajuan" placeholder="0" oninput="hitung()" required>
+                        </div>
+                        {{-- Notifikasi max limit (informatif saja, tidak memblokir) --}}
+                        <div class="limit-notice" id="limit-notice">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                            <span id="limit-notice-text">Jumlah melebihi batas maksimal jenis pinjaman ini. Pengajuan tetap bisa dikirim namun perlu persetujuan admin.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="f-group" style="margin-bottom: 8px;">
+                    <label class="f-label">Tenor (Bulan)</label>
+                    <div class="slider-wrap">
+                        <input type="range" class="range-slider" id="tenor" name="tenor" min="6" max="36" step="6" value="24" oninput="updateTenor(this.value)">
+                        <div class="tenor-badge" id="tenor-badge">24 Bulan</div>
+                    </div>
+                </div>
+
+                {{-- REFINANCING SECTION --}}
+                <div class="refinance-box">
+                    <div class="ref-header">
+                        <div class="ref-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M17 3v2M7 3v2M3 11h18M4 7h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"></path><path d="M9 15l2 2 4-4"></path></svg>
+                            Opsi Pelunasan
+                        </div>
+                        <div class="sw-wrap">
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-refinance" onchange="toggleRefinance(this)">
+                                <span class="slider-sw"></span>
+                            </label>
+                            Gunakan pinjaman untuk melunasi pinjaman yang ada
+                        </div>
+                    </div>
+                    
+                    <div id="refinance-list">
+                        <!-- Diisi via JS -->
+                        <div style="text-align:center; padding:10px; color:#6B7280; font-size:12px;">Cari anggota terlebih dahulu untuk melihat pinjaman aktif</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- RIGHT COLUMN: SUMMARY --}}
+        <div class="sidebar">
+            <div style="border-radius:12px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                
+                {{-- Top Green --}}
+                <div class="sum-card-top">
+                    <div class="s-label-green">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        RINGKASAN PENGAJUAN
+                    </div>
+                    <div class="s-label-muted">Jumlah Pinjaman Baru</div>
+                    <div class="s-val-large" id="sum-pokok">Rp 0</div>
+                    
+                    <div class="s-row">
+                        <span class="s-row-label">Total Pelunasan Pinjaman</span>
+                        <span class="s-row-val" id="sum-payoff">Rp 0</span>
+                    </div>
+                </div>
+
+                {{-- Mid Brown --}}
+                <div class="sum-card-mid">
+                    <svg class="icon-wallet" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><path d="M22 12h-4v4h4v-4z"></path></svg>
+                    <div class="s-label-white">Dana Yang Dicairkan</div>
+                    <div class="s-val-orange" id="sum-net">Rp 0</div>
+                    <div class="s-note">Dihitung setelah melunasi kewajiban pinjaman yang dipilih.</div>
+                </div>
+
+                {{-- Bottom Gray --}}
+                <div class="sum-card-bot">
+                    <svg class="icon-calc" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8.01" y2="10"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="16" y1="10" x2="16.01" y2="10"></line><line x1="8" y1="14" x2="8.01" y2="14"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="16" y1="14" x2="16.01" y2="14"></line><line x1="8" y1="18" x2="8.01" y2="18"></line><line x1="12" y1="18" x2="16" y2="18"></line></svg>
+                    <div class="s-label-gray">Cicilan Per Bulan</div>
+                    <div class="s-val-green" id="sum-cicilan">Rp 0</div>
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-submit">
+                KIRIM PENGAJUAN
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+
+    </div>
+</div>
+</form>
+
 <script>
-function rp(n){return'Rp '+(Math.round(n)||0).toLocaleString('id-ID')}
+/* ─── Helpers ─── */
+function rp(n) { return 'Rp ' + (Math.round(n) || 0).toLocaleString('id-ID'); }
 
-// Database search
-let globalMaxLimit = 20000000;
-let currentMaxLimit = 20000000;
-let usagePerParent = {};
-async function cari(){
-  const v=document.getElementById('nik').value.trim();
-  if(!v)return;
-  document.getElementById('spr').classList.add('show');
-  document.getElementById('nf').classList.remove('show');
-  document.getElementById('mp').classList.remove('show');
-  
-  try {
-      const res = await fetch(`{{ route('pinjaman.pengajuan.searchAnggota') }}?q=${encodeURIComponent(v)}`);
-      const data = await res.json();
-      document.getElementById('spr').classList.remove('show');
-      
-      if(data.success) {
-          const d = data.data;
-          console.log(d);
-          document.getElementById('m-nama').textContent = d.nama;
-          document.getElementById('m-nik').textContent = `NIK: ${d.nik}`;
-          document.getElementById('m-tgl').textContent = d.tgl_masuk;
-          document.getElementById('m-simp').textContent = rp(d.total_simpanan);
-          document.getElementById('m-maks').textContent = rp(d.maks_pinjaman);
-          document.getElementById('m-aktif').textContent = rp(d.pinjaman_aktif);
-          document.getElementById('m-sisa').textContent = rp(d.sisa_limit);
-          document.getElementById('hint-maks').textContent = rp(d.sisa_limit);
-          document.getElementById('av').textContent = d.nama.substring(0, 2).toUpperCase();
-          
-          document.getElementById('user_id_input').value = d.user_id;
-          
-          globalMaxLimit = d.sisa_limit;
-          currentMaxLimit = d.sisa_limit;
-          usagePerParent = d.usage_per_parent || {};
-          
-          const pct = d.maks_pinjaman > 0 ? (d.pinjaman_aktif / d.maks_pinjaman * 100) : 0;
-          document.getElementById('bar').style.width = pct + '%';
-          document.querySelector('.bar-lbl').innerHTML = `<span>${pct.toFixed(1)}% terpakai</span><span>Sisa ${rp(d.sisa_limit)}</span>`;
-          
-          const ptbody = document.getElementById('ptbody');
-          ptbody.innerHTML = '';
-          if(d.pinjaman_berjalan.length > 0) {
-              document.getElementById('badge-n').textContent = d.pinjaman_berjalan.length;
-              d.pinjaman_berjalan.forEach(p => {
-                  ptbody.innerHTML += `<tr>
-                      <td>${p.jenis_pinjaman}</td>
-                      <td style="text-align:center">${p.sisa_tenor}</td>
-                      <td style="text-align:right">${rp(p.sisa_tagihan)}</td>
-                      <td><span class="sp-pill sp-aktif">aktif</span></td>
-                  </tr>`;
-              });
-          } else {
-              document.getElementById('badge-n').textContent = '0';
-              ptbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9CA3AF;padding:16px;">Belum ada pinjaman berjalan</td></tr>`;
-          }
-          
-          document.querySelectorAll('.aw.show, .ad.show').forEach(el => el.classList.remove('show'));
-          hitung();
-          onJenis();
-          
-          document.getElementById('mp').classList.add('show');
-      } else {
-          document.getElementById('nf').classList.add('show');
-      }
-  } catch(e) {
-      document.getElementById('spr').classList.remove('show');
-      document.getElementById('nf').classList.add('show');
-      console.error(e);
-  }
+let activeLoans        = [];
+let selectedRefinanceIds = [];
+let currentBunga       = 0;
+let usagePerParent     = {};   // { parent_id: total_sudah_dipakai }
+
+/* ─── Pencarian Anggota ─── */
+async function cari() {
+    const v = document.getElementById('nik').value.trim();
+    if (!v) return;
+
+    try {
+        const res = await fetch(`{{ route('pinjaman.pengajuan.searchAnggota') }}?q=${encodeURIComponent(v)}`);
+        const data = await res.json();
+
+        if (data.success) {
+            const d = data.data;
+            console.log(d);
+            activeLoans    = d.pinjaman_berjalan || [];
+            usagePerParent = d.usage_per_parent  || {};
+            
+            // Set User Data
+            document.getElementById('user_id_input').value = d.user_id;
+            document.getElementById('m-nama').textContent = d.nama;
+            document.getElementById('m-nik').textContent = `NIK: ${d.nik} • Anggota Aktif`;
+            document.getElementById('m-simp').textContent = rp(d.total_simpanan);
+            document.getElementById('m-aktif').textContent = rp(d.pinjaman_aktif);
+            
+            // Hitung total cicilan saat ini
+            let totalCicilan = activeLoans.reduce((sum, p) => sum + (parseFloat(p.cicilan_per_bulan) || 0), 0);
+            document.getElementById('m-cicilan').innerHTML = `${rp(totalCicilan)} <span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.6)">/bln</span>`;
+
+            document.getElementById('mb-expand-container').style.display = 'flex';
+            
+            // Reset detail view
+            document.getElementById('active-loans-detail').classList.remove('show');
+            document.getElementById('btn-expand-loans').classList.remove('active');
+            
+            buildRefinanceList();
+            hitung();
+        } else {
+            alert('Anggota tidak ditemukan.');
+            document.getElementById('mb-expand-container').style.display = 'none';
+        }
+    } catch(e) {
+        console.error(e);
+        alert('Terjadi kesalahan sistem.');
+    }
 }
 
-function onJenis(){
-  const sel=document.getElementById('jenis');
-  const opt=sel.options[sel.selectedIndex];
-  if(!opt) return;
-  const b=opt.dataset?.bunga||'';
-  document.getElementById('bunga').value=b;
-  const selText = opt.dataset?.nama||'';
-  const hasSame = Array.from(document.querySelectorAll('#ptbody td:first-child')).some(td => td.textContent.trim() === selText.trim());
-  document.getElementById('warn-jenis').classList.toggle('show', sel.value && hasSame);
-  
-  const parentId = opt.dataset?.parent;
-  const limitParent = parseFloat(opt.dataset?.limit) || 0;
-  
-  if (limitParent > 0 && parentId) {
-      const usage = usagePerParent[parentId] || 0;
-      const specificLimit = Math.max(0, limitParent - usage);
-      currentMaxLimit = Math.min(globalMaxLimit, specificLimit);
-  } else {
-      currentMaxLimit = globalMaxLimit;
-  }
-  
-  document.getElementById('hint-maks').textContent = rp(currentMaxLimit);
-  
-  const inputJumlah = document.getElementById('jumlah');
-  inputJumlah.max = currentMaxLimit;
-  if(currentMaxLimit <= 0) {
-      inputJumlah.value = '';
-      inputJumlah.disabled = true;
-      inputJumlah.placeholder = 'Limit habis';
-  } else {
-      inputJumlah.disabled = false;
-      inputJumlah.placeholder = '0';
-  }
-  
-  hitung();
+/* ─── Expandable Details ─── */
+function toggleLoansDetail() {
+    const detail = document.getElementById('active-loans-detail');
+    const btn    = document.getElementById('btn-expand-loans');
+    const isShowing = detail.classList.toggle('show');
+    btn.classList.toggle('active');
+    
+    if (isShowing) renderLoansDetail();
 }
 
-function hitung(){
-  const inputJumlah = document.getElementById('jumlah');
-  let j=parseFloat(inputJumlah.value)||0;
-  const t=parseFloat(document.getElementById('tenor').value)||0;
-  const b=parseFloat(document.getElementById('bunga').value)||0;
-  const maxLimit=currentMaxLimit;
-  
-  if (j > maxLimit && maxLimit >= 0) {
-      j = maxLimit;
-      inputJumlah.value = j;
-      document.getElementById('warn-limit').classList.add('show');
-      setTimeout(() => document.getElementById('warn-limit').classList.remove('show'), 3000);
-  } else {
-      document.getElementById('warn-limit').classList.remove('show');
-  }
-  
-  const tb=j*(b/100)*t;
-  const total=j+tb;
-  const cicilan=t>0?total/t:0;
-  
-  document.getElementById('c-pokok').textContent=rp(j);
-  document.getElementById('c-tenor').textContent=t?t+' bulan':'— bulan';
-  document.getElementById('c-bunga').textContent=b?b+'%':'0%';
-  document.getElementById('c-tbunga').textContent=rp(tb);
-  document.getElementById('c-total').textContent=rp(total);
-  document.getElementById('c-tsub').textContent=rp(j)+' + '+rp(tb);
-  document.getElementById('c-cicilan').textContent=rp(cicilan);
-  document.getElementById('c-csub').textContent=t?'Selama '+t+' bulan':'Belum ada data';
-  
-  renderSim(j,t,b);
+function renderLoansDetail() {
+    const list = document.getElementById('detail-table-content');
+    list.innerHTML = '';
+
+    if (activeLoans.length === 0) {
+        list.innerHTML = '<div style="text-align:center; padding:10px; color:#6B7280; font-size:12px;">Tidak ada pinjaman berjalan.</div>';
+        return;
+    }
+
+    let html = `
+        <table class="dt-table">
+            <thead>
+                <tr>
+                    <th>Jenis & ID Pinjaman</th>
+                    <th>Sisa Tagihan</th>
+                    <th>Cicilan / Bulan</th>
+                    <th style="text-align:right;">Sisa Tenor</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    activeLoans.forEach(p => {
+        const sisaBulan = p.sisa_tenor_label ? p.sisa_tenor_label : p.sisa_tenor + ' bulan tersisa';
+        html += `
+            <tr>
+                <td>
+                    <div class="ref-name">${p.jenis_pinjaman}</div>
+                    <div class="ref-id">ID: LN-2023-${p.id.toString().padStart(3, '0')}</div>
+                </td>
+                <td><div class="ref-val">${rp(parseFloat(p.sisa_tagihan) || 0)}</div></td>
+                <td><div class="ref-val">${rp(parseFloat(p.cicilan_per_bulan) || 0)}</div></td>
+                <td style="text-align:right;"><div class="ref-val ref-orange">${sisaBulan}</div></td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>`;
+    list.innerHTML = html;
 }
 
-function renderSim(j,t,b){
-  const tbody=document.getElementById('sim-body');
-  tbody.innerHTML='';
-  if(!j||!t)return;
-  const pp=j/t; 
-  const bi=j*(b/100);
-  const ci=pp+bi;
-  let sisa=j;
-  for(let i=1;i<=Math.min(t,8);i++){
-    sisa-=pp;
-    tbody.innerHTML+=`<tr><td>${i}</td><td>${rp(pp)}</td><td>${rp(bi)}</td><td>${rp(ci)}</td><td>${rp(Math.max(0,sisa))}</td></tr>`;
-  }
-  if(t>8) tbody.innerHTML+=`<tr><td colspan="5" style="text-align:center;color:#9CA3AF">... ${t-8} bulan lainnya</td></tr>`;
+/* ─── Form Inputs ─── */
+function onJenis() {
+    const sel = document.getElementById('jenis');
+    const opt = sel.options[sel.selectedIndex];
+
+    const bungaInfo = document.getElementById('bunga-info');
+    const bungaVal  = document.getElementById('bunga-val');
+
+    if (opt && opt.value) {
+        currentBunga = parseFloat(opt.dataset.bunga) || 0;
+        document.getElementById('bunga_input').value = currentBunga;
+
+        // Tampilkan info bunga
+        bungaVal.textContent = currentBunga + '%';
+        bungaInfo.classList.add('show');
+
+        // Hitung sisa limit efektif:
+        // limit_maksimal_parent - pinjaman aktif yang sudah berjalan pada parent yang sama
+        const limitParent  = parseFloat(opt.dataset.limit)  || 0;
+        const parentId     = opt.dataset.parent || '';
+        const parentNama   = opt.dataset.parentNama || '';
+        const sudahDigunakan = parseFloat(usagePerParent[parentId]) || 0;
+        const sisaLimit    = Math.max(0, limitParent - sudahDigunakan);
+
+        // Simpan ke dataset untuk dipakai hitung()
+        document.getElementById('jenis').dataset.activelimit    = limitParent;
+        document.getElementById('jenis').dataset.sisa_limit     = sisaLimit;
+        document.getElementById('jenis').dataset.sudah_dipakai  = sudahDigunakan;
+        document.getElementById('jenis').dataset.activenama     = parentNama;
+    } else {
+        currentBunga = 0;
+        document.getElementById('bunga_input').value = 0;
+        bungaInfo.classList.remove('show');
+        document.getElementById('limit-notice').classList.remove('show');
+        document.getElementById('jenis').dataset.activelimit   = 0;
+        document.getElementById('jenis').dataset.sisa_limit    = 0;
+        document.getElementById('jenis').dataset.sudah_dipakai = 0;
+    }
+    hitung();
 }
 
-function toggleSim(btn){
-  const w=document.getElementById('sim-wrap');
-  w.classList.toggle('show');
-  btn.innerHTML=w.classList.contains('show')
-    ?'<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 7.5l3.5-3.5 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Sembunyikan simulasi'
-    :'<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 3.5l3.5 3.5 3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Lihat simulasi angsuran';
+function updateTenor(val) {
+    document.getElementById('tenor-badge').textContent = val + ' Bulan';
+    hitung();
 }
 
-function resetF(){
-  document.getElementById('nik').value='';
-  document.getElementById('jenis').value='';
-  
-  const inputJumlah = document.getElementById('jumlah');
-  inputJumlah.value='';
-  inputJumlah.disabled = false;
-  inputJumlah.placeholder = '0';
-  
-  document.getElementById('tenor').value='';
-  document.getElementById('bunga').value='';
-  document.getElementById('mp').classList.remove('show');
-  document.getElementById('nf').classList.remove('show');
-  document.getElementById('warn-jenis').classList.remove('show');
-  document.getElementById('warn-limit').classList.remove('show');
-  hitung();
+/* ─── Refinancing Logic ─── */
+function toggleRefinance(checkbox) {
+    const list = document.getElementById('refinance-list');
+    if (checkbox.checked) {
+        list.classList.add('show');
+        document.getElementById('include_pelunasan').value = '1';
+    } else {
+        list.classList.remove('show');
+        document.getElementById('include_pelunasan').value = '0';
+        selectedRefinanceIds = []; // reset selection
+        buildRefinanceList(); // re-render to uncheck UI
+    }
+    hitung();
 }
+
+function buildRefinanceList() {
+    const list = document.getElementById('refinance-list');
+    list.innerHTML = '';
+
+    if (activeLoans.length === 0) {
+        list.innerHTML = '<div style="text-align:center; padding:10px; color:#6B7280; font-size:12px;">Tidak ada pinjaman aktif yang bisa dilunasi.</div>';
+        return;
+    }
+
+    activeLoans.forEach(p => {
+        const isSelected = selectedRefinanceIds.includes(p.id);
+        const sisaBulan = p.sisa_tenor_label ? p.sisa_tenor_label : p.sisa_tenor + ' bulan tersisa';
+
+        const item = document.createElement('div');
+        item.className = `ref-item ${isSelected ? 'selected' : ''}`;
+        item.onclick = () => toggleSelectLoan(p.id);
+
+        item.innerHTML = `
+            <div class="cb-custom">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div class="ref-info">
+                <div>
+                    <div class="ref-name">${p.jenis_pinjaman}</div>
+                    <div class="ref-id">ID: LN-2023-${p.id.toString().padStart(3, '0')}</div>
+                </div>
+                <div>
+                    <div class="ref-val">${rp(parseFloat(p.sisa_tagihan) || 0)}</div>
+                    <div class="ref-sub">Sisa Tagihan</div>
+                </div>
+                <div>
+                    <div class="ref-val">${rp(parseFloat(p.cicilan_per_bulan) || 0)}</div>
+                    <div class="ref-sub">Cicilan / Bulan</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="ref-val ref-orange">${sisaBulan}</div>
+                    <div class="ref-sub">Sisa Tenor</div>
+                </div>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+
+function toggleSelectLoan(id) {
+    const idx = selectedRefinanceIds.indexOf(id);
+    if (idx > -1) {
+        selectedRefinanceIds.splice(idx, 1);
+    } else {
+        selectedRefinanceIds.push(id);
+    }
+    buildRefinanceList();
+    hitung();
+}
+
+/* ─── Kalkulasi Summary ─── */
+function hitung() {
+    const j = parseFloat(document.getElementById('jumlah').value) || 0;
+    const t = parseInt(document.getElementById('tenor').value) || 0;
+
+    // Cek limit dari parent pinjaman (sudah dikurangi penggunaan jenis yang sama)
+    const jenisEl      = document.getElementById('jenis');
+    const limitMax     = parseFloat(jenisEl.dataset.activelimit)   || 0;
+    const sisaLimit    = parseFloat(jenisEl.dataset.sisa_limit)    || 0;
+    const sudahDipakai = parseFloat(jenisEl.dataset.sudah_dipakai) || 0;
+    const parentNama   = jenisEl.dataset.activenama || '';
+    const notice       = document.getElementById('limit-notice');
+    const noticeText   = document.getElementById('limit-notice-text');
+
+    if (limitMax > 0 && j > sisaLimit) {
+        // Total yang akan terpakai jika pengajuan disetujui
+        const totalTerpakai = sudahDipakai + j;
+        noticeText.innerHTML =
+            `Jumlah pengajuan <strong>${rp(j)}</strong> melebihi sisa limit yang tersedia.<br>` +
+            `<span style="font-size:10px">` +
+            `Limit ${parentNama}: ${rp(limitMax)} &nbsp;|&nbsp; ` +
+            `Sudah digunakan: ${rp(sudahDipakai)} &nbsp;|&nbsp; ` +
+            `Sisa tersedia: <strong>${rp(sisaLimit)}</strong>` +
+            `</span><br>` +
+            `<span style="font-size:10px">Pengajuan tetap bisa dikirim, namun memerlukan persetujuan admin.</span>`;
+        notice.classList.add('show');
+    } else {
+        notice.classList.remove('show');
+    }
+
+    // Hitung Total Payoff (Pelunasan)
+    let totalPayoff = 0;
+    if (document.getElementById('toggle-refinance').checked) {
+        activeLoans.forEach(p => {
+            if (selectedRefinanceIds.includes(p.id)) {
+                totalPayoff += parseFloat(p.sisa_tagihan || 0);
+            }
+        });
+    }
+
+    // Hitung Net Disbursed
+    let net = j - totalPayoff;
+
+    // Hitung Cicilan (Bunga Flat)
+    let totalBunga = j * (currentBunga / 100) * t;
+    let cicilan = t > 0 ? (j + totalBunga) / t : 0;
+
+    // Update UI Summary
+    document.getElementById('sum-pokok').textContent  = rp(j);
+    document.getElementById('sum-payoff').textContent = totalPayoff > 0 ? rp(totalPayoff) : 'Rp 0';
+    document.getElementById('sum-net').textContent    = rp(net);
+    document.getElementById('sum-cicilan').textContent= rp(cicilan);
+
+    // Update Hidden Inputs for Backend Form Submit
+    const container = document.getElementById('pelunasan_inputs');
+    container.innerHTML = '';
+    selectedRefinanceIds.forEach(id => {
+        container.innerHTML += `<input type="hidden" name="pelunasan_ids[]" value="${id}">`;
+    });
+}
+
+// Inisialisasi on load
+document.addEventListener("DOMContentLoaded", () => {
+    updateTenor(document.getElementById('tenor').value);
+});
 </script>
 @endsection

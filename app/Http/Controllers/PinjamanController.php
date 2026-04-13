@@ -343,10 +343,15 @@ class PinjamanController extends Controller
         $listPinjaman = $pinjamanAktifDb->map(function($p) {
             $jp = \App\Models\MasterJenisPinjaman::find($p->jenis_pinjaman_id);
             return [
-                'jenis_pinjaman' => $jp ? $jp->nama_pinjaman : 'Pinjaman',
-                'sisa_tenor' => $p->sisa_tenor . ' bulan',
-                'sisa_tagihan' => $p->sisa_pinjaman,
-                'status' => $p->status
+                'id'              => $p->id,
+                'jenis_pinjaman'  => $jp ? $jp->nama_pinjaman : 'Pinjaman',
+                'sisa_tenor'      => $p->sisa_tenor,
+                'sisa_tenor_label'=> $p->sisa_tenor . ' bulan',
+                'sisa_tagihan'    => $p->sisa_pinjaman,
+                'jumlah_pinjaman' => $p->jumlah_pinjaman,
+                'total_pinjaman'  => $p->total_pinjaman,
+                'cicilan_per_bulan' => $p->cicilan_per_bulan,
+                'status'          => $p->status
             ];
         });
 
