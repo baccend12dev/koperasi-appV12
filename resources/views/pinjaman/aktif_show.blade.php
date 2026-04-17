@@ -17,12 +17,18 @@
 @section('page-subtitle', ($pinjaman->jenisPinjaman->nama_pinjaman ?? 'Pinjaman') . ' #LP-' . str_pad($pinjaman->id, 4, '0', STR_PAD_LEFT))
 
 @section('subbar-actions')
-    <a href="{{ route('pinjaman.aktif') }}" class="btn-secondary" style="margin-right: 10px;">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline; margin-right:4px;">
-            <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Kembali
-    </a>
+    <div class="flex items-center gap-2">
+        <a href="javascript:history.back()" class="btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="display:inline; margin-right:4px;">
+                <path d="M9 11L5 7l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Kembali
+        </a>
+        <a href="#" class="btn-primary" style="background:#059669; color:#fff; font-size:12px; font-weight:600; padding:0 12px; border-radius:6px; height:32px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            Bayar Langsung
+        </a>
+    </div>
 @endsection
 
 @section('content')
@@ -70,7 +76,7 @@
     background: #fff;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
-    padding: 20px 22px;
+    padding: 14px 18px;
     position: relative;
     overflow: hidden;
 }
@@ -85,18 +91,18 @@
 .s-card.prog::before  { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
 
 .s-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .06em;
     color: #9CA3AF;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 .s-amount {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 800;
     color: #111827;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 .s-card.sisa .s-amount { color: #d97706; }
 .s-card.bayar .s-amount { color: #059669; }
@@ -121,30 +127,30 @@
 .sisa-divider {
     width: 1px;
     background: #E5E7EB;
-    margin: 0 18px;
+    margin: 0 14px;
     align-self: stretch;
 }
 .sisa-breakdown {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 10px;
-    min-width: 160px;
+    gap: 6px;
+    min-width: 140px;
 }
 .sisa-breakdown .bd-item {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 .sisa-breakdown .bd-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .04em;
     color: #9CA3AF;
 }
 .sisa-breakdown .bd-value {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     color: #374151;
 }

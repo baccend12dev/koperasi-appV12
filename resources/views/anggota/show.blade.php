@@ -135,27 +135,27 @@
     .pm-summary-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
+        gap: 12px;
     }
     .pm-sum-card {
         background: #fff;
         border: 1px solid var(--border, #E5E7EB);
-        border-radius: 12px;
-        padding: 16px 20px;
+        border-radius: 10px;
+        padding: 12px 16px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 2px;
     }
     .pm-sum-label {
-        font-size: 11px;
-        font-weight: 600;
+        font-size: 10px;
+        font-weight: 700;
         color: var(--text-3, #6B7280);
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
     }
     .pm-sum-val {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 700;
         color: var(--text-1, #111827);
         line-height: 1.2;
@@ -163,7 +163,7 @@
     .pm-sum-val.accent { color: var(--accent, #1a56db); }
     .pm-sum-val.red { color: #E02424; }
     .pm-sum-sub {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-2, #4b5563);
     }
 
@@ -310,6 +310,33 @@
     .dot-pokok { background: #F57C00; }
     .dot-wajib { background: #059669; }
     .dot-sukarela { background: #1a56db; }
+
+    /* Side Balance Section */
+    .ps-finance-card {
+        background: #F9FAFB;
+        border-radius: 8px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .ps-finance-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .ps-finance-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-2, #4b5563);
+        display: flex;
+        align-items: center;
+    }
+    .ps-finance-val {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-1, #111827);
+    }
 </style>
 
 <div class="profile-layout">
@@ -373,14 +400,41 @@
                 <span class="ps-info-label">Jml Tanggungan</span>
                 <span class="ps-info-value">{{ $anggota->tanggungan . ' Orang' ?? '—' }}</span>
             </div>
-            @if($anggota->alamat)
-            <div class="ps-info-item">
-                <span class="ps-info-label">Alamat</span>
-                <span class="ps-info-value" style="line-height:1.4;">{{ $anggota->alamat }}</span>
-            </div>
-            @endif
         </div>
-    </div>
+
+        <hr class="ps-divider">
+
+        <div class="ps-info-list" style="gap: 8px;">
+            <span class="ps-info-label" style="margin-bottom: 4px;">Detail Saldo Simpanan</span>
+            <div class="ps-finance-card">
+                <div class="ps-finance-item">
+                    <span class="ps-finance-label"><span class="ag-dot dot-pokok"></span> Pokok</span>
+                    <span class="ps-finance-val">Rp {{ number_format($simpanan_pokok, 0, ',', '.') }}</span>
+                </div>
+                <div class="ps-finance-item">
+                    <span class="ps-finance-label"><span class="ag-dot dot-wajib"></span> Wajib</span>
+                    <span class="ps-finance-val">Rp {{ number_format($simpanan_wajib, 0, ',', '.') }}</span>
+                </div>
+                <div class="ps-finance-item">
+                    <span class="ps-finance-label"><span class="ag-dot dot-sukarela"></span> Sukarela</span>
+                    <span class="ps-finance-val">Rp {{ number_format($simpanan_sukarela, 0, ',', '.') }}</span>
+                </div>
+                <div class="ps-divider" style="margin: 4px 0;"></div>
+                <div class="ps-finance-item">
+                    <span class="ps-finance-label" style="font-weight: 800; color: var(--accent);">TOTAL</span>
+                    <span class="ps-finance-val" style="font-weight: 800; color: var(--accent);">Rp {{ number_format($total_simpanan, 0, ',', '.') }}</span>
+                </div>
+            </div>
+        </div>
+
+        @if($anggota->alamat)
+        <hr class="ps-divider">
+        <div class="ps-info-item">
+            <span class="ps-info-label">Alamat</span>
+            <span class="ps-info-value" style="line-height:1.4;">{{ $anggota->alamat }}</span>
+        </div>
+        @endif
+        </div>
 
     {{-- ── MAIN CONTENT (Simpanan / Pinjaman) ── --}}
     <div class="profile-main">
@@ -424,20 +478,6 @@
 
             {{-- ── TAB: SIMPANAN ── --}}
             <div id="main-simpanan" class="ag-tab-body active">
-                <div class="pm-breakdown">
-                    <div class="pm-bk-item">
-                        <span class="pm-bk-label">Simpanan Pokok</span>
-                        <span class="pm-bk-val">Rp {{ number_format($simpanan_pokok, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="pm-bk-item">
-                        <span class="pm-bk-label">Simpanan Wajib</span>
-                        <span class="pm-bk-val">Rp {{ number_format($simpanan_wajib, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="pm-bk-item">
-                        <span class="pm-bk-label">Simpanan Sukarela</span>
-                        <span class="pm-bk-val">Rp {{ number_format($simpanan_sukarela, 0, ',', '.') }}</span>
-                    </div>
-                </div>
 
                 @php
                     $groupedByYear = $riwayat_simpanan->groupBy(function($item) {

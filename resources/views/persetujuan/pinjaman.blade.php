@@ -247,6 +247,18 @@
                                                             <span class="block text-[11px] text-gray-400">Total Hutang (Pengajuan + Berjalan)</span>
                                                             <strong class="text-sm text-blue-600">Rp {{ number_format($item->total_pinjaman + $item->pinjaman_berjalan_saat_ini, 0, ',', '.') }}</strong>
                                                         </div>
+                                                        @if($item->total_pelunasan_pasti > 0)
+                                                        <div class="pt-2 border-t border-gray-200 mt-2">
+                                                            <div class="flex justify-between items-center mb-1">
+                                                                <span class="text-[11px] text-orange-600 font-bold uppercase">Pelunasan Pinjaman Lama</span>
+                                                                <span class="text-sm text-orange-600 font-bold">- Rp {{ number_format($item->total_pelunasan_pasti, 0, ',', '.') }}</span>
+                                                            </div>
+                                                            <div class="flex justify-between items-center bg-blue-100 p-2 rounded-lg">
+                                                                <span class="text-[11px] text-blue-800 font-bold uppercase">Net Cair (Diterima)</span>
+                                                                <span class="text-sm text-blue-800 font-bold">Rp {{ number_format($item->net_cair, 0, ',', '.') }}</span>
+                                                            </div>
+                                                        </div>
+                                                        @endif
                                                     </div>
 
                                                     <!-- Data Finansial Karyawan -->
@@ -269,8 +281,14 @@
                                                             <strong class="text-sm text-gray-800">Rp {{ number_format($item->simpanan_perbulan ?? 0, 0, ',', '.') }}</strong>
                                                         </div>
                                                         <div class="pt-2 border-t border-blue-200">
-                                                            <span class="block text-[11px] text-blue-700 font-bold">Total Cicilan Jika Disetujui (Per Bulan)</span>
+                                                            <div class="flex justify-between items-start">
+                                                                <span class="block text-[11px] text-blue-700 font-bold uppercase">Total Cicilan Baru (Per Bulan)</span>
+                                                                @if($item->total_pelunasan_pasti > 0)
+                                                                    <div class="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">Adjustment Pelunasan Aktif</div>
+                                                                @endif
+                                                            </div>
                                                             <strong class="text-lg text-blue-700">Rp {{ number_format($item->total_cicilan_baru ?? 0, 0, ',', '.') }}</strong>
+                                                            <div class="text-[10px] text-gray-400 mt-1">*Sudah dikurangi cicilan yang akan lunas</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -308,7 +326,11 @@
                                                                                     <td class="py-2 text-right">Rp {{ number_format($loan->cicilan_per_bulan, 0, ',', '.') }}</td>
                                                                                     <td class="py-2 text-center text-gray-500">{{ $loan->sisa_tenor }} mos</td>
                                                                                     <td class="py-2 text-center">
-                                                                                        <span class="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-bold uppercase">{{ $loan->status }}</span>
+                                                                                        @if(isset($item->pelunasan_ids) && in_array($loan->id, $item->pelunasan_ids))
+                                                                                            <span class="inline-block px-2 py-0.5 bg-red-100 text-red-600 rounded text-[9px] font-bold uppercase ring-1 ring-red-200">AKAN LUNAS</span>
+                                                                                        @else
+                                                                                            <span class="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-bold uppercase">{{ $loan->status }}</span>
+                                                                                        @endif
                                                                                     </td>
                                                                                 </tr>
                                                                             @endforeach

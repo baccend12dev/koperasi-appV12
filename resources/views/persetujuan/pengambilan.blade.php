@@ -205,17 +205,29 @@
                                                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
                                                         <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Detail Pengajuan</h4>
                                                         <div>
-                                                            <span class="block text-[11px] text-gray-400">Nominal Penarikan</span>
+                                                            <span class="block text-[11px] text-gray-400">Total Penarikan (Bruto)</span>
                                                             <strong class="text-base text-gray-800">Rp {{ number_format($item->nominal, 0, ',', '.') }}</strong>
                                                         </div>
-                                                        <div>
+                                                        
+                                                        @if(($item->total_pelunasan ?? 0) > 0)
+                                                            <div class="py-2 border-t border-gray-200">
+                                                                <span class="block text-[11px] text-amber-600 font-bold">Total Pelunasan Hutang</span>
+                                                                <strong class="text-sm text-amber-700">- Rp {{ number_format($item->total_pelunasan, 0, ',', '.') }}</strong>
+                                                            </div>
+                                                            <div class="py-2 border-t border-gray-200">
+                                                                <span class="block text-[11px] text-emerald-600 font-bold">Bersih Diterima (Net)</span>
+                                                                <strong class="text-base text-emerald-700">Rp {{ number_format($item->net_payout, 0, ',', '.') }}</strong>
+                                                            </div>
+                                                        @endif
+
+                                                        <div class="pt-2 border-t border-gray-200">
                                                             <span class="block text-[11px] text-gray-400">Tanggal Pengajuan</span>
-                                                            <strong class="text-sm text-gray-800">{{ $item->created_at->format('d M Y') }}</strong>
+                                                            <strong class="text-xs text-gray-800">{{ $item->created_at->format('d M Y') }}</strong>
                                                         </div>
                                                         @if($item->alasan_pengajuan)
                                                         <div>
                                                             <span class="block text-[11px] text-gray-400">Alasan Pengajuan</span>
-                                                            <strong class="text-sm text-gray-700">{{ $item->alasan_pengajuan }}</strong>
+                                                            <strong class="text-xs text-gray-700 line-clamp-2" title="{{ $item->alasan_pengajuan }}">{{ $item->alasan_pengajuan }}</strong>
                                                         </div>
                                                         @endif
                                                     </div>
@@ -243,6 +255,29 @@
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {{-- Pelunasan List --}}
+                                                @if(($item->total_pelunasan ?? 0) > 0)
+                                                <div class="mb-5 bg-amber-50/30 p-4 rounded-xl border border-amber-100">
+                                                    <h4 class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-3">Rincian Pinjaman Yang Akan Dilunasi</h4>
+                                                    <div class="space-y-2 text-left">
+                                                        @foreach($item->settlements as $settle)
+                                                            @if($settle->pinjaman)
+                                                                <div class="bg-white border border-amber-100 p-2.5 rounded-lg flex justify-between items-center transition-all hover:border-amber-200">
+                                                                    <div>
+                                                                        <div class="text-[11px] font-bold text-gray-800">{{ $settle->pinjaman->jenisPinjaman->nama_pinjaman ?? 'Pinjaman' }}</div>
+                                                                        <div class="text-[10px] text-gray-400 font-medium">ID: LN-{{ str_pad($settle->pinjaman->id, 4, '0', STR_PAD_LEFT) }}</div>
+                                                                    </div>
+                                                                    <div class="text-right">
+                                                                        <div class="text-xs font-black text-amber-700">Rp {{ number_format($settle->pinjaman->sisa_pinjaman, 0, ',', '.') }}</div>
+                                                                        <div class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">Sisa Tagihan</div>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                @endif
 
                                                 {{-- Keterangan & Actions --}}
                                                 <div x-data="{ alasan: '' }" class="border-t border-gray-100 pt-5 flex flex-col gap-4">

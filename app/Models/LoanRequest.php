@@ -27,4 +27,9 @@ class LoanRequest extends Model
     {
         return $this->belongsTo(Anggota::class, 'user_id');
     }
+
+    public function topups()
+    {
+        return $this->hasMany(LoanRequestTopup::class, 'loan_request_id');
+    }
 }

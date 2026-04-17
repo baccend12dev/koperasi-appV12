@@ -62,8 +62,8 @@ Route::get('/', function () {
     Route::post('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'storePengajuan'])->name('pinjaman.pengajuan.store');
     Route::get('pinjaman/pengajuan/search-anggota', [App\Http\Controllers\PinjamanController::class, 'searchAnggota'])->name('pinjaman.pengajuan.searchAnggota');
     Route::get('pinjaman/pengajuan/create', [App\Http\Controllers\PinjamanController::class, 'create'])->name('pinjaman.pengajuan.create');
-    Route::post('pinjaman/approval/{id}/approve', [App\Http\Controllers\PinjamanController::class, 'approve'])->name('pinjaman.approval.approve');
-    Route::post('pinjaman/approval/{id}/reject', [App\Http\Controllers\PinjamanController::class, 'reject'])->name('pinjaman.approval.reject');
+    Route::post('pinjaman/approval/{id}/approve', [App\Http\Controllers\PersetujuanController::class, 'approvePinjaman'])->name('pinjaman.approval.approve');
+    Route::post('pinjaman/approval/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPinjaman'])->name('pinjaman.approval.reject');
     Route::get('pinjaman/aktif', [App\Http\Controllers\PinjamanController::class, 'aktif'])->name('pinjaman.aktif');
     Route::get('pinjaman/aktif/{id}', [App\Http\Controllers\PinjamanController::class, 'showAktif'])->name('pinjaman.aktif.show');
     Route::get('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'angsuran'])->name('pinjaman.angsuran');
@@ -72,12 +72,14 @@ Route::get('/', function () {
     Route::get('pinjaman/angsuran/{id}', [App\Http\Controllers\PinjamanController::class, 'showAngsuran'])->name('pinjaman.angsuran.show');
     Route::get('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'masterJenis'])->name('pinjaman.masterJenis');
     Route::post('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'storeMasterJenis'])->name('pinjaman.masterJenis.store');
+    Route::put('pinjaman/master-jenis/{id}', [App\Http\Controllers\PinjamanController::class, 'updateMasterJenis'])->name('pinjaman.masterJenis.update');
 
     // ── Penagihan ──────────────────────────────────────────
     Route::get('penagihan', [App\Http\Controllers\PenagihanController::class, 'index'])->name('penagihan.index');
     Route::get('penagihan/tagihan-generator', [App\Http\Controllers\PenagihanController::class, 'generator'])->name('penagihan.generator');
     Route::post('penagihan/tagihan-generator/generate', [App\Http\Controllers\PenagihanController::class, 'storeGenerate'])->name('penagihan.storeGenerate');
     Route::post('penagihan/tagihan-generator/bayar', [App\Http\Controllers\PenagihanController::class, 'bayar'])->name('penagihan.bayar');
+    Route::get('penagihan/tagihan-generator/export/{id}', [App\Http\Controllers\PenagihanController::class, 'exportExcel'])->name('penagihan.exportExcel');
     Route::get('penagihan/tagihan-generator/{id}', [App\Http\Controllers\PenagihanController::class, 'show'])->name('penagihan.show');
     Route::delete('penagihan/tagihan-generator/detail/{id}', [App\Http\Controllers\PenagihanController::class, 'destroyDetail'])->name('penagihan.destroyDetail');
 
@@ -89,7 +91,8 @@ Route::get('/', function () {
     Route::post('persetujuan/pengambilan/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPengambilan'])->name('persetujuan.pengambilan.reject');
 
     // ── Pencairan ─────────────────────────────────────────
-    Route::get('pencairan', [App\Http\Controllers\PencairanController::class, 'index'])->name('pencairan.index');
+    Route::get('pencairan/pinjaman', [App\Http\Controllers\PencairanController::class, 'pinjaman'])->name('pencairan.pinjaman');
+    Route::get('pencairan/pengambilan', [App\Http\Controllers\PencairanController::class, 'pengambilan'])->name('pencairan.pengambilan');
     Route::post('pencairan/bayar', [App\Http\Controllers\PencairanController::class, 'markPaid'])->name('pencairan.bayar');
 
     // ── Konfigurasi ───────────────────────────────────────

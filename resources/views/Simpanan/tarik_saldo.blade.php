@@ -99,6 +99,78 @@
         border-color: #FBD5D5;
         color: #9B1C1C;
     }
+
+    /* ── Refinancing Section (Loan Settlement) ── */
+    .refinance-box {
+        background: #F9FAFB;
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 24px;
+    }
+    .ref-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .ref-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Toggle Switch */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider-sw { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #D1D5DB; transition: .3s; border-radius: 34px; }
+    .slider-sw:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider-sw { background-color: #10B981; }
+    input:checked + .slider-sw:before { transform: translateX(20px); }
+    .sw-wrap { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: #111827; }
+
+    /* Loan List */
+    #refinance-list { display: none; flex-direction: column; gap: 10px; margin-top: 15px; }
+    #refinance-list.show { display: flex; }
+    .ref-item {
+        display: flex; align-items: center; background: #fff; border: 1.5px solid #E5E7EB;
+        padding: 12px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; gap: 12px;
+    }
+    .ref-item:hover { border-color: #D1D5DB; }
+    .ref-item.selected { border-color: #10B981; background: #F0FDF4; }
+
+    .cb-custom {
+        width: 18px; height: 18px; border: 2px solid #D1D5DB; border-radius: 4px;
+        display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        flex-shrink: 0;
+    }
+    .ref-item.selected .cb-custom { background: #10B981; border-color: #10B981; }
+    .cb-custom svg { width: 10px; height: 10px; color: #fff; opacity: 0; }
+    .ref-item.selected .cb-custom svg { opacity: 1; }
+
+    .ref-info { flex: 1; display: grid; grid-template-columns: 1.5fr 1fr 1fr; align-items: center; gap: 10px; }
+    .ref-name { font-size: 12px; font-weight: 700; color: #111827; }
+    .ref-id { font-size: 10px; color: #6B7280; margin-top: 1px; }
+    .ref-val { font-size: 12px; font-weight: 700; color: #111827; }
+    .ref-sub { font-size: 10px; color: #6B7280; margin-top: 1px; }
+
+    /* Summary Bar */
+    .summary-box {
+        margin-top: 25px;
+        padding: 20px;
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+        border-radius: 12px;
+    }
+    .sum-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .sum-row:last-child { margin-bottom: 0; padding-top: 10px; border-top: 1px solid #BFDBFE; }
+    .sum-label { font-size: 12px; font-weight: 600; color: #1E40AF; }
+    .sum-value { font-size: 14px; font-weight: 700; color: #1E3A8A; }
+    .sum-value.danger { color: #DC2626; }
+    .sum-value.success { color: #059669; }
 </style>
 
 <div class="form-card">
@@ -137,9 +209,51 @@
 
         <div class="form-group">
             <label class="form-label">Alasan / Tujuan Pengajuan</label>
-            <textarea name="alasan_pengajuan" class="form-control" placeholder="Contoh: Kebutuhan mendesak biaya sekolah anak" required>{{ old('alasan_pengajuan') }}</textarea>
+            <textarea name="alasan_pengajuan" class="form-control" placeholder="Contoh: Penarikan Tabungan" required>{{ old('alasan_pengajuan') }}</textarea>
             @error('alasan_pengajuan') <span style="color:var(--danger);font-size:12px;">{{ $message }}</span> @enderror
         </div>
+
+        {{-- REFINANCING SECTION --}}
+        <div class="refinance-box">
+            <div class="ref-header">
+                <div class="ref-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M17 3v2M7 3v2M3 11h18M4 7h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"></path><path d="M9 15l2 2 4-4"></path></svg>
+                    Opsi Pelunasan Hutang
+                </div>
+                <div class="sw-wrap">
+                    <label class="switch">
+                        <input type="checkbox" name="include_pelunasan" id="toggle-refinance" value="1" onchange="toggleRefinance(this)">
+                        <span class="slider-sw"></span>
+                    </label>
+                    Gunakan sebagian penarikan untuk melunasi pinjaman
+                </div>
+            </div>
+            
+            <div id="refinance-list">
+                <div style="text-align:center; padding:15px; color:#9CA3AF; font-size:12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:8px; opacity:0.5;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><br>
+                    Memuat data pinjaman aktif...
+                </div>
+            </div>
+        </div>
+
+        {{-- SUMMARY BOX --}}
+        <div class="summary-box" id="summary-box" style="display: none;">
+            <div class="sum-row">
+                <span class="sum-label">Nominal Penarikan</span>
+                <span class="sum-value" id="sum-nominal">Rp 0</span>
+            </div>
+            <div class="sum-row">
+                <span class="sum-label">Total Pelunasan Pinjaman</span>
+                <span class="sum-value danger" id="sum-pelunasan">Rp 0</span>
+            </div>
+            <div class="sum-row">
+                <span class="sum-label">Sisa Dana Diterima (Net)</span>
+                <span class="sum-value success" id="sum-net">Rp 0</span>
+            </div>
+        </div>
+
+        <div id="pelunasan_inputs_container"></div>
 
         <div style="margin-top: 30px;">
             <button type="submit" class="btn-submit">
@@ -149,4 +263,127 @@
         </div>
     </form>
 </div>
+<script>
+    function rp(n) { return 'Rp ' + (Math.round(n) || 0).toLocaleString('id-ID'); }
+
+    let activeLoans = [];
+    let selectedLoans = [];
+    const anggotaId = {{ $anggota->id }};
+    const anggotaNik = '{{ $anggota->nik }}';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadActiveLoans();
+    });
+
+    async function loadActiveLoans() {
+        try {
+            const res = await fetch(`{{ route('pinjaman.pengajuan.searchAnggota') }}?q=${encodeURIComponent(anggotaNik)}`);
+            const data = await res.json();
+            if (data.success) {
+                activeLoans = data.data.pinjaman_berjalan || [];
+                renderLoanList();
+            }
+        } catch (e) {
+            console.error('Gagal memuat pinjaman:', e);
+        }
+    }
+
+    function renderLoanList() {
+        const list = document.getElementById('refinance-list');
+        if (activeLoans.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:15px; color:#9CA3AF; font-size:12px;">Tidak ada pinjaman berjalan yang bisa dilunasi.</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        activeLoans.forEach(loan => {
+            const isSelected = selectedLoans.includes(loan.id);
+            const item = document.createElement('div');
+            item.className = `ref-item ${isSelected ? 'selected' : ''}`;
+            item.onclick = () => toggleLoan(loan.id);
+            item.innerHTML = `
+                <div class="cb-custom">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="ref-info">
+                    <div>
+                        <div class="ref-name">${loan.jenis_pinjaman}</div>
+                        <div class="ref-id">LN-${loan.id.toString().padStart(4, '0')}</div>
+                    </div>
+                    <div>
+                        <div class="ref-val">${rp(loan.sisa_tagihan)}</div>
+                        <div class="ref-sub">Sisa Tagihan</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="ref-val" style="color:#D97706;">${loan.sisa_tenor_label}</div>
+                        <div class="ref-sub">Tenor</div>
+                    </div>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function toggleRefinance(cb) {
+        const list = document.getElementById('refinance-list');
+        const summary = document.getElementById('summary-box');
+        if (cb.checked) {
+            list.classList.add('show');
+            summary.style.display = 'block';
+        } else {
+            list.classList.remove('show');
+            summary.style.display = 'none';
+            selectedLoans = [];
+            renderLoanList();
+            updateCalculations();
+        }
+    }
+
+    function toggleLoan(id) {
+        const idx = selectedLoans.indexOf(id);
+        if (idx > -1) selectedLoans.splice(idx, 1);
+        else selectedLoans.push(id);
+        
+        renderLoanList();
+        updateCalculations();
+    }
+
+    function updateCalculations() {
+        const nominal = parseFloat(document.querySelector('input[name="nominal"]').value) || 0;
+        let totalSettlement = 0;
+        
+        const container = document.getElementById('pelunasan_inputs_container');
+        container.innerHTML = '';
+
+        activeLoans.forEach(loan => {
+            if (selectedLoans.includes(loan.id)) {
+                totalSettlement += parseFloat(loan.sisa_tagihan);
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'pelunasan_ids[]';
+                input.value = loan.id;
+                container.appendChild(input);
+            }
+        });
+
+        document.getElementById('sum-nominal').textContent = rp(nominal);
+        document.getElementById('sum-pelunasan').textContent = rp(totalSettlement);
+        document.getElementById('sum-net').textContent = rp(nominal - totalSettlement);
+        
+        const netValue = document.getElementById('sum-net');
+        if (nominal - totalSettlement < 0) netValue.classList.add('danger');
+        else netValue.classList.remove('danger');
+    }
+
+    document.querySelector('input[name="nominal"]').addEventListener('input', function() {
+        const max = parseFloat(this.getAttribute('max')) || 0;
+        let val = parseFloat(this.value) || 0;
+        
+        if (val > max) {
+            this.value = max;
+            // Optional: alert or show toast that the amount is capped
+        }
+        updateCalculations();
+    });
+</script>
 @endsection

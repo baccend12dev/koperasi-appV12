@@ -332,6 +332,7 @@
                                                 <th>Terbayar</th>
                                                 <th>Sisa Pinjaman</th>
                                                 <th>Status</th>
+                                                <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -350,6 +351,9 @@
                                                     @else
                                                         <span class="badge badge-lunas">Lunas</span>
                                                     @endif
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('pinjaman.aktif.show', $p->id) }}" class="btn btn-primary btn-sm"> Detail</a>
                                                 </td>
                                             </tr>
                                             @endforeach

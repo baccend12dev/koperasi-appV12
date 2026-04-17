@@ -16,4 +16,9 @@ class PengambilanSimpanan extends Model
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
+
+    public function settlements()
+    {
+        return $this->hasMany(PengambilanSimpananSettlement::class, 'pengambilan_simpanan_id');
+    }
 }

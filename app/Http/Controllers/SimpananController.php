@@ -371,7 +371,9 @@ class SimpananController extends Controller
         $request->validate([
             'anggota_id' => 'required|exists:anggotas,id',
             'nominal' => 'required|numeric|min:1',
-            'alasan_pengajuan' => 'required|string'
+            'alasan_pengajuan' => 'required|string',
+            'pelunasan_ids' => 'sometimes|array',
+            'pelunasan_ids.*' => 'exists:pinjamans,id'
         ]);
 
         $anggota = Anggota::findOrFail($request->anggota_id);
@@ -384,14 +386,31 @@ class SimpananController extends Controller
             return back()->withInput()->with('error', 'Nominal penarikan tidak boleh melebihi total simpanan (Rp ' . number_format($totalKeseluruhan, 0, ',', '.') . ').');
         }
 
-        \App\Models\PengambilanSimpanan::create([
-            'anggota_id' => $request->anggota_id,
-            'nominal' => $request->nominal,
-            'alasan_pengajuan' => $request->alasan_pengajuan,
-            'status' => 'pending'
-        ]);
+        DB::beginTransaction();
+        try {
+            $pengambilan = \App\Models\PengambilanSimpanan::create([
+                'anggota_id' => $request->anggota_id,
+                'nominal' => $request->nominal,
+                'alasan_pengajuan' => $request->alasan_pengajuan,
+                'status' => 'pending'
+            ]);
 
-        $master = \App\Models\MasterSimpanan::where('anggota_id', $request->anggota_id)->first();
-        return redirect()->route('simpanan.show', $master->id)->with('success', 'Pengajuan penarikan simpanan berhasil dibuat dan menunggu persetujuan.');
+            // Save settlement relations if any
+            if ($request->has('pelunasan_ids') && is_array($request->pelunasan_ids)) {
+                foreach ($request->pelunasan_ids as $pId) {
+                    \App\Models\PengambilanSimpananSettlement::create([
+                        'pengambilan_simpanan_id' => $pengambilan->id,
+                        'pinjaman_id' => $pId
+                    ]);
+                }
+            }
+
+            DB::commit();
+            $master = \App\Models\MasterSimpanan::where('anggota_id', $request->anggota_id)->first();
+            return redirect()->route('simpanan.show', $master->id)->with('success', 'Pengajuan penarikan simpanan berhasil dibuat dan menunggu persetujuan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }

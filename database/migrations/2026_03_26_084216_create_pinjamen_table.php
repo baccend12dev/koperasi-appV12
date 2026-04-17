@@ -22,6 +22,8 @@ return new class extends Migration
             $table->decimal('total_bunga', 15, 2)->default(0);
             $table->decimal('total_pinjaman', 15, 2);
             $table->decimal('cicilan_per_bulan', 15, 2);
+            $table->decimal('jumlah_cair', 15, 2)->nullable();
+            $table->decimal('potongan_pelunasan', 15, 2)->nullable();
             
             // Tracking
             $table->decimal('sisa_pinjaman', 15, 2);

@@ -17,80 +17,12 @@
 @section('page-subtitle', 'Daftar seluruh pinjaman anggota koperasi')
 
 {{-- ── Sidebar ── --}}
-@section('sidebar')
-    <div class="sd-section">
-        <div class="sd-heading" style="margin-bottom: 12px; font-weight: 600; font-size: 13px; color: #4B5563;">
-            <div style="display:flex;align-items:center;gap:5px">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                JENIS PINJAMAN
-            </div>
-        </div>
 
-        <a href="{{ route('pinjaman.aktif') }}" class="sd-link {{ !request('jenis') ? 'active' : '' }}" style="width: 100%; display: block; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px;">
-            <span style="font-weight: 600;">Semua Jenis Pinjaman</span>
-        </a>
-
-        @foreach($jenisPinjamanList as $jpParent)
-            <div x-data="{ expanded: true }" style="margin-bottom: 4px;">
-                @if($jpParent->children->count() > 0)
-                    <button @click="expanded = !expanded" class="sd-link" style="width: 100%; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; padding: 8px 12px; background: transparent;">
-                        <span style="font-weight: 600;">{{ $jpParent->nama_pinjaman }}</span>
-                        <svg :class="expanded ? 'transform rotate-180' : ''" width="12" height="12" viewBox="0 0 24 24" fill="none" class="transition-transform duration-200">
-                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <div x-show="expanded" x-collapse style="margin-left: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 2px;">
-                        @foreach($jpParent->children as $jpChild)
-                            <a href="{{ route('pinjaman.aktif', ['jenis' => $jpChild->id, 'status' => request('status'), 'q' => request('q')]) }}"
-                               class="sd-link {{ request('jenis') == $jpChild->id ? 'active' : '' }}"
-                               style="padding: 6px 12px; font-size: 13px;">
-                                {{ $jpChild->nama_pinjaman }}
-                            </a>
-                        @endforeach
-                    </div>
-                @else
-                    <a href="{{ route('pinjaman.aktif', ['jenis' => $jpParent->id, 'status' => request('status'), 'q' => request('q')]) }}"
-                       class="sd-link {{ request('jenis') == $jpParent->id ? 'active' : '' }}"
-                       style="padding: 6px 12px; font-size: 14px; font-weight: 600;">
-                        {{ $jpParent->nama_pinjaman }}
-                    </a>
-                @endif
-            </div>
-        @endforeach
-    </div>
-@endsection
 
 @section('content')
 <div class="px-6 py-4 space-y-6">
 
     <style>
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 2fr 2fr;
-            gap: 20px;
-        }
-        .stat-card-dark {
-            background: #0B1727;
-            border-radius: 12px;
-            padding: 24px;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-card-light {
-            background: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #f1f5f9;
-            position: relative;
-            overflow: hidden;
-        }
         .badge {
             display: inline-flex;
             align-items: center;
@@ -104,77 +36,138 @@
         
         .filter-card {
             background: #fff;
-            border: 1px solid #efefef;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 16px;
-            margin-bottom: 24px;
-            align-items: center;
-            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
         }
-        .fc {
-            background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:8px 12px; font-size:13px; color:#374151; width:100%; transition: border-color 0.2s; outline:none; height:36px;
+        .form-select, .form-input {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            font-size: 14px;
         }
-        .fc:focus { border-color:#6366f1; }
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: #714B67;
+            box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.1);
+        }
+        .label-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            display: block;
+        }
         .btn-search {
-            background:#0B1727; color:#fff; font-size:13px; font-weight:600; padding:0 16px; border-radius:6px; height:36px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.2s;
+            background: #EFF6FF;
+            color: #1D4ED8;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            height: 38px;
         }
-        .btn-search:hover { background:#1f2937; }
+        .btn-search:hover {
+            background: #DBEAFE;
+        }
+        .btn-export {
+            background: #ECFDF5;
+            color: #059669;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-decoration: none;
+            height: 38px;
+        }
+        .btn-export:hover {
+            background: #D1FAE5;
+        }
     </style>
 
-    {{-- Stats Cards --}}
-    <div class="stats-grid">
-        <div class="stat-card-dark">
-            <div class="text-gray-400 text-xs font-bold tracking-wider mb-2">SISA DANA PINJAMAN BERJALAN</div>
-            <div class="text-3xl font-bold text-white mb-2">Rp {{ number_format($totalPinjamanBerjalan, 0, ',', '.') }}</div>
-            
-            <div class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/10 p-3 rounded-xl">
-                <svg class="w-8 h-8 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-        </div>
-        
-        <div class="stat-card-light">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded leading-tight">JUMLAH PINJAMAN BERJALAN</div>
-            </div>
-            <div class="text-4xl font-bold text-indigo-600 mb-2">{{ number_format($countBerjalan, 0, ',', '.') }}</div>
-            
-            <div class="absolute right-6 top-1/2 -translate-y-1/2 bg-indigo-50 text-indigo-600 p-3 rounded-xl">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-            </div>
-        </div>
-    </div>
-
     {{-- Filter Bar --}}
-    <form action="{{ route('pinjaman.aktif') }}" method="GET" class="filter-card">
-        @if(request('jenis')) <input type="hidden" name="jenis" value="{{ request('jenis') }}"> @endif
-        <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
-            <div style="flex:1; min-width:200px;">
-                <label style="font-size:12px; font-weight:600; color:#4B5563; margin-bottom:6px; display:block;">Pencarian Anggota</label>
-                <div style="position:relative;">
-                    <svg style="position:absolute; left:12px; top:10px; color:#9CA3AF;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" name="q" value="{{ request('q') }}" class="fc" style="padding-left:36px;" placeholder="Cari NIK atau Nama...">
-                </div>
-            </div>
-            <div style="width:180px;">
-                <label style="font-size:12px; font-weight:600; color:#4B5563; margin-bottom:6px; display:block;">Status</label>
-                <select name="status" class="fc">
-                    <option value="semua" {{ request('status') == 'semua' ? 'selected' : '' }}>Semua Status</option>
-                    <option value="berjalan" {{ request('status', 'berjalan') == 'berjalan' ? 'selected' : '' }}>Berjalan</option>
-                    <option value="lunas" {{ request('status') == 'lunas' ? 'selected' : '' }}>Lunas</option>
-                </select>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button type="submit" class="btn-search">
-                    Terapkan Filter
-                </button>
-                @if(request('q') || request('status') || request('jenis'))
-                    <a href="{{ route('pinjaman.aktif') }}" style="display:flex; align-items:center; justify-content:center; padding:0 12px; color:#6B7280; font-size:13px; font-weight:500; text-decoration:none; border-radius:6px; border:1px solid #E5E7EB; background:#fff; height:36px;">Reset</a>
-                @endif
-            </div>
+    <form class="filter-card flex items-end gap-4" method="GET" action="{{ route('pinjaman.aktif') }}" style="margin-bottom: 24px;">
+        <div class="flex-1">
+            <label class="label-text">Tahun</label>
+            <select name="tahun" class="form-select">
+                <option value="">Semua Tahun</option>
+                @foreach($years as $yr)
+                    <option value="{{ $yr }}" {{ request('tahun') == $yr ? 'selected' : '' }}>{{ $yr }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1">
+            <label class="label-text">Bulan</label>
+            <select name="bulan" class="form-select">
+                <option value="">Semua Bulan</option>
+                @for($i=1; $i<=12; $i++)
+                    <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
+                        {{ date('F', mktime(0, 0, 0, $i, 10)) }}
+                    </option>
+                @endfor
+            </select>
+        </div>
+        <div class="flex-2" style="flex: 2;">
+            <label class="label-text">Nama / NIK Anggota</label>
+            <input type="text" name="q" value="{{ request('q') }}" class="form-input" placeholder="Cari NIK atau Nama...">
+        </div>
+        <div class="flex-1">
+            <label class="label-text">Jenis Pinjaman</label>
+            <select name="jenis" class="form-select">
+                <option value="">Semua Jenis</option>
+                @foreach($jenisPinjamanList as $jp)
+                    @if($jp->children->count() > 0)
+                        <optgroup label="{{ $jp->nama_pinjaman }}">
+                            @foreach($jp->children as $child)
+                                <option value="{{ $child->id }}" {{ request('jenis') == $child->id ? 'selected' : '' }}>{{ $child->nama_pinjaman }}</option>
+                            @endforeach
+                        </optgroup>
+                    @else
+                        <option value="{{ $jp->id }}" {{ request('jenis') == $jp->id ? 'selected' : '' }}>{{ $jp->nama_pinjaman }}</option>
+                    @endif
+                @endforeach
+            </select>
+        </div>
+        <div class="flex-1">
+            <label class="label-text">Status</label>
+            <select name="status" class="form-select">
+                <option value="semua" {{ request('status') == 'semua' ? 'selected' : '' }}>Semua Status</option>
+                <option value="berjalan" {{ request('status', 'berjalan') == 'berjalan' ? 'selected' : '' }}>Berjalan</option>
+                <option value="lunas" {{ request('status') == 'lunas' ? 'selected' : '' }}>Lunas</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="btn-search">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
+                </svg>
+                Cari Data
+            </button>
+            <a href="{{ route('pinjaman.aktif', array_merge(request()->query(), ['export' => 'excel'])) }}" class="btn-export">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export Excel
+            </a>
+            @if(request('q') || request('status') || request('jenis') || request('tahun') || request('bulan'))
+                <a href="{{ route('pinjaman.aktif') }}" style="display:flex; align-items:center; justify-content:center; padding:0 12px; color:#6B7280; font-size:13px; font-weight:500; text-decoration:none; border-radius:8px; border:1px solid #E5E7EB; background:#fff; height:38px;" title="Reset Filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                </a>
+            @endif
         </div>
     </form>
 

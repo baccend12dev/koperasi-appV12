@@ -17,6 +17,7 @@ class AnggotaController extends Controller
             $query->where('department_id', $request->dept);
         }
 
+        // karena data masih dibawah 1000 data maka pakai ilike
         if ($request->filled('q')) {
             $query->where(function($q) use ($request) {
                 $q->where('nama_anggota', 'ilike', '%' . $request->q . '%')

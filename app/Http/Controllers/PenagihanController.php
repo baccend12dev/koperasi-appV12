@@ -177,6 +177,14 @@ class PenagihanController extends Controller
         return back()->with('success', 'Detail tagihan berhasil dihapus (Soft Delete) dan list angsuran pinjaman di-unlink.');
     }
 
+    public function exportExcel($id)
+    {
+        $tagihan = PenagihanBill::findOrFail($id);
+        $fileName = 'Export_Tagihan_' . str_replace(' ', '_', $tagihan->periode) . '.xlsx';
+        
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\PenagihanBillExport($id), $fileName);
+    }
+
     public function bayar(Request $request)
     {
         $request->validate([

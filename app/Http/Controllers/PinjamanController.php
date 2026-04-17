@@ -6,6 +6,7 @@ use App\Models\Pinjaman;
 use App\Models\LoanRequest;
 use App\Models\PinjamanAngsuran;
 use App\Models\PembayaranAngsuran;
+use App\Models\LoanRequestTopup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -120,23 +121,6 @@ class PinjamanController extends Controller
         return view('pinjaman.pengajuan', compact('pengajuan_list', 'years', 'jenisPinjamanList')); 
     }
 
-    public function approval(Request $request) {
-        $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();
-        
-        $query = LoanRequest::with('anggota', 'jenisPinjaman')->where('status', 'pending');
-        
-        if ($request->filled('jenis')) {
-            $query->where('jenis_pinjaman_id', $request->jenis);
-        }
-        
-        $pengajuan_list = $query->orderBy('created_at', 'asc')->get();
-        
-        $totalPengajuan = $pengajuan_list->count();
-        $totalNominal = $pengajuan_list->sum('jumlah_pengajuan');
-        
-        return view('pinjaman.approval', compact('pengajuan_list', 'jenisPinjamanList', 'totalPengajuan', 'totalNominal'));
-    }
-
     public function aktif(Request $request) {
         $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();
         
@@ -146,11 +130,19 @@ class PinjamanController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_mulai', $request->tahun);
+        }
+
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_mulai', $request->bulan);
+        }
+
         if ($request->filled('q')) {
             $q = strtolower($request->q);
             $query->whereHas('anggota', function($qBuilder) use ($q) {
-                $qBuilder->where('nama_anggota', 'like', '%'.$q.'%')
-                         ->orWhere('nik', 'like', '%'.$q.'%');
+                $qBuilder->where('nama_anggota', 'ilike', '%'.$q.'%')
+                         ->orWhere('nik', 'ilike', '%'.$q.'%');
             });
         }
 
@@ -160,10 +152,37 @@ class PinjamanController extends Controller
 
         $pinjaman_list = $query->orderBy('created_at', 'desc')->get();
         
-        $totalPinjamanBerjalan = \App\Models\Pinjaman::where('status', 'berjalan')->sum('sisa_pinjaman');
-        $countBerjalan = \App\Models\Pinjaman::where('status', 'berjalan')->count();
+        $years = \App\Models\Pinjaman::selectRaw('EXTRACT(YEAR FROM tanggal_mulai) as year')
+            ->whereNotNull('tanggal_mulai')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
 
-        return view('pinjaman.aktif', compact('pinjaman_list', 'jenisPinjamanList', 'totalPinjamanBerjalan', 'countBerjalan'));
+        if (empty($years)) {
+            $years = [date('Y')];
+        }
+
+        if ($request->get('export') == 'excel') {
+            $filename = "pinjaman_aktif_" . date('Ymd_His') . ".xls";
+            $headers = [
+                "Content-type"        => "application/vnd.ms-excel",
+                "Content-Disposition" => "attachment; filename=$filename",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+
+            $filterTahun = $request->tahun;
+            $filterBulan = $request->bulan;
+            $filterStatus = $request->status;
+
+            $html = view('pinjaman.export_aktif_excel', compact('pinjaman_list', 'filterTahun', 'filterBulan', 'filterStatus'))->render();
+
+            return response($html, 200, $headers);
+        }
+
+        return view('pinjaman.aktif', compact('pinjaman_list', 'jenisPinjamanList', 'years'));
     }
 
     public function showAktif($id) {
@@ -178,69 +197,6 @@ class PinjamanController extends Controller
         return view('pinjaman.aktif_show', compact('pinjaman', 'angsuranLunas', 'totalAngsuran', 'progressPersen'));
     }
 
-    public function approve($id) {
-        $loanRequest = LoanRequest::findOrFail($id);
-        
-        if ($loanRequest->status !== 'pending') {
-            return back()->with('error', 'Pengajuan sudah tidak berstatus pending.');
-        }
-
-        \DB::transaction(function () use ($loanRequest) {
-            $loanRequest->update([
-                'status' => 'approved',
-                'approved_by' => auth()->id() ?? 1,
-                'approved_at' => now(),
-            ]);
-
-            $pinjaman = \App\Models\Pinjaman::create([
-                'loan_request_id'   => $loanRequest->id,
-                'user_id'           => $loanRequest->user_id,
-                'jenis_pinjaman_id' => $loanRequest->jenis_pinjaman_id,
-                'jumlah_pinjaman'   => $loanRequest->jumlah_pengajuan,
-                'tenor'             => $loanRequest->tenor,
-                'bunga'             => $loanRequest->bunga,
-                'total_bunga'       => $loanRequest->total_bunga,
-                'total_pinjaman'    => $loanRequest->total_pinjaman,
-                'cicilan_per_bulan' => $loanRequest->cicilan_per_bulan,
-                'sisa_pinjaman'     => $loanRequest->total_pinjaman,
-                'sisa_tenor'        => $loanRequest->tenor,
-                'total_terbayar'    => 0,
-                'status'            => 'berjalan',
-                'tanggal_mulai'     => now(),
-                'tanggal_selesai'   => now()->addMonths($loanRequest->tenor)
-            ]);
-
-            // Generate otomatis data angsuran (cicilan) sejumlah tenor
-            for ($i = 1; $i <= $pinjaman->tenor; $i++) {
-                \App\Models\PinjamanAngsuran::create([
-                    'loan_id'             => $pinjaman->id,
-                    'angsuran_ke'         => $i,
-                    'tanggal_jatuh_tempo' => null, // Sesuai permintaan: tanggal jatuh tempo dikosongkan dahulu
-                    'jumlah_tagihan'      => $pinjaman->cicilan_per_bulan,
-                    'jumlah_dibayar'      => 0,
-                    'status'              => 'belum_bayar',
-                ]);
-            }
-        });
-
-        return back()->with('success', 'Pengajuan berhasil disetujui.');
-    }
-
-    public function reject(Request $request, $id) {
-        $loanRequest = LoanRequest::findOrFail($id);
-        
-        if ($loanRequest->status !== 'pending') {
-            return back()->with('error', 'Pengajuan sudah tidak berstatus pending.');
-        }
-
-        $loanRequest->update([
-            'status' => 'rejected',
-            'alasan_penolakan' => $request->alasan,
-            'rejected_at' => now(),
-        ]);
-
-        return back()->with('success', 'Pengajuan berhasil ditolak.');
-    }
 
     public function create() {
         $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();
@@ -253,32 +209,51 @@ class PinjamanController extends Controller
             'jenis_pinjaman_id' => 'required|exists:master_jenis_pinjaman,id',
             'jumlah_pengajuan' => 'required|numeric|min:100000',
             'tenor' => 'required|numeric|min:1',
-            'bunga' => 'required|numeric|min:0'
+            'bunga' => 'required|numeric|min:0',
+            'pelunasan_ids' => 'sometimes|array',
+            'pelunasan_ids.*' => 'exists:pinjamans,id'
         ]);
 
-        $jumlah_pengajuan = $request->jumlah_pengajuan;
-        $tenor = $request->tenor;
-        $bunga = $request->bunga;
+        DB::beginTransaction();
+        try {
+            $jumlah_pengajuan = $request->jumlah_pengajuan;
+            $tenor = $request->tenor;
+            $bunga = $request->bunga;
 
-        $total_bunga = $jumlah_pengajuan * ($bunga / 100) * $tenor;
-        $total_pinjaman = $jumlah_pengajuan + $total_bunga;
-        $cicilan_per_bulan = $total_pinjaman / $tenor;
+            $total_bunga = $jumlah_pengajuan * ($bunga / 100) * $tenor;
+            $total_pinjaman = $jumlah_pengajuan + $total_bunga;
+            $cicilan_per_bulan = $total_pinjaman / $tenor;
 
-        LoanRequest::create([
-            'user_id'           => $request->user_id,
-            'jenis_pinjaman_id' => $request->jenis_pinjaman_id,
-            'jumlah_pengajuan'  => $jumlah_pengajuan,
-            'tenor'             => $tenor,
-            'bunga'             => $bunga,
-            'total_bunga'       => $total_bunga,
-            'total_pinjaman'    => $total_pinjaman,
-            'cicilan_per_bulan' => $cicilan_per_bulan,
-            'keterangan'        => $request->keterangan,
-            'status'            => 'pending',
-            'created_by'        => auth()->id() ?? 1
-        ]);
+            $loanRequest = LoanRequest::create([
+                'user_id'           => $request->user_id,
+                'jenis_pinjaman_id' => $request->jenis_pinjaman_id,
+                'jumlah_pengajuan'  => $jumlah_pengajuan,
+                'tenor'             => $tenor,
+                'bunga'             => $bunga,
+                'total_bunga'       => $total_bunga,
+                'total_pinjaman'    => $total_pinjaman,
+                'cicilan_per_bulan' => $cicilan_per_bulan,
+                'keterangan'        => $request->keterangan,
+                'status'            => 'pending',
+                'created_by'        => auth()->id() ?? 1
+            ]);
 
-        return redirect()->route('pinjaman.pengajuan')->with('success', 'Pengajuan pinjaman berhasil dibuat.');
+            // Simpan data pelunasan (refinancing) jika ada
+            if ($request->has('pelunasan_ids') && is_array($request->pelunasan_ids)) {
+                foreach ($request->pelunasan_ids as $pId) {
+                    LoanRequestTopup::create([
+                        'loan_request_id' => $loanRequest->id,
+                        'pinjaman_id'     => $pId
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('pinjaman.pengajuan')->with('success', 'Pengajuan pinjaman berhasil dibuat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function searchAnggota(Request $request) {
@@ -526,5 +501,20 @@ class PinjamanController extends Controller
         \App\Models\MasterJenisPinjaman::create($request->all());
 
         return redirect()->back()->with('success', 'Jenis pinjaman berhasil ditambahkan');
+    }
+
+    public function updateMasterJenis(\Illuminate\Http\Request $request, $id) {
+        $request->validate([
+            'nama_pinjaman' => 'required|string|max:100',
+            'parent_id' => 'nullable|exists:master_jenis_pinjaman,id',
+            'limit_maksimal' => 'nullable|numeric',
+            'bunga' => 'nullable|numeric',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $jenis = \App\Models\MasterJenisPinjaman::findOrFail($id);
+        $jenis->update($request->only(['nama_pinjaman', 'parent_id', 'limit_maksimal', 'bunga', 'keterangan']));
+
+        return redirect()->back()->with('success', 'Jenis pinjaman berhasil diperbarui');
     }
 }

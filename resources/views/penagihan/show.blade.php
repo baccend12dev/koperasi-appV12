@@ -174,10 +174,10 @@
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Proses Potongan Terpilih
                     </button>
-                    <!-- Export Button placeholder -->
-                    <button type="button" onclick="alert('Export Excel fitur dalam tahap pengembangan')" style="border:1px solid #D1D5DB; background:#fff; color:#374151; padding:7px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-left:6px;">
-                        Export
-                    </button>
+                    <!-- Export Button -->
+                    <a href="{{ route('penagihan.exportExcel', $tagihan->id) }}" style="border:1px solid #D1D5DB; background:#fff; color:#374151; padding:7px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-left:6px; text-decoration:none;">
+                        Export Excel
+                    </a>
                 </div>
             </div>
 

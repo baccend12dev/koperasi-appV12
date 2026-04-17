@@ -154,8 +154,9 @@ select.fc {
                 Tambah / Edit Kategori
             </div>
             <div class="c-body">
-                <form action="{{ route('pinjaman.masterJenis.store') }}" method="POST">
+                <form id="jenisForm" action="{{ route('pinjaman.masterJenis.store') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="_method" id="form_method" value="POST">
                     
                     <div class="fg">
                         <label class="lbl">Tipe Kategori</label>
@@ -195,8 +196,9 @@ select.fc {
                         <textarea class="fc" name="keterangan" placeholder="Keterangan opsional..."></textarea>
                     </div>
 
-                    <div style="margin-top: 20px;">
-                        <button type="submit" class="btn-save">Simpan Kategori</button>
+                    <div style="margin-top: 20px; display:flex; gap:8px;">
+                        <button type="submit" class="btn-save" id="btnSubmit">Simpan Kategori</button>
+                        <button type="button" class="btn-save" id="btnCancel" style="display:none; background:#6B7280;" onclick="cancelEdit()">Batal</button>
                     </div>
                 </form>
             </div>
@@ -230,7 +232,15 @@ select.fc {
                             <td style="text-align: right; color: #9CA3AF;">-</td>
                             <td style="text-align: center"><span class="badge-info">Induk</span></td>
                             <td style="text-align: right">
-                                <button type="button" style="border:none;background:transparent;color:#1a56db;cursor:pointer;font-size:11px;font-weight:600;">Edit</button>
+                                <button type="button" onclick="editItem(this)" style="border:none;background:transparent;color:#1a56db;cursor:pointer;font-size:11px;font-weight:600;"
+                                    data-id="{{ $parent->id }}"
+                                    data-nama="{{ $parent->nama_pinjaman }}"
+                                    data-type="parent"
+                                    data-parent_id=""
+                                    data-limit="{{ $parent->limit_maksimal }}"
+                                    data-bunga=""
+                                    data-keterangan="{{ $parent->keterangan }}"
+                                >Edit</button>
                             </td>
                         </tr>
                         @foreach($parent->children as $child)
@@ -244,7 +254,15 @@ select.fc {
                                 <td style="text-align: right; font-weight: 600; color: #b45309;">{{ $child->bunga ? $child->bunga.' %' : '-' }}</td>
                                 <td style="text-align: center"><span class="badge-success">Sub</span></td>
                                 <td style="text-align: right">
-                                    <button type="button" style="border:none;background:transparent;color:#1a56db;cursor:pointer;font-size:11px;font-weight:600;">Edit</button>
+                                    <button type="button" onclick="editItem(this)" style="border:none;background:transparent;color:#1a56db;cursor:pointer;font-size:11px;font-weight:600;"
+                                        data-id="{{ $child->id }}"
+                                        data-nama="{{ $child->nama_pinjaman }}"
+                                        data-type="child"
+                                        data-parent_id="{{ $child->parent_id }}"
+                                        data-limit=""
+                                        data-bunga="{{ $child->bunga }}"
+                                        data-keterangan="{{ $child->keterangan }}"
+                                    >Edit</button>
                                 </td>
                             </tr>
                         @endforeach
@@ -262,6 +280,9 @@ select.fc {
 </div>
 
 <script>
+const storeUrl = "{{ route('pinjaman.masterJenis.store') }}";
+const updateUrlBase = "{{ url('pinjaman/master-jenis') }}";
+
 function toggleForm() {
     const tipe = document.getElementById('tipe_kategori').value;
     const wrapParent = document.getElementById('wrap_parent');
@@ -273,7 +294,6 @@ function toggleForm() {
         wrapBunga.style.display  = 'flex';
         wrapLimit.style.display  = 'none';
         
-        // Atur required constraints
         document.querySelector('select[name="parent_id"]').required = true;
         document.querySelector('input[name="limit_maksimal"]').value = '';
     } else {
@@ -281,11 +301,67 @@ function toggleForm() {
         wrapBunga.style.display  = 'none';
         wrapLimit.style.display  = 'flex';
 
-        // Atur required constraints
         document.querySelector('select[name="parent_id"]').required = false;
         document.querySelector('select[name="parent_id"]').value = '';
         document.querySelector('input[name="bunga"]').value = '';
     }
+}
+
+function editItem(btn) {
+    const id = btn.dataset.id;
+    const nama = btn.dataset.nama;
+    const type = btn.dataset.type;
+    const parentId = btn.dataset.parent_id;
+    const limit = btn.dataset.limit;
+    const bunga = btn.dataset.bunga;
+    const keterangan = btn.dataset.keterangan;
+
+    // Switch form to edit mode
+    const form = document.getElementById('jenisForm');
+    form.action = updateUrlBase + '/' + id;
+    document.getElementById('form_method').value = 'PUT';
+
+    // Set type
+    const tipeSelect = document.getElementById('tipe_kategori');
+    tipeSelect.value = type === 'child' ? 'child' : 'parent';
+    toggleForm();
+
+    // Populate fields
+    document.querySelector('input[name="nama_pinjaman"]').value = nama;
+    document.querySelector('textarea[name="keterangan"]').value = keterangan || '';
+
+    if (type === 'child') {
+        document.querySelector('select[name="parent_id"]').value = parentId;
+        document.querySelector('input[name="bunga"]').value = bunga || '';
+    } else {
+        document.querySelector('input[name="limit_maksimal"]').value = limit || '';
+    }
+
+    // Update button text
+    document.getElementById('btnSubmit').textContent = 'Update Kategori';
+    document.getElementById('btnCancel').style.display = 'inline-flex';
+
+    // Scroll to form
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEdit() {
+    const form = document.getElementById('jenisForm');
+    form.action = storeUrl;
+    document.getElementById('form_method').value = 'POST';
+
+    // Reset all fields
+    document.getElementById('tipe_kategori').value = 'parent';
+    toggleForm();
+    document.querySelector('input[name="nama_pinjaman"]').value = '';
+    document.querySelector('input[name="limit_maksimal"]').value = '';
+    document.querySelector('input[name="bunga"]').value = '';
+    document.querySelector('textarea[name="keterangan"]').value = '';
+    document.querySelector('select[name="parent_id"]').value = '';
+
+    // Reset button
+    document.getElementById('btnSubmit').textContent = 'Simpan Kategori';
+    document.getElementById('btnCancel').style.display = 'none';
 }
 
 // Inisialisasi awal

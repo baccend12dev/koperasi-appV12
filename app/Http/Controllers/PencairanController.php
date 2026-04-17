@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoanRequest;
+use App\Models\Pinjaman;
 use App\Models\Pencairan;
 use App\Models\PengambilanSimpanan;
 use Illuminate\Http\Request;
@@ -10,108 +11,89 @@ use Illuminate\Support\Facades\DB;
 
 class PencairanController extends Controller
 {
-    public function index(Request $request)
+    public function pinjaman(Request $request)
     {
         $tahun = $request->get('tahun');
         $bulan = $request->get('bulan');
-        $tipe  = $request->get('tipe', 'all'); // all | pinjaman | simpanan
 
-        // ── Sidebar: tahun-bulan available dari kedua sumber ──────
-        $periodeRaw = DB::table(function ($q) {
-            $q->select(DB::raw("EXTRACT(YEAR FROM updated_at)::int as tahun, EXTRACT(MONTH FROM updated_at)::int as bulan"))
-              ->from('loan_requests')
-              ->where('status', 'approved')
-              ->union(
-                  DB::table('pengambilan_simpanans')
-                      ->select(DB::raw("EXTRACT(YEAR FROM updated_at)::int as tahun, EXTRACT(MONTH FROM updated_at)::int as bulan"))
-                      ->where('status', 'approved')
-              );
-        }, 'periode')
-        ->selectRaw('tahun, bulan')
-        ->distinct()
-        ->orderByDesc('tahun')
-        ->orderByDesc('bulan')
-        ->get();
+        // Sidebar periode khusus pinjaman
+        $sidebarPeriode = $this->getSidebarPeriode('pinjamans', 'created_at');
 
-        // Grup per tahun → [ tahun => [bulan, ...] ]
+        $query = Pinjaman::with('anggota', 'jenisPinjaman');
+
+        if ($tahun) {
+            $query->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [$tahun]);
+            if ($bulan) $query->whereRaw('EXTRACT(MONTH FROM created_at) = ?', [$bulan]);
+        }
+
+        $listPinjaman = $query->latest()->get();
+
+        // Check internal Pencairan records for 'paid' status
+        $pinjamanIds = $listPinjaman->pluck('id');
+        $pencairanExisting = Pencairan::where('ref_type', 'pinjaman')
+            ->whereIn('ref_id', $pinjamanIds)
+            ->get()->keyBy('ref_id');
+
+        // Statistik
+        $totalPinjaman = $listPinjaman->sum('jumlah_pinjaman');
+        $totalPotongan = $listPinjaman->sum('potongan_pelunasan');
+        $totalNet      = $listPinjaman->sum('jumlah_cair');
+
+        return view('pencairan.pinjaman', compact(
+            'listPinjaman', 'sidebarPeriode', 'pencairanExisting',
+            'tahun', 'bulan', 'totalPinjaman', 'totalPotongan', 'totalNet'
+        ));
+    }
+
+    public function pengambilan(Request $request)
+    {
+        $tahun = $request->get('tahun');
+        $bulan = $request->get('bulan');
+
+        // Sidebar periode khusus pengambilan
+        $sidebarPeriode = $this->getSidebarPeriode('pengambilan_simpanans', 'updated_at');
+
+        $query = PengambilanSimpanan::with('anggota')->where('status', 'approved');
+
+        if ($tahun) {
+            $query->whereRaw('EXTRACT(YEAR FROM updated_at) = ?', [$tahun]);
+            if ($bulan) $query->whereRaw('EXTRACT(MONTH FROM updated_at) = ?', [$bulan]);
+        }
+
+        $listPengambilan = $query->latest('updated_at')->get();
+
+        // Check internal Pencairan records
+        $pengambilanIds = $listPengambilan->pluck('id');
+        $pencairanExisting = Pencairan::where('ref_type', 'simpanan')
+            ->whereIn('ref_id', $pengambilanIds)
+            ->get()->keyBy('ref_id');
+
+        $totalNominal = $listPengambilan->sum('nominal');
+
+        return view('pencairan.pengambilan', compact(
+            'listPengambilan', 'sidebarPeriode', 'pencairanExisting',
+            'tahun', 'bulan', 'totalNominal'
+        ));
+    }
+
+    private function getSidebarPeriode($table, $column)
+    {
+        $periodeRaw = DB::table($table)
+            ->select(DB::raw("EXTRACT(YEAR FROM $column)::int as tahun, EXTRACT(MONTH FROM $column)::int as bulan"))
+            ->distinct()
+            ->orderByDesc('tahun')
+            ->orderByDesc('bulan')
+            ->get();
+
         $sidebarPeriode = [];
         foreach ($periodeRaw as $row) {
             $sidebarPeriode[$row->tahun][] = $row->bulan;
         }
-
-        // ── Query pinjaman approved ────────────────────────────────
-        $pinjamanQuery = LoanRequest::with('anggota', 'jenisPinjaman')
-            ->where('status', 'approved');
-
-        if ($tahun) {
-            $pinjamanQuery->whereRaw('EXTRACT(YEAR FROM updated_at) = ?', [$tahun]);
-            if ($bulan) $pinjamanQuery->whereRaw('EXTRACT(MONTH FROM updated_at) = ?', [$bulan]);
-        }
-
-        // ── Query pengambilan simpanan approved ────────────────────
-        $pengambilanQuery = PengambilanSimpanan::with('anggota')
-            ->where('status', 'approved');
-
-        if ($tahun) {
-            $pengambilanQuery->whereRaw('EXTRACT(YEAR FROM updated_at) = ?', [$tahun]);
-            if ($bulan) $pengambilanQuery->whereRaw('EXTRACT(MONTH FROM updated_at) = ?', [$bulan]);
-        }
-
-        // Terapkan filter tipe
-        $listPinjaman    = in_array($tipe, ['all', 'pinjaman']) ? $pinjamanQuery->latest('updated_at')->get()    : collect();
-        $listPengambilan = in_array($tipe, ['all', 'simpanan']) ? $pengambilanQuery->latest('updated_at')->get() : collect();
-
-        // ── Load existing Pencairan records (untuk status bayar) ───
-        // Bangun lookup: "pinjaman-{id}" => Pencairan, "simpanan-{id}" => Pencairan
-        $pinjamanIds    = $listPinjaman->pluck('id');
-        $pengambilanIds = $listPengambilan->pluck('id');
-
-        $pencairanExisting = Pencairan::where(function ($q) use ($pinjamanIds, $pengambilanIds) {
-            $q->where(fn($q2) => $q2->where('ref_type', 'pinjaman')->whereIn('ref_id', $pinjamanIds))
-              ->orWhere(fn($q2) => $q2->where('ref_type', 'simpanan')->whereIn('ref_id', $pengambilanIds));
-        })->get()->keyBy(fn($p) => $p->ref_type . '-' . $p->ref_id);
-
-        // Merge & sort by updated_at descending
-        $pencairanList = $listPinjaman->map(fn($r) => (object)[
-            'id'          => $r->id,
-            'ref_type'    => 'pinjaman',
-            'anggota'     => $r->anggota,
-            'anggota_id'  => $r->anggota?->id,
-            'keterangan'  => $r->jenisPinjaman?->nama_pinjaman ?? 'Pinjaman',
-            'nominal'     => $r->jumlah_pengajuan,
-            'tanggal'     => $r->updated_at,
-            'approved_at' => $r->approved_at,
-            'pencairan'   => $pencairanExisting->get('pinjaman-' . $r->id),
-        ])->merge(
-            $listPengambilan->map(fn($r) => (object)[
-                'id'          => $r->id,
-                'ref_type'    => 'simpanan',
-                'anggota'     => $r->anggota,
-                'anggota_id'  => $r->anggota?->id,
-                'keterangan'  => 'Penarikan Simpanan',
-                'nominal'     => $r->nominal,
-                'tanggal'     => $r->updated_at,
-                'approved_at' => $r->approved_at,
-                'pencairan'   => $pencairanExisting->get('simpanan-' . $r->id),
-            ])
-        )->sortByDesc('tanggal')->values();
-
-        // Summary
-        $totalNominalPinjaman    = $listPinjaman->sum('jumlah_pengajuan');
-        $totalNominalPengambilan = $listPengambilan->sum('nominal');
-        $totalNominal            = $totalNominalPinjaman + $totalNominalPengambilan;
-
-        return view('pencairan.index', compact(
-            'pencairanList',
-            'sidebarPeriode',
-            'tahun', 'bulan', 'tipe',
-            'totalNominal', 'totalNominalPinjaman', 'totalNominalPengambilan'
-        ));
+        return $sidebarPeriode;
     }
 
     /**
      * Tandai pencairan sebagai sudah dibayar (status = paid).
-     * Jika sudah ada record di pencairans → update, jika belum → buat baru.
      */
     public function markPaid(Request $request)
     {
