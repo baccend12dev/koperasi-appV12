@@ -123,6 +123,9 @@ class SimpananController extends Controller
         $selectedBulan = $request->bulan ?? date('m');
         $totalBulanIni = (clone $query)->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela'));
 
+        // Total pengambilan simpanan (sukarela negatif)
+        $totalPengambilan = abs((clone $query)->where('simpanan_sukarela', '<', 0)->sum('simpanan_sukarela'));
+
         $prevDate = \Carbon\Carbon::createFromDate($tahun, $selectedBulan, 1)->subMonth();
         $totalBulanLalu = \App\Models\TransaksiSimpanan::whereMonth('transaction_date', $prevDate->month)
                             ->whereYear('transaction_date', $prevDate->year)
@@ -143,7 +146,7 @@ class SimpananController extends Controller
         }
 
         return view('simpanan.transaksi', compact(
-            'transaksi', 'totalBulanIni', 'persenBulanIni', 'anggotaAktif', 'jenisSimpanan', 'years'
+            'transaksi', 'totalBulanIni', 'totalPengambilan', 'persenBulanIni', 'anggotaAktif', 'jenisSimpanan', 'years'
         ));
     }
     public function index(Request $request)

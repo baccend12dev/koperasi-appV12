@@ -64,33 +64,41 @@
 @endsection
 
 @section('content')
-<div class="px-6 py-4 space-y-6">
+<div class="px-6 py-2 space-y-3">
 
     <style>
         .filter-card {
             background: #fff;
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px 14px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #f1f5f9;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
         }
         .stat-card-dark {
             background: #0B1727;
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 10px;
+            padding: 16px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card-danger {
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+            border-radius: 10px;
+            padding: 16px;
             color: #fff;
             position: relative;
             overflow: hidden;
         }
         .stat-card-light {
             background: #fff;
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 10px;
+            padding: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #f1f5f9;
         }
@@ -98,8 +106,8 @@
             width: 100%;
             border-radius: 8px;
             border: 1px solid #e2e8f0;
-            padding: 8px 12px;
-            font-size: 14px;
+            padding: 7px 10px;
+            font-size: 13px;
         }
         .form-select:focus, .form-input:focus {
             outline: none;
@@ -107,24 +115,24 @@
             box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.1);
         }
         .label-text {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: block;
         }
         .btn-search {
             background: #EFF6FF;
             color: #1D4ED8;
             font-weight: 600;
-            padding: 8px 20px;
+            padding: 7px 16px;
             border-radius: 8px;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 6px;
+            font-size: 13px;
             transition: all 0.2s;
         }
         .btn-search:hover {
@@ -144,7 +152,7 @@
     </style>
 
     {{-- Filter Bar --}}
-    <form class="filter-card flex items-end gap-4" method="GET" action="{{ route('simpanan.transaksi') }}">
+    <form class="filter-card flex items-end gap-3" method="GET" action="{{ route('simpanan.transaksi') }}">
         <div class="flex-1">
             <label class="label-text">Tahun</label>
             <select name="tahun" class="form-select">
@@ -167,55 +175,75 @@
         <div class="flex-2" style="flex: 2;">
             <label class="label-text">Nama / NIK Anggota</label>
             <div class="relative">
-                <svg class="absolute left-3 top-2.5 text-gray-400" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="absolute left-3 top-2 text-gray-400" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input type="text" name="q" value="{{ request('q') }}" class="form-input pl-9" placeholder="Cari anggota...">
+                <input type="text" name="q" value="{{ request('q') }}" class="form-input pl-8" placeholder="Cari anggota...">
             </div>
         </div>
 
         <div>
             <button type="submit" class="btn-search">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/>
                 </svg>
-                Cari Data
+                Cari
             </button>
         </div>
     </form>
 
     {{-- Stats Cards --}}
     <div class="stats-grid">
+        {{-- Card 1: Total Transaksi (Setoran) --}}
         <div class="stat-card-dark">
-            <div class="text-gray-400 text-xs font-bold tracking-wider mb-2">TOTAL TRANSAKSI {{ request('bulan') ? strtoupper(date('F', mktime(0, 0, 0, request('bulan'), 10))) : 'BULAN INI' }}</div>
-            <div class="text-3xl font-bold text-white mb-2">Rp {{ number_format($totalBulanIni, 0, ',', '.') }}</div>
-            <div class="text-sm border-2 inline-block px-1 rounded border-transparent" style="color: {{ $persenBulanIni >= 0 ? '#10B981' : '#EF4444' }}">
-                <svg class="inline w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="text-gray-400 text-[10px] font-bold tracking-wider mb-1">TOTAL TRANSAKSI {{ request('bulan') ? strtoupper(date('F', mktime(0, 0, 0, request('bulan'), 10))) : 'BULAN INI' }}</div>
+            <div class="text-xl font-bold text-white mb-1">Rp {{ number_format($totalBulanIni, 0, ',', '.') }}</div>
+            <div class="text-xs inline-block rounded" style="color: {{ $persenBulanIni >= 0 ? '#10B981' : '#EF4444' }}">
+                <svg class="inline w-3 h-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $persenBulanIni >= 0 ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6' }}"/>
                 </svg>
                 {{ number_format(abs($persenBulanIni), 1, ',', '.') }}% dari bulan lalu
             </div>
             
-            <div class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/10 p-3 rounded-xl">
-                <svg class="w-8 h-8 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 p-2 rounded-lg">
+                <svg class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                 </svg>
             </div>
         </div>
-        
-        <div class="stat-card-light relative">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded leading-tight">JUMLAH ANGGOTA AKTIF</div>
-            </div>
-            <div class="text-4xl font-bold text-blue-600 mb-2">{{ number_format($anggotaAktif, 0, ',', '.') }}</div>
-            <div class="flex -space-x-2 overflow-hidden mt-3">
-                <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=A&background=random" alt=""/>
-                <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=B&background=random" alt=""/>
-                <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=C&background=random" alt=""/>
+
+        {{-- Card 2: Pengambilan Simpanan (Sukarela Minus) --}}
+        <div class="stat-card-danger">
+            <div class="text-red-300 text-[10px] font-bold tracking-wider mb-1">PENGAMBILAN SIMPANAN {{ request('bulan') ? strtoupper(date('F', mktime(0, 0, 0, request('bulan'), 10))) : 'BULAN INI' }}</div>
+            <div class="text-xl font-bold text-white mb-1">Rp {{ number_format($totalPengambilan, 0, ',', '.') }}</div>
+            <div class="text-xs text-red-200">
+                <svg class="inline w-3 h-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/>
+                </svg>
+                Transaksi sukarela (minus)
             </div>
             
-            <div class="absolute right-6 top-1/2 -translate-y-1/2 bg-blue-50 text-blue-600 p-3 rounded-xl">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 p-2 rounded-lg">
+                <svg class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+        
+        {{-- Card 3: Jumlah Anggota Aktif --}}
+        <div class="stat-card-light relative">
+            <div class="flex items-center gap-2 mb-1">
+                <div class="bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded leading-tight">ANGGOTA AKTIF</div>
+            </div>
+            <div class="text-2xl font-bold text-blue-600 mb-1">{{ number_format($anggotaAktif, 0, ',', '.') }}</div>
+            <div class="flex -space-x-2 overflow-hidden mt-1">
+                <img class="inline-block h-5 w-5 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=A&background=random" alt=""/>
+                <img class="inline-block h-5 w-5 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=B&background=random" alt=""/>
+                <img class="inline-block h-5 w-5 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=C&background=random" alt=""/>
+            </div>
+            
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-50 text-blue-600 p-2 rounded-lg">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
             </div>
