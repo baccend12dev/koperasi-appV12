@@ -43,6 +43,7 @@ class PenagihanController extends Controller
         if ($currentBill) {
             $details = \App\Models\PenagihanBillDetail::with('anggota')
                 ->where('penagihan_bill_id', $currentBill->id)
+                ->orderBy('jumlah_pinjaman', 'desc')
                 ->get();
         }
 
@@ -146,6 +147,7 @@ class PenagihanController extends Controller
         $tagihan = PenagihanBill::with(['details' => function($q) {
             $q->withTrashed()->with('anggota');
         }])->findOrFail($id);
+        $tagihan->details = $tagihan->details->sortByDesc('jumlah_pinjaman');
 
         return view('penagihan.show', compact('tagihan'));
     }

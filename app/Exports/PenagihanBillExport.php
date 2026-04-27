@@ -21,7 +21,7 @@ class PenagihanBillExport implements FromView, ShouldAutoSize
         $tagihan = PenagihanBill::with(['details' => function($q) {
             $q->whereNull('deleted_at')->with('anggota');
         }])->findOrFail($this->id);
-
+        $tagihan->details = $tagihan->details->sortByDesc('jumlah_pinjaman');
         return view('penagihan.export_excel', compact('tagihan'));
     }
 }

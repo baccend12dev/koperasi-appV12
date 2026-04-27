@@ -227,7 +227,7 @@
                                 </td>
                                 <td class="cell-name">
                                     {{ $detail->anggota->nama_anggota ?? 'Unknown' }}
-                                    <div style="font-size: 10px; color: #9CA3AF; font-weight: normal;">NIK: {{ $detail->anggota->nik ?? '-' }}</div>
+                                    <div style="font-size: 10px; color: #4e0101ff; font-weight: normal;">NIK: {{ $detail->anggota->nik ?? '-' }}</div>
                                 </td>
                                 <td>{{ number_format($detail->simpanan_pokok, 0, ',', '.') }}</td>
                                 <td>{{ number_format($detail->simpanan_wajib, 0, ',', '.') }}</td>
