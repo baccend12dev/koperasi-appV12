@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('total_pinjaman', 15, 2);
             $table->decimal('cicilan_per_bulan', 15, 2);
             $table->text('keterangan')->nullable();
-            
+            $table->string('payment_method')->nullable(); // gaji / mandiri
             // Status & Approval
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->unsignedBigInteger('created_by')->nullable(); // Admin input

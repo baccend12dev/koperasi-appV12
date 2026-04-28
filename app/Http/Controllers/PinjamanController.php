@@ -207,6 +207,7 @@ class PinjamanController extends Controller
         $request->validate([
             'user_id' => 'required|exists:anggotas,id',
             'jenis_pinjaman_id' => 'required|exists:master_jenis_pinjaman,id',
+            'payment_method' => 'required|in:gaji,mandiri',
             'jumlah_pengajuan' => 'required|numeric|min:100000',
             'tenor' => 'required|numeric|min:1',
             'bunga' => 'required|numeric|min:0',
@@ -227,6 +228,7 @@ class PinjamanController extends Controller
             $loanRequest = LoanRequest::create([
                 'user_id'           => $request->user_id,
                 'jenis_pinjaman_id' => $request->jenis_pinjaman_id,
+                'payment_method'    => $request->payment_method,
                 'jumlah_pengajuan'  => $jumlah_pengajuan,
                 'tenor'             => $tenor,
                 'bunga'             => $bunga,

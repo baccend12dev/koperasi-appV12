@@ -279,6 +279,71 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
 }
 .limit-notice.show { display: flex; }
 .limit-notice svg { flex-shrink: 0; margin-top: 1px; color: #b45309; }
+
+/* ─────────────────────────────────────────────
+   PAYMENT METHOD CARDS
+───────────────────────────────────────────── */
+.pm-section {
+    margin-top: 28px;
+}
+.pm-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+}
+.pm-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.pm-card {
+    position: relative; cursor: pointer;
+}
+.pm-card input[type="radio"] {
+    position: absolute; opacity: 0; width: 0; height: 0;
+}
+.pm-card-inner {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 16px 18px;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.pm-card input[type="radio"]:checked + .pm-card-inner {
+    border-color: var(--navy);
+    background: #EEF2FF;
+    box-shadow: 0 0 0 3px rgba(11,28,63,0.08);
+}
+.pm-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+}
+.pm-icon-gaji { background: #DCFCE7; color: #16A34A; }
+.pm-icon-mandiri { background: #DBEAFE; color: #1D4ED8; }
+.pm-card input[type="radio"]:checked + .pm-card-inner .pm-icon-gaji { background: #16A34A; color: #fff; }
+.pm-card input[type="radio"]:checked + .pm-card-inner .pm-icon-mandiri { background: #1D4ED8; color: #fff; }
+.pm-text h4 {
+    margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--text-main);
+}
+.pm-text p {
+    margin: 0; font-size: 11px; color: var(--text-muted); line-height: 1.5;
+}
+.pm-card input[type="radio"]:checked + .pm-card-inner .pm-text h4 { color: var(--navy); }
+.pm-check {
+    margin-left: auto; width: 18px; height: 18px; flex-shrink: 0;
+    border-radius: 50%; border: 2px solid #D1D5DB;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.pm-card input[type="radio"]:checked + .pm-card-inner .pm-check {
+    background: var(--navy); border-color: var(--navy);
+}
+.pm-check-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #fff; opacity: 0; transition: 0.2s;
+}
+.pm-card input[type="radio"]:checked + .pm-card-inner .pm-check-dot { opacity: 1; }
 </style>
 
 <form id="form-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}">
@@ -411,6 +476,60 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
                     <div class="slider-wrap">
                         <input type="range" class="range-slider" id="tenor" name="tenor" min="6" max="36" step="6" value="24" oninput="updateTenor(this.value)">
                         <div class="tenor-badge" id="tenor-badge">24 Bulan</div>
+                    </div>
+                </div>
+
+                {{-- ══ PAYMENT METHOD SECTION ══ --}}
+                <div class="pm-section">
+                    <div class="pm-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                        Rencana Pembayaran Angsuran
+                    </div>
+                    <div class="pm-grid">
+
+                        {{-- Pilihan: Potongan Gaji --}}
+                        <label class="pm-card">
+                            <input type="radio" name="payment_method" value="gaji" checked>
+                            <div class="pm-card-inner">
+                                <div class="pm-icon pm-icon-gaji">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="7" width="20" height="14" rx="2"/>
+                                        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                                        <line x1="12" y1="12" x2="12" y2="16"/>
+                                        <line x1="10" y1="14" x2="14" y2="14"/>
+                                    </svg>
+                                </div>
+                                <div class="pm-text">
+                                    <h4>Potongan Gaji</h4>
+                                    <p>Angsuran dipotong otomatis dari gaji setiap bulan</p>
+                                </div>
+                                <div class="pm-check">
+                                    <div class="pm-check-dot"></div>
+                                </div>
+                            </div>
+                        </label>
+
+                        {{-- Pilihan: Mandiri --}}
+                        <label class="pm-card">
+                            <input type="radio" name="payment_method" value="mandiri">
+                            <div class="pm-card-inner">
+                                <div class="pm-icon pm-icon-mandiri">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                                        <path d="M2 10h20"/>
+                                        <path d="M6 15h2M10 15h6"/>
+                                    </svg>
+                                </div>
+                                <div class="pm-text">
+                                    <h4>Mandiri</h4>
+                                    <p>Anggota membayar sendiri ke kasir / transfer</p>
+                                </div>
+                                <div class="pm-check">
+                                    <div class="pm-check-dot"></div>
+                                </div>
+                            </div>
+                        </label>
+
                     </div>
                 </div>
 

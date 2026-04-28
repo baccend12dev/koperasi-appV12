@@ -210,22 +210,35 @@
 
                                     <!-- Modal View -->
                                     <template x-teleport="body">
-                                        <div x-show="openModal" class="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 backdrop-blur-sm p-4" x-transition.opacity="" style="display: none;">
-                                            <div @click.away="openModal = false" class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden p-6" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
-                                                
-                                                <div class="flex justify-between items-start border-b border-gray-100 pb-4 mb-4">
+                                        <div x-show="openModal" class="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 backdrop-blur-sm p-2" x-transition.opacity="" style="display: none;">
+                                            <div @click.away="openModal = false" class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden" style="max-height:90vh;overflow-y:auto;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
+                                                <div class="px-4 pt-4 pb-0">
+                                                <div class="flex justify-between items-start border-b border-gray-100 pb-2 mb-3">
                                                     <div>
                                                         <h3 class="text-lg font-bold text-gray-900">Review Pengajuan Pinjaman</h3>
-                                                        <p class="text-sm text-gray-500 mt-1">{{ $item->anggota->nama_anggota }} ({{ $item->anggota->nik }})</p>
+                                                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                                            <p class="text-sm text-gray-500">{{ $item->anggota->nama_anggota }} ({{ $item->anggota->nik }})</p>
+                                                            @if(($item->payment_method ?? 'gaji') === 'gaji')
+                                                                <span style="display:inline-flex;align-items:center;gap:4px;background:#DCFCE7;color:#15803D;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">
+                                                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                                                                    POTONG GAJI
+                                                                </span>
+                                                            @else
+                                                                <span style="display:inline-flex;align-items:center;gap:4px;background:#DBEAFE;color:#1D4ED8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">
+                                                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M10 15h6"/></svg>
+                                                                    MANDIRI
+                                                                </span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                     <button @click="openModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
                                                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                     </button>
                                                 </div>
 
-                                                <div class="grid grid-cols-2 gap-4 mb-6">
+                                                <div class="grid grid-cols-2 gap-3 mb-3">
                                                     <!-- Data Pinjaman -->
-                                                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
+                                                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
                                                         <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Detail Pengajuan</h4>
                                                         <div>
                                                             <span class="block text-[11px] text-gray-400">Jenis Pinjaman</span>
@@ -262,7 +275,7 @@
                                                     </div>
 
                                                     <!-- Data Finansial Karyawan -->
-                                                    <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3">
+                                                    <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 space-y-2">
                                                         <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Kondisi Finansial saat ini</h4>
                                                         <div>
                                                             <span class="block text-[11px] text-gray-500">Total Simpanan </span>
@@ -281,21 +294,71 @@
                                                             <strong class="text-sm text-gray-800">Rp {{ number_format($item->simpanan_perbulan ?? 0, 0, ',', '.') }}</strong>
                                                         </div>
                                                         <div class="pt-2 border-t border-blue-200">
-                                                            <div class="flex justify-between items-start">
-                                                                <span class="block text-[11px] text-blue-700 font-bold uppercase">Total Cicilan Baru (Per Bulan)</span>
+                                                            <div class="flex justify-between items-start mb-2">
+                                                                <span class="block text-[11px] text-blue-700 font-bold uppercase">Rencana Cicilan Per Bulan (Setelah Disetujui)</span>
                                                                 @if($item->total_pelunasan_pasti > 0)
                                                                     <div class="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">Adjustment Pelunasan Aktif</div>
                                                                 @endif
                                                             </div>
-                                                            <strong class="text-lg text-blue-700">Rp {{ number_format($item->total_cicilan_baru ?? 0, 0, ',', '.') }}</strong>
+
+                                                            {{-- Breakdown table gaji / mandiri / total --}}
+                                                            <table style="width:100%;font-size:11px;border-collapse:collapse;">
+                                                                <thead>
+                                                                    <tr style="color:#6B7280;">
+                                                                        <th style="text-align:left;padding:3px 0;font-weight:600;">Metode</th>
+                                                                        <th style="text-align:right;padding:3px 0;font-weight:600;">Sebelum</th>
+                                                                        <th style="text-align:right;padding:3px 0;font-weight:600;">Setelah</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {{-- Baris Gaji --}}
+                                                                    <tr style="border-top:1px solid #e5e7eb;">
+                                                                        <td style="padding:5px 0;">
+                                                                            <span style="display:inline-flex;align-items:center;gap:4px;background:#DCFCE7;color:#15803D;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;">
+                                                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                                                                Potong Gaji
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style="text-align:right;color:#374151;font-weight:600;">Rp {{ number_format($item->cicilan_gaji_existing ?? 0, 0, ',', '.') }}</td>
+                                                                        <td style="text-align:right;font-weight:700;{{ ($item->payment_method ?? 'gaji') === 'gaji' ? 'color:#15803D;' : 'color:#374151;' }}">
+                                                                            Rp {{ number_format($item->cicilan_gaji_baru ?? 0, 0, ',', '.') }}
+                                                                            @if(($item->payment_method ?? 'gaji') === 'gaji')
+                                                                                <span style="font-size:9px;background:#DCFCE7;color:#15803D;padding:1px 5px;border-radius:10px;margin-left:2px;">+baru</span>
+                                                                            @endif
+                                                                        </td>
+                                                                    </tr>
+                                                                    {{-- Baris Mandiri --}}
+                                                                    <tr style="border-top:1px solid #e5e7eb;">
+                                                                        <td style="padding:5px 0;">
+                                                                            <span style="display:inline-flex;align-items:center;gap:4px;background:#DBEAFE;color:#1D4ED8;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;">
+                                                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                                                                                Mandiri
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style="text-align:right;color:#374151;font-weight:600;">Rp {{ number_format($item->cicilan_mandiri_existing ?? 0, 0, ',', '.') }}</td>
+                                                                        <td style="text-align:right;font-weight:700;{{ ($item->payment_method ?? 'gaji') === 'mandiri' ? 'color:#1D4ED8;' : 'color:#374151;' }}">
+                                                                            Rp {{ number_format($item->cicilan_mandiri_baru ?? 0, 0, ',', '.') }}
+                                                                            @if(($item->payment_method ?? 'gaji') === 'mandiri')
+                                                                                <span style="font-size:9px;background:#DBEAFE;color:#1D4ED8;padding:1px 5px;border-radius:10px;margin-left:2px;">+baru</span>
+                                                                            @endif
+                                                                        </td>
+                                                                    </tr>
+                                                                    {{-- Baris Total --}}
+                                                                    <tr style="border-top:2px solid #bfdbfe;background:#EFF6FF;">
+                                                                        <td style="padding:6px 4px;font-size:11px;font-weight:700;color:#1e40af;">Total Semua</td>
+                                                                        <td style="text-align:right;color:#1e40af;font-weight:700;">Rp {{ number_format(($item->cicilan_gaji_existing ?? 0) + ($item->cicilan_mandiri_existing ?? 0), 0, ',', '.') }}</td>
+                                                                        <td style="text-align:right;color:#1e40af;font-weight:800;font-size:13px;">Rp {{ number_format(($item->cicilan_gaji_baru ?? 0) + ($item->cicilan_mandiri_baru ?? 0), 0, ',', '.') }}</td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
                                                             <div class="text-[10px] text-gray-400 mt-1">*Sudah dikurangi cicilan yang akan lunas</div>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <!-- Accordion Detail Pinjaman Aktif -->
-                                                <div x-data="{ showLoans: false }" class="mb-4 border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm">
-                                                    <button @click="showLoans = !showLoans" type="button" class="w-full flex justify-between items-center bg-gray-50/80 p-3 text-sm font-bold text-gray-700 hover:bg-gray-100 transition-colors">
+                                                <div x-data="{ showLoans: false }" class="mb-2 border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm">
+                                                    <button @click="showLoans = !showLoans" type="button" class="w-full flex justify-between items-center bg-gray-50/80 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100 transition-colors">
                                                         <div class="flex items-center gap-2">
                                                             <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
@@ -305,7 +368,7 @@
                                                         <svg :class="showLoans ? 'transform rotate-180' : ''" class="w-4 h-4 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                     </button>
                                                     <div x-show="showLoans" x-collapse style="display: none;">
-                                                        <div class="p-4 border-t border-gray-100">
+                                                        <div class="p-2 border-t border-gray-100">
                                                             @if($item->anggota && $item->anggota->pinjamanAktif->count() > 0)
                                                                 <div class="overflow-x-auto">
                                                                     <table class="w-full text-left text-[11px] text-gray-600">
@@ -344,30 +407,31 @@
                                                     </div>
                                                 </div>
 
-                                                <div x-data="{ action: null, alasan: '' }" class="border-t border-gray-100 pt-5">
-                                                    <div class="flex flex-col gap-4">
+                                                <div x-data="{ action: null, alasan: '' }" class="border-t border-gray-100 pt-3 px-4 pb-4">
+                                                    <div class="flex flex-col gap-2">
                                                         <div>
-                                                            <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan / Alasan (Opsional)</label>
-                                                            <textarea x-model="alasan" rows="2" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-3" placeholder="Masukkan catatan persetujuan atau alasan penolakan..."></textarea>
+                                                            <label class="block text-xs font-medium text-gray-600 mb-1">Keterangan / Alasan (Opsional)</label>
+                                                            <textarea x-model="alasan" rows="1" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm p-2" placeholder="Catatan persetujuan atau alasan penolakan..."></textarea>
                                                         </div>
                                                         
-                                                        <div class="flex justify-end gap-3 mt-2">
-                                                            <button @click="openModal = false" type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+                                                        <div class="flex justify-end gap-2">
+                                                            <button @click="openModal = false" type="button" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
                                                             
                                                             <form action="{{ route('pinjaman.approval.reject', $item->id) }}" method="POST" class="inline-block m-0" onsubmit="return confirm('Yakin ingin menolak pengajuan ini?');">
                                                                 @csrf
                                                                 <input type="hidden" name="alasan" x-model="alasan">
-                                                                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-100">Tolak Pengajuan</button>
+                                                                <button type="submit" class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700">Tolak Pengajuan</button>
                                                             </form>
 
                                                             <form action="{{ route('pinjaman.approval.approve', $item->id) }}" method="POST" class="inline-block m-0" onsubmit="return confirm('Yakin ingin menyetujui pengajuan ini?');">
                                                                 @csrf
                                                                 <!-- We can pass reason to approve if backend supports it, but currently backend might not -->
-                                                                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-100">Setujui Pengajuan</button>
+                                                                <button type="submit" class="px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 border border-transparent rounded-lg hover:bg-emerald-700">Setujui Pengajuan</button>
                                                             </form>
                                                         </div>
                                                     </div>
                                                 </div>
+                                                </div>{{-- end px-4 wrapper --}}
 
                                             </div>
                                         </div>

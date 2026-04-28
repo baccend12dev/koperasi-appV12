@@ -55,12 +55,34 @@ class PersetujuanController extends Controller
 
                 // hitung simpanan yang harus dibayar setiap bulan
                 $simpananPerbulan = $item->anggota->masterSimpanan ? ($item->anggota->masterSimpanan->simpanan_wajib + $item->anggota->masterSimpanan->simpanan_sukarela) : 0;
-                
+
+                // ── Breakdown cicilan per payment_method (sebelum pengajuan ini) ──
+                $cicilan_gaji_existing = $item->anggota->pinjamanAktif
+                    ->where('payment_method', 'gaji')
+                    ->whereNotIn('id', $pelunasanIds)
+                    ->sum('cicilan_per_bulan');
+
+                $cicilan_mandiri_existing = $item->anggota->pinjamanAktif
+                    ->where('payment_method', 'mandiri')
+                    ->whereNotIn('id', $pelunasanIds)
+                    ->sum('cicilan_per_bulan');
+
+                // Tambahkan cicilan baru sesuai payment_method pengajuan ini
+                $newMethod = $item->payment_method ?? 'gaji';
+                $cicilan_gaji_baru    = $cicilan_gaji_existing    + ($newMethod === 'gaji'    ? $item->cicilan_per_bulan : 0);
+                $cicilan_mandiri_baru = $cicilan_mandiri_existing + ($newMethod === 'mandiri' ? $item->cicilan_per_bulan : 0);
+
                 $item->total_simpanan_saat_ini = $total_simpanan;
                 $item->pinjaman_berjalan_saat_ini = $pinjaman_berjalan;
                 $item->cicilan_saat_ini = $cicilan_saat_ini;
                 $item->simpanan_perbulan = $simpananPerbulan;
-                
+
+                // Breakdown per metode
+                $item->cicilan_gaji_existing    = $cicilan_gaji_existing;
+                $item->cicilan_mandiri_existing = $cicilan_mandiri_existing;
+                $item->cicilan_gaji_baru        = $cicilan_gaji_baru;
+                $item->cicilan_mandiri_baru     = $cicilan_mandiri_baru;
+
                 // Info Pelunasan
                 $item->total_pelunasan_pasti = $totalPelunasan;
                 $item->net_cair = $item->jumlah_pengajuan - $totalPelunasan;
@@ -285,6 +307,7 @@ class PersetujuanController extends Controller
                 'potongan_pelunasan'=> $totalPelunasan,
                 'sisa_pinjaman'     => $loanRequest->total_pinjaman,
                 'sisa_tenor'        => $loanRequest->tenor,
+                'payment_method'    => $loanRequest->payment_method,
                 'total_terbayar'    => 0,
                 'status'            => 'berjalan',
                 'tanggal_mulai'     => now(),

@@ -26,9 +26,13 @@ return new class extends Migration
             $table->decimal('potongan_pelunasan', 15, 2)->nullable();
             
             // Tracking
-            $table->decimal('sisa_pinjaman', 15, 2);
-            $table->integer('sisa_tenor');
+            $table->decimal('sisa_pinjaman', 15, 2)->nullable();
+            $table->integer('sisa_tenor')->nullable();
             $table->decimal('total_terbayar', 15, 2)->default(0);
+
+            //payment method
+            $table->enum('payment_method', ['gaji', 'mandiri'])->default('gaji');
+            $table->enum('billing_target', ['perusahaan', 'anggota'])->default('perusahaan');
             
             // Status
             $table->enum('status', ['berjalan', 'lunas'])->default('berjalan');
