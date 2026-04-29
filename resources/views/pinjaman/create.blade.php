@@ -280,6 +280,17 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
 .limit-notice.show { display: flex; }
 .limit-notice svg { flex-shrink: 0; margin-top: 1px; color: #b45309; }
 
+/* Pelunasan error notice */
+.payoff-error {
+    display: none; align-items: flex-start; gap: 7px;
+    margin-top: 8px; padding: 8px 12px;
+    background: #FEF2F2; border: 1px solid #FECACA;
+    border-radius: 7px; font-size: 11px; color: #991B1B; font-weight: 500;
+    line-height: 1.5;
+}
+.payoff-error.show { display: flex; }
+.payoff-error svg { flex-shrink: 0; margin-top: 1px; color: #DC2626; }
+
 /* ─────────────────────────────────────────────
    PAYMENT METHOD CARDS
 ───────────────────────────────────────────── */
@@ -561,7 +572,7 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
         {{-- RIGHT COLUMN: SUMMARY --}}
         <div class="sidebar">
             <div style="border-radius:12px; overflow:hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                
+
                 {{-- Top Green --}}
                 <div class="sum-card-top">
                     <div class="s-label-green">
@@ -570,10 +581,27 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
                     </div>
                     <div class="s-label-muted">Jumlah Pinjaman Baru</div>
                     <div class="s-val-large" id="sum-pokok">Rp 0</div>
-                    
-                    <div class="s-row">
-                        <span class="s-row-label">Total Pelunasan Pinjaman</span>
-                        <span class="s-row-val" id="sum-payoff">Rp 0</span>
+
+                    {{-- Bunga info rows --}}
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                        <span style="font-size:11px;color:#6B7280;">Total Bunga</span>
+                        <span style="font-size:12px;font-weight:700;color:#D97706;" id="sum-total-bunga">Rp 0</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding-top:6px;border-top:1px dashed rgba(0,0,0,0.08);">
+                        <span style="font-size:11px;color:#374151;font-weight:600;">Pokok + Bunga</span>
+                        <span style="font-size:13px;font-weight:800;color:#0B1C3F;" id="sum-total-keseluruhan">Rp 0</span>
+                    </div>
+
+                    <div class="s-row" style="border-top:1px solid rgba(0,0,0,.05);padding-top:16px;margin-top:20px;flex-direction:column;gap:6px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+                            <span class="s-row-label">Total Pelunasan Pinjaman</span>
+                            <span class="s-row-val" id="sum-payoff">Rp 0</span>
+                        </div>
+                        {{-- Peringatan jika payoff > jumlah pinjaman --}}
+                        <div class="payoff-error" id="payoff-error" style="width:100%;box-sizing:border-box;">
+                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                            <span id="payoff-error-text">Jumlah pinjaman lebih kecil dari total yang akan dilunasi.</span>
+                        </div>
                     </div>
                 </div>
 
@@ -588,10 +616,77 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
                 {{-- Bottom Gray --}}
                 <div class="sum-card-bot">
                     <svg class="icon-calc" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="10" x2="8.01" y2="10"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="16" y1="10" x2="16.01" y2="10"></line><line x1="8" y1="14" x2="8.01" y2="14"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="16" y1="14" x2="16.01" y2="14"></line><line x1="8" y1="18" x2="8.01" y2="18"></line><line x1="12" y1="18" x2="16" y2="18"></line></svg>
-                    <div class="s-label-gray">Cicilan Per Bulan</div>
+                    <div class="s-label-gray">Cicilan Per Bulan (Baru)</div>
                     <div class="s-val-green" id="sum-cicilan">Rp 0</div>
                 </div>
 
+            </div>
+
+            {{-- ══ KONDISI FINANSIAL SAAT INI (Expandable) ══ --}}
+            <div id="card-kondisi" style="display:none;background:#fff;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);">
+                <button type="button" onclick="toggleKondisi()"
+                    style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#EFF6FF;border:none;cursor:pointer;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span style="font-size:12px;font-weight:800;color:#1D4ED8;text-transform:uppercase;letter-spacing:.04em;">Kondisi Finansial Saat Ini</span>
+                    </div>
+                    <svg id="kondisi-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2.5" style="transition:.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+
+                <div id="kondisi-body" style="display:none;padding:16px 18px;">
+
+                    {{-- Simpanan --}}
+                    <div style="margin-bottom:14px;">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9CA3AF;margin-bottom:4px;">Total Simpanan</div>
+                        <div style="font-size:18px;font-weight:800;color:#059669;" id="kf-simpanan">Rp 0</div>
+                    </div>
+
+                    {{-- Separator --}}
+                    <div style="height:1px;background:#F3F4F6;margin-bottom:14px;"></div>
+
+                    {{-- Cicilan Existing --}}
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9CA3AF;margin-bottom:8px;">Cicilan Pinjaman Berjalan / Bulan</div>
+
+                    <table style="width:100%;font-size:11px;border-collapse:collapse;">
+                        <thead>
+                            <tr style="color:#6B7280;">
+                                <th style="text-align:left;padding:3px 0;font-weight:600;">Metode</th>
+                                <th style="text-align:right;padding:3px 0;font-weight:600;">Sebelum</th>
+                                <th style="text-align:right;padding:3px 0;font-weight:600;">Setelah ✓</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-top:1px solid #E5E7EB;">
+                                <td style="padding:6px 0;">
+                                    <span style="display:inline-flex;align-items:center;gap:4px;background:#DCFCE7;color:#15803D;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                        Potong Gaji
+                                    </span>
+                                </td>
+                                <td style="text-align:right;color:#374151;font-weight:600;" id="kf-gaji-before">Rp 0</td>
+                                <td style="text-align:right;font-weight:700;color:#15803D;" id="kf-gaji-after">Rp 0</td>
+                            </tr>
+                            <tr style="border-top:1px solid #E5E7EB;">
+                                <td style="padding:6px 0;">
+                                    <span style="display:inline-flex;align-items:center;gap:4px;background:#DBEAFE;color:#1D4ED8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                                        Mandiri
+                                    </span>
+                                </td>
+                                <td style="text-align:right;color:#374151;font-weight:600;" id="kf-mandiri-before">Rp 0</td>
+                                <td style="text-align:right;font-weight:700;color:#1D4ED8;" id="kf-mandiri-after">Rp 0</td>
+                            </tr>
+                            <tr style="border-top:2px solid #E5E7EB;background:#F9FAFB;">
+                                <td style="padding:7px 0;font-size:11px;font-weight:800;color:#111;">Total Cicilan</td>
+                                <td style="text-align:right;font-weight:700;color:#374151;" id="kf-total-before">Rp 0</td>
+                                <td style="text-align:right;font-weight:800;color:#DC2626;" id="kf-total-after">Rp 0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    {{-- Note --}}
+                    <div style="margin-top:10px;font-size:10px;color:#9CA3AF;line-height:1.5;">* Kolom <em>Setelah</em> menunjukkan estimasi cicilan jika pengajuan ini disetujui.</div>
+                </div>
             </div>
 
             <button type="submit" class="btn-submit">
@@ -644,12 +739,25 @@ async function cari() {
             // Reset detail view
             document.getElementById('active-loans-detail').classList.remove('show');
             document.getElementById('btn-expand-loans').classList.remove('active');
-            
+
+            // ── Kondisi Finansial: pisah cicilan per metode ──
+            _simpanan = parseFloat(d.total_simpanan) || 0;
+            _gajiExisting = activeLoans
+                .filter(p => !p.payment_method || p.payment_method === 'gaji')
+                .reduce((s, p) => s + (parseFloat(p.cicilan_per_bulan) || 0), 0);
+            _mandiriExisting = activeLoans
+                .filter(p => p.payment_method === 'mandiri')
+                .reduce((s, p) => s + (parseFloat(p.cicilan_per_bulan) || 0), 0);
+
+            // Tampilkan card kondisi
+            document.getElementById('card-kondisi').style.display = 'block';
+
             buildRefinanceList();
             hitung();
         } else {
             alert('Anggota tidak ditemukan.');
             document.getElementById('mb-expand-container').style.display = 'none';
+            document.getElementById('card-kondisi').style.display = 'none';
         }
     } catch(e) {
         console.error(e);
@@ -829,7 +937,7 @@ function hitung() {
     const j = parseFloat(document.getElementById('jumlah').value) || 0;
     const t = parseInt(document.getElementById('tenor').value) || 0;
 
-    // Cek limit dari parent pinjaman (sudah dikurangi penggunaan jenis yang sama)
+    // Cek limit dari parent pinjaman
     const jenisEl      = document.getElementById('jenis');
     const limitMax     = parseFloat(jenisEl.dataset.activelimit)   || 0;
     const sisaLimit    = parseFloat(jenisEl.dataset.sisa_limit)    || 0;
@@ -839,7 +947,6 @@ function hitung() {
     const noticeText   = document.getElementById('limit-notice-text');
 
     if (limitMax > 0 && j > sisaLimit) {
-        // Total yang akan terpakai jika pengajuan disetujui
         const totalTerpakai = sudahDipakai + j;
         noticeText.innerHTML =
             `Jumlah pengajuan <strong>${rp(j)}</strong> melebihi sisa limit yang tersedia.<br>` +
@@ -864,18 +971,44 @@ function hitung() {
         });
     }
 
-    // Hitung Net Disbursed
+    // ── Validasi: jumlah pinjaman tidak boleh < total payoff ──
+    const payoffError    = document.getElementById('payoff-error');
+    const payoffErrText  = document.getElementById('payoff-error-text');
+    const submitBtn      = document.querySelector('.btn-submit');
+    const isPayoffInvalid = totalPayoff > 0 && j < totalPayoff;
+
+    if (isPayoffInvalid) {
+        payoffErrText.innerHTML =
+            `Jumlah pinjaman <strong>${rp(j)}</strong> lebih kecil dari total pelunasan <strong>${rp(totalPayoff)}</strong>. ` +
+            `Minimal pinjam <strong>${rp(totalPayoff)}</strong>.`;
+        payoffError.classList.add('show');
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor  = 'not-allowed';
+    } else {
+        payoffError.classList.remove('show');
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
+        submitBtn.style.cursor  = '';
+    }
+
     let net = j - totalPayoff;
 
     // Hitung Cicilan (Bunga Flat)
     let totalBunga = j * (currentBunga / 100) * t;
-    let cicilan = t > 0 ? (j + totalBunga) / t : 0;
+    let totalKeseluruhan = j + totalBunga;
+    let cicilan = t > 0 ? totalKeseluruhan / t : 0;
 
     // Update UI Summary
-    document.getElementById('sum-pokok').textContent  = rp(j);
-    document.getElementById('sum-payoff').textContent = totalPayoff > 0 ? rp(totalPayoff) : 'Rp 0';
-    document.getElementById('sum-net').textContent    = rp(net);
-    document.getElementById('sum-cicilan').textContent= rp(cicilan);
+    document.getElementById('sum-pokok').textContent            = rp(j);
+    document.getElementById('sum-total-bunga').textContent      = rp(totalBunga);
+    document.getElementById('sum-total-keseluruhan').textContent= rp(totalKeseluruhan);
+    document.getElementById('sum-payoff').textContent           = totalPayoff > 0 ? rp(totalPayoff) : 'Rp 0';
+    document.getElementById('sum-net').textContent              = rp(net);
+    document.getElementById('sum-cicilan').textContent          = rp(cicilan);
+
+    // Update Kondisi Finansial card (after values)
+    updateKondisiFinansial(cicilan);
 
     // Update Hidden Inputs for Backend Form Submit
     const container = document.getElementById('pelunasan_inputs');
@@ -885,9 +1018,41 @@ function hitung() {
     });
 }
 
+/* ─── Kondisi Finansial Card ─── */
+let _simpanan = 0, _gajiExisting = 0, _mandiriExisting = 0;
+
+function updateKondisiFinansial(cicilanBaru) {
+    // Determine payment method
+    const pm = document.querySelector('input[name="payment_method"]:checked')?.value || 'gaji';
+
+    const gajiAfter    = pm === 'gaji'    ? _gajiExisting + cicilanBaru    : _gajiExisting;
+    const mandiriAfter = pm === 'mandiri' ? _mandiriExisting + cicilanBaru : _mandiriExisting;
+
+    document.getElementById('kf-simpanan').textContent       = rp(_simpanan);
+    document.getElementById('kf-gaji-before').textContent    = rp(_gajiExisting);
+    document.getElementById('kf-mandiri-before').textContent = rp(_mandiriExisting);
+    document.getElementById('kf-gaji-after').textContent     = rp(gajiAfter);
+    document.getElementById('kf-mandiri-after').textContent  = rp(mandiriAfter);
+    document.getElementById('kf-total-before').textContent   = rp(_gajiExisting + _mandiriExisting);
+    document.getElementById('kf-total-after').textContent    = rp(gajiAfter + mandiriAfter);
+}
+
+function toggleKondisi() {
+    const body   = document.getElementById('kondisi-body');
+    const caret  = document.getElementById('kondisi-caret');
+    const isOpen = body.style.display !== 'none';
+    body.style.display  = isOpen ? 'none' : 'block';
+    caret.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
 // Inisialisasi on load
 document.addEventListener("DOMContentLoaded", () => {
     updateTenor(document.getElementById('tenor').value);
+
+    // Re-run kondisi card when payment method changes
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', () => hitung());
+    });
 });
 </script>
 @endsection

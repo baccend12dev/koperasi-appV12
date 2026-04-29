@@ -197,6 +197,70 @@ class PinjamanController extends Controller
         return view('pinjaman.aktif_show', compact('pinjaman', 'angsuranLunas', 'totalAngsuran', 'progressPersen'));
     }
 
+    public function bayarLangsung(Request $request, $id) {
+        $request->validate([
+            'tanggal_bayar' => 'required|date',
+        ]);
+
+        $pinjaman = Pinjaman::findOrFail($id);
+
+        if ($pinjaman->status === 'lunas') {
+            return back()->with('error', 'Pinjaman ini sudah lunas.');
+        }
+
+        // Ambil angsuran berikutnya yang belum bayar
+        $angsuran = PinjamanAngsuran::where('loan_id', $pinjaman->id)
+            ->where('status', 'belum_bayar')
+            ->orderBy('angsuran_ke', 'asc')
+            ->first();
+
+        if (!$angsuran) {
+            return back()->with('error', 'Tidak ada angsuran yang perlu dibayar.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // 1. Catat pembayaran
+            $pembayaran = \App\Models\PembayaranAngsuran::create([
+                'type_bayar'   => 'mandiri',
+                'jumlah'       => $angsuran->jumlah_tagihan,
+                'user_id'      => $pinjaman->user_id,
+                'loan_id'      => $pinjaman->id,
+                'angsuran_id'  => $angsuran->id,
+                'tanggal_bayar'=> $request->tanggal_bayar,
+            ]);
+
+            // 2. Update angsuran
+            $angsuran->update([
+                'status'        => 'sudah_bayar',
+                'jumlah_dibayar'=> $angsuran->jumlah_tagihan,
+                'tanggal_bayar' => $request->tanggal_bayar,
+                'paid_at'       => $request->tanggal_bayar,
+                'payment_id'    => $pembayaran->id,
+            ]);
+
+            // 3. Update pinjaman
+            $pinjaman->update([
+                'total_terbayar' => $pinjaman->total_terbayar + $angsuran->jumlah_tagihan,
+                'sisa_pinjaman'  => $pinjaman->sisa_pinjaman  - $angsuran->jumlah_tagihan,
+                'sisa_tenor'     => $pinjaman->sisa_tenor - 1,
+            ]);
+
+            // 4. Cek apakah lunas
+            $remaining = PinjamanAngsuran::where('loan_id', $pinjaman->id)
+                ->where('status', 'belum_bayar')->count();
+            if ($remaining === 0) {
+                $pinjaman->update(['status' => 'lunas']);
+            }
+
+            DB::commit();
+            return back()->with('success', 'Pembayaran angsuran ke-' . $angsuran->angsuran_ke . ' berhasil diproses!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memproses: ' . $e->getMessage());
+        }
+    }
+
 
     public function create() {
         $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();

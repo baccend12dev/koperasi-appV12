@@ -109,10 +109,10 @@
             { id: 'kasir', name: 'Pembayaran / Pencairan', icon: 'fas fa-cash-register', color: 'text-teal-500', bgColor: 'bg-teal-100', url: '/pencairan/pinjaman' },
             { id: 'persetujuan', name: 'Persetujuan', icon: 'fas fa-check-double', color: 'text-indigo-500', bgColor: 'bg-indigo-100', url: '/persetujuan/pinjaman' },
             { id: 'dokumen', name: 'Dokumen', icon: 'fas fa-folder-open', color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
-            { id: 'laporan', name: 'Laporan', icon: 'fas fa-chart-pie', color: 'text-red-500', bgColor: 'bg-red-100' },
-            { id: 'rapat', name: 'Rapat', icon: 'fas fa-calendar-check', color: 'text-blue-600', bgColor: 'bg-blue-100' },
+            { id: 'laporan', name: 'Laporan', icon: 'fas fa-chart-pie', color: 'text-red-500', bgColor: 'bg-red-100', url: '/laporan' },
+            { id: 'rapat', name: 'Rapat', icon: 'fas fa-calendar-check', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/rapat' },
             { id: 'diskusi', name: 'Diskusi', icon: 'fas fa-comments', color: 'text-amber-500', bgColor: 'bg-amber-100' },
-            { id: 'pengaturan', name: 'Pengaturan', icon: 'fas fa-cog', color: 'text-gray-600', bgColor: 'bg-gray-100' }
+            { id: 'konfigurasi', name: 'Konfigurasi', icon: 'fas fa-cog', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/konfigurasi' }
         ];
 
         const gridContainer = document.getElementById('module-grid');

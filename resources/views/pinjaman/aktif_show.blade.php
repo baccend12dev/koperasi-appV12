@@ -24,10 +24,18 @@
             </svg>
             Kembali
         </a>
-        <a href="#" class="btn-primary" style="background:#059669; color:#fff; font-size:12px; font-weight:600; padding:0 12px; border-radius:6px; height:32px; display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+        @php $nextAngsuran = $pinjaman->angsuran->where('status','belum_bayar')->sortBy('angsuran_ke')->first(); @endphp
+        @if($pinjaman->status !== 'lunas' && $nextAngsuran)
+        <button type="button" onclick="openModalBayar()" style="background:#059669; color:#fff; font-size:12px; font-weight:600; padding:0 12px; border-radius:6px; height:32px; display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
             Bayar Langsung
-        </a>
+        </button>
+        @else
+        <span style="background:#E5E7EB; color:#9CA3AF; font-size:12px; font-weight:600; padding:0 12px; border-radius:6px; height:32px; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            {{ $pinjaman->status === 'lunas' ? 'Pinjaman Lunas' : 'Belum Ada Angsuran' }}
+        </span>
+        @endif
     </div>
 @endsection
 
@@ -397,6 +405,105 @@
             </table>
         </div>
     </div>
-
 </div>
+
+{{-- Flash alerts --}}
+@if(session('success'))
+<div style="position:fixed;top:16px;right:16px;z-index:9999;background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-width:360px;" id="flashMsg">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    {{ session('success') }}
+</div>
+@endif
+@if(session('error'))
+<div style="position:fixed;top:16px;right:16px;z-index:9999;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-width:360px;" id="flashMsg">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    {{ session('error') }}
+</div>
+@endif
+
+{{-- ══ Modal Bayar Langsung ══ --}}
+@php $nextAngsuran = $nextAngsuran ?? $pinjaman->angsuran->where('status','belum_bayar')->sortBy('angsuran_ke')->first(); @endphp
+<div id="modalBayarLangsung" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(17,24,39,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <form method="POST" action="{{ route('pinjaman.aktif.bayarLangsung', $pinjaman->id) }}"
+          style="background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:100%;max-width:420px;overflow:hidden;margin:16px;">
+        @csrf
+
+        {{-- Header --}}
+        <div style="padding:18px 24px;border-bottom:1px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;background:#F0FDF4;">
+            <div>
+                <h3 style="margin:0;font-size:15px;font-weight:800;color:#065F46;">Bayar Langsung</h3>
+                <p style="margin:2px 0 0;font-size:11px;color:#6B7280;">{{ $pinjaman->anggota->nama_anggota }} · #LP-{{ str_pad($pinjaman->id,4,'0',STR_PAD_LEFT) }}</p>
+            </div>
+            <button type="button" onclick="closeModalBayar()" style="border:none;background:none;cursor:pointer;color:#9CA3AF;padding:4px;">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        {{-- Info Cards --}}
+        <div style="padding:18px 24px;border-bottom:1px solid #F3F4F6;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#92400E;margin-bottom:4px;">Sisa Pinjaman</div>
+                    <div style="font-size:17px;font-weight:800;color:#B45309;line-height:1.2;">Rp {{ number_format($pinjaman->sisa_pinjaman, 0, ',', '.') }}</div>
+                    <div style="font-size:10px;color:#92400E;margin-top:2px;">{{ $pinjaman->sisa_tenor ?? '-' }} angsuran tersisa</div>
+                </div>
+                @if($nextAngsuran)
+                <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:12px 14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#065F46;margin-bottom:4px;">Angsuran Ke-{{ $nextAngsuran->angsuran_ke }}</div>
+                    <div style="font-size:17px;font-weight:800;color:#059669;line-height:1.2;">Rp {{ number_format($nextAngsuran->jumlah_tagihan, 0, ',', '.') }}</div>
+                    <div style="font-size:10px;color:#065F46;margin-top:2px;">yang akan dibayar sekarang</div>
+                </div>
+                @endif
+            </div>
+
+            {{-- Mini breakdown --}}
+            <div style="margin-top:12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;font-size:12px;color:#6B7280;display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;justify-content:space-between;">
+                    <span>Total Pinjaman Awal</span>
+                    <span style="font-weight:700;color:#111;">Rp {{ number_format($pinjaman->total_pinjaman, 0, ',', '.') }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                    <span>Total Terbayar</span>
+                    <span style="font-weight:700;color:#059669;">Rp {{ number_format($pinjaman->total_terbayar, 0, ',', '.') }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Form --}}
+        <div style="padding:18px 24px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">
+                Tanggal Bayar <span style="color:#DC2626;">*</span>
+            </label>
+            <input type="date" name="tanggal_bayar" required value="{{ date('Y-m-d') }}"
+                   style="width:100%;border:1.5px solid #D1D5DB;border-radius:8px;padding:9px 12px;font-size:14px;color:#111827;box-sizing:border-box;outline:none;transition:.15s;"
+                   onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#D1D5DB'">
+            <p style="font-size:11px;color:#9CA3AF;margin:6px 0 0;">Tanggal ini akan dicatat sebagai tanggal pembayaran angsuran.</p>
+        </div>
+
+        {{-- Footer --}}
+        <div style="padding:14px 24px;background:#F9FAFB;border-top:1px solid #E5E7EB;display:flex;justify-content:flex-end;gap:10px;">
+            <button type="button" onclick="closeModalBayar()" style="padding:8px 18px;font-size:13px;font-weight:600;color:#374151;background:#fff;border:1px solid #D1D5DB;border-radius:8px;cursor:pointer;">Batal</button>
+            <button type="submit"
+                    style="padding:8px 20px;font-size:13px;font-weight:700;color:#fff;background:#059669;border:none;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Proses Pembayaran
+            </button>
+        </div>
+    </form>
+</div>
+
+</div>{{-- end .detail-container --}}
 @endsection
+
+@push('scripts')
+<script>
+function openModalBayar()  { const m = document.getElementById('modalBayarLangsung'); m.style.display='flex'; }
+function closeModalBayar() { const m = document.getElementById('modalBayarLangsung'); m.style.display='none'; }
+document.getElementById('modalBayarLangsung').addEventListener('click', function(e) {
+    if (e.target === this) closeModalBayar();
+});
+// Auto-hide flash after 4s
+const flash = document.getElementById('flashMsg');
+if (flash) setTimeout(() => flash.style.display='none', 4000);
+</script>
+@endpush

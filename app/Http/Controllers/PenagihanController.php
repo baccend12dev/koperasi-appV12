@@ -13,42 +13,60 @@ class PenagihanController extends Controller
 {
     public function generator(Request $request)
     {
-        $bills = PenagihanBill::latest()->paginate(10);
-        $anggotaAktif = Anggota::whereIn('status_anggota', ['active', 'aktif'])->count();
+        $billsGabungan = PenagihanBill::where('type', 'Gabungan')->latest()->paginate(10, ['*'], 'gabungan');
+        $billsMandiri  = PenagihanBill::where('type', 'Mandiri')->latest()->paginate(10, ['*'], 'mandiri');
+        $anggotaAktif  = Anggota::whereIn('status_anggota', ['active', 'aktif'])->count();
         $pinjamanAktif = Pinjaman::where('status', 'berjalan')->count();
-        
-        return view('penagihan.tagihan_generator', compact('bills', 'anggotaAktif', 'pinjamanAktif'));
+
+        return view('penagihan.tagihan_generator', compact('billsGabungan', 'billsMandiri', 'anggotaAktif', 'pinjamanAktif'));
     }
 
     public function index(Request $request)
     {
-        $availableBills = PenagihanBill::orderBy('tgl_generate', 'desc')->get();
-        
-        $selectedYear = $request->input('year', date('Y'));
-        $selectedMonth = $request->input('month', date('n')); // n is numeric month without leading zeros
+        // All bills for sidebar — unique by tgl_generate (deduplicated periods)
+        $availableBills = PenagihanBill::orderBy('tgl_generate', 'desc')->get()
+            ->unique(fn($b) => \Carbon\Carbon::parse($b->tgl_generate)->format('Y-m'));
 
-        $currentBill = PenagihanBill::whereYear('tgl_generate', $selectedYear)
+        $selectedYear  = $request->input('year',  date('Y'));
+        $selectedMonth = $request->input('month', date('n'));
+
+        // Default to latest period when no filter
+        if (!$request->has('year') && !$request->has('month') && $availableBills->isNotEmpty()) {
+            $latestTgl    = \Carbon\Carbon::parse($availableBills->first()->tgl_generate);
+            $selectedYear  = $latestTgl->format('Y');
+            $selectedMonth = $latestTgl->format('n');
+        }
+
+        // Fetch each type separately for the selected period
+        $billGabungan = PenagihanBill::where('type', 'Gabungan')
+            ->whereYear('tgl_generate', $selectedYear)
             ->whereMonth('tgl_generate', $selectedMonth)
             ->first();
-            
-        // If no select provided in request, but we have bills, default to latest bill's year and month
-        if (!$request->has('year') && !$request->has('month') && $availableBills->isNotEmpty()) {
-            $latestTgl = \Carbon\Carbon::parse($availableBills->first()->tgl_generate);
-            $selectedYear = $latestTgl->format('Y');
-            $selectedMonth = $latestTgl->format('n');
-            $currentBill = $availableBills->first();
-        }
-            
-        $details = collect();
-        if ($currentBill) {
-            $details = \App\Models\PenagihanBillDetail::with('anggota')
-                ->where('penagihan_bill_id', $currentBill->id)
-                ->orderBy('jumlah_pinjaman', 'desc')
-                ->get();
-        }
 
-        return view('penagihan.index', compact('availableBills', 'selectedYear', 'selectedMonth', 'currentBill', 'details'));
+        $billMandiri = PenagihanBill::where('type', 'Mandiri')
+            ->whereYear('tgl_generate', $selectedYear)
+            ->whereMonth('tgl_generate', $selectedMonth)
+            ->first();
+
+        $detailsGabungan = $billGabungan
+            ? \App\Models\PenagihanBillDetail::with('anggota')
+                ->where('penagihan_bill_id', $billGabungan->id)
+                ->orderBy('jumlah_pinjaman', 'desc')->get()
+            : collect();
+
+        $detailsMandiri = $billMandiri
+            ? \App\Models\PenagihanBillDetail::with('anggota')
+                ->where('penagihan_bill_id', $billMandiri->id)
+                ->orderBy('jumlah_pinjaman', 'desc')->get()
+            : collect();
+
+        return view('penagihan.index', compact(
+            'availableBills', 'selectedYear', 'selectedMonth',
+            'billGabungan', 'billMandiri',
+            'detailsGabungan', 'detailsMandiri'
+        ));
     }
+
 
     public function storeGenerate(Request $request)
     {
@@ -93,12 +111,16 @@ class PenagihanController extends Controller
                 $simpananSukarela = $anggota->masterSimpanan->simpanan_sukarela ?? 0;
                 $jumlahSimpanan = $simpananPokok + $simpananWajib + $simpananSukarela;
 
-                // 2. Pinjaman
+                // 2. Pinjaman — hanya yang payment_method BUKAN mandiri (gaji / null)
                 $jumlahPinjaman = 0;
                 $angsuranToLink = [];
-                
+
                 foreach ($anggota->pinjaman as $pinjam) {
-                    $firstUnpaid = $pinjam->angsuran->first(); // get the earliest unpaid angsuran
+                    // Lewati pinjaman mandiri — akan ditangani menu terpisah
+                    if (($pinjam->payment_method ?? 'gaji') === 'mandiri') {
+                        continue;
+                    }
+                    $firstUnpaid = $pinjam->angsuran->first();
                     if ($firstUnpaid) {
                         $jumlahPinjaman += $firstUnpaid->jumlah_tagihan;
                         $angsuranToLink[] = $firstUnpaid->id;
@@ -136,6 +158,88 @@ class PenagihanController extends Controller
             DB::commit();
 
             return redirect()->route('penagihan.generator')->with('success', 'Tagihan Gabungan berhasil di-generate.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function storeGenerateMandiri(Request $request)
+    {
+        $request->validate([
+            'periode'          => 'required',
+            'tanggal_generate' => 'required|date',
+        ]);
+
+        $periodeName = date('F Y', strtotime($request->periode));
+
+        // Cek duplikat untuk type Mandiri saja
+        $exists = PenagihanBill::where('periode', $periodeName)->where('type', 'Mandiri')->first();
+        if ($exists) {
+            return back()->with('error', 'Tagihan Mandiri untuk periode ini sudah ada.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $bill = PenagihanBill::create([
+                'periode'      => $periodeName,
+                'tgl_generate' => $request->tanggal_generate,
+                'total_amount' => 0,
+                'status'       => 'Draft',
+                'type'         => 'Mandiri',
+                'keterangan'   => 'Tagihan Pinjaman Mandiri',
+            ]);
+
+            // Hanya anggota dengan pinjaman aktif payment_method = mandiri
+            $anggotas = Anggota::with(['pinjaman' => function ($q) {
+                $q->where('status', 'berjalan')->where('payment_method', 'mandiri');
+            }, 'pinjaman.angsuran' => function ($q) {
+                $q->where('status', 'belum_bayar')->orderBy('angsuran_ke', 'asc');
+            }])->whereIn('status_anggota', ['active', 'aktif'])->get();
+
+            $tagihanTotal = 0;
+
+            foreach ($anggotas as $anggota) {
+                $jumlahPinjaman = 0;
+                $angsuranToLink = [];
+
+                foreach ($anggota->pinjaman as $pinjam) {
+                    $firstUnpaid = $pinjam->angsuran->first();
+                    if ($firstUnpaid) {
+                        $jumlahPinjaman += $firstUnpaid->jumlah_tagihan;
+                        $angsuranToLink[] = $firstUnpaid->id;
+                    }
+                }
+
+                if ($jumlahPinjaman > 0) {
+                    \App\Models\PenagihanBillDetail::create([
+                        'penagihan_bill_id' => $bill->id,
+                        'anggota_id'        => $anggota->id,
+                        'simpanan_pokok'    => 0,
+                        'simpanan_wajib'    => 0,
+                        'simpanan_sukarela' => 0,
+                        'jumlah_simpanan'   => 0,
+                        'jumlah_pinjaman'   => $jumlahPinjaman,
+                        'total_potongan'    => $jumlahPinjaman,
+                        'status'            => 'Belum Lunas',
+                    ]);
+
+                    if (count($angsuranToLink) > 0) {
+                        PinjamanAngsuran::whereIn('id', $angsuranToLink)->update([
+                            'penagihan_bill_id' => $bill->id,
+                        ]);
+                    }
+
+                    $tagihanTotal += $jumlahPinjaman;
+                }
+            }
+
+            $bill->update(['total_amount' => $tagihanTotal]);
+
+            DB::commit();
+            return redirect()->route('penagihan.generator')
+                ->with('success', 'Tagihan Mandiri ' . $periodeName . ' berhasil di-generate (' . $tagihanTotal . ' total).')
+                ->withFragment('tab-mandiri');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());

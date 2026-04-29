@@ -34,7 +34,7 @@ Route::get('/', function () {
     Route::get('learning', fn() => view('learning.index'))->name('learning.index');
 
     // ── Laporan ───────────────────────────────────────────
-    Route::resource('laporan', LaporanController::class);
+    Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
 
     // ── Simpanan ───────────────────────────────────────────
     Route::get('simpanan/tagihangenerator', [SimpananController::class, 'tagihangenerator'])
@@ -66,6 +66,7 @@ Route::get('/', function () {
     Route::post('pinjaman/approval/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPinjaman'])->name('pinjaman.approval.reject');
     Route::get('pinjaman/aktif', [App\Http\Controllers\PinjamanController::class, 'aktif'])->name('pinjaman.aktif');
     Route::get('pinjaman/aktif/{id}', [App\Http\Controllers\PinjamanController::class, 'showAktif'])->name('pinjaman.aktif.show');
+    Route::post('pinjaman/aktif/{id}/bayar-langsung', [App\Http\Controllers\PinjamanController::class, 'bayarLangsung'])->name('pinjaman.aktif.bayarLangsung');
     Route::get('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'angsuran'])->name('pinjaman.angsuran');
     Route::post('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'storeAngsuran'])->name('pinjaman.angsuran.store');
     Route::post('pinjaman/angsuran/bayar', [App\Http\Controllers\PinjamanController::class, 'bayarAngsuran'])->name('pinjaman.angsuran.bayar');
@@ -78,6 +79,7 @@ Route::get('/', function () {
     Route::get('penagihan', [App\Http\Controllers\PenagihanController::class, 'index'])->name('penagihan.index');
     Route::get('penagihan/tagihan-generator', [App\Http\Controllers\PenagihanController::class, 'generator'])->name('penagihan.generator');
     Route::post('penagihan/tagihan-generator/generate', [App\Http\Controllers\PenagihanController::class, 'storeGenerate'])->name('penagihan.storeGenerate');
+    Route::post('penagihan/tagihan-generator/generate-mandiri', [App\Http\Controllers\PenagihanController::class, 'storeGenerateMandiri'])->name('penagihan.storeGenerateMandiri');
     Route::post('penagihan/tagihan-generator/bayar', [App\Http\Controllers\PenagihanController::class, 'bayar'])->name('penagihan.bayar');
     Route::get('penagihan/tagihan-generator/export/{id}', [App\Http\Controllers\PenagihanController::class, 'exportExcel'])->name('penagihan.exportExcel');
     Route::get('penagihan/tagihan-generator/{id}', [App\Http\Controllers\PenagihanController::class, 'show'])->name('penagihan.show');
