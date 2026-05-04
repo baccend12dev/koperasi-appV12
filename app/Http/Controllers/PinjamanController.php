@@ -392,6 +392,10 @@ class PinjamanController extends Controller
                 'jumlah_pinjaman' => $p->jumlah_pinjaman,
                 'total_pinjaman'  => $p->total_pinjaman,
                 'cicilan_per_bulan' => $p->cicilan_per_bulan,
+                'total_bunga'     => $p->total_bunga,
+                'bunga'           => $p->bunga,
+                'tenor'           => $p->tenor,
+                'payment_method'  => $p->payment_method,
                 'status'          => $p->status
             ];
         });

@@ -484,10 +484,21 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
 
                 <div class="f-group" style="margin-bottom: 8px;">
                     <label class="f-label">Tenor (Bulan)</label>
-                    <div class="slider-wrap">
-                        <input type="range" class="range-slider" id="tenor" name="tenor" min="6" max="36" step="6" value="24" oninput="updateTenor(this.value)">
-                        <div class="tenor-badge" id="tenor-badge">24 Bulan</div>
+                    <div class="f-input-wrap" style="background: #fff; border: 1.5px solid #E5E7EB; margin-bottom: 8px;">
+                        <select class="f-input" id="tenor_select" onchange="onTenorSelectChange()">
+                            <option value="6">6 Bulan</option>
+                            <option value="12">12 Bulan</option>
+                            <option value="18">18 Bulan</option>
+                            <option value="24" selected>24 Bulan</option>
+                            <option value="30">30 Bulan</option>
+                            <option value="36">36 Bulan</option>
+                            <option value="custom">Lainnya...</option>
+                        </select>
                     </div>
+                    <div class="f-input-wrap" id="custom_tenor_wrap" style="display: none; background: #fff; border: 1.5px solid #E5E7EB;">
+                        <input type="number" class="f-input" id="custom_tenor" placeholder="Masukkan jumlah bulan" oninput="updateCustomTenor(this.value)" min="1">
+                    </div>
+                    <input type="hidden" id="tenor" name="tenor" value="24">
                 </div>
 
                 {{-- ══ PAYMENT METHOD SECTION ══ --}}
@@ -719,7 +730,7 @@ async function cari() {
 
         if (data.success) {
             const d = data.data;
-            console.log(d);
+            // console.log(d);
             activeLoans    = d.pinjaman_berjalan || [];
             usagePerParent = d.usage_per_parent  || {};
             
@@ -789,8 +800,11 @@ function renderLoansDetail() {
             <thead>
                 <tr>
                     <th>Jenis & ID Pinjaman</th>
+                    <th>Jumlah Pinjaman</th>
+                    <th>Total Bunga</th>
                     <th>Sisa Tagihan</th>
                     <th>Cicilan / Bulan</th>
+                    <th>Metode</th>
                     <th style="text-align:right;">Sisa Tenor</th>
                 </tr>
             </thead>
@@ -799,14 +813,22 @@ function renderLoansDetail() {
 
     activeLoans.forEach(p => {
         const sisaBulan = p.sisa_tenor_label ? p.sisa_tenor_label : p.sisa_tenor + ' bulan tersisa';
+        const paymentMethod = p.payment_method ? (p.payment_method.charAt(0).toUpperCase() + p.payment_method.slice(1)) : 'Gaji';
+        const totalBungaLabel = rp(parseFloat(p.total_bunga) || 0) + ' (' + parseFloat(p.bunga*p.tenor || 0) + '%)';
+        
         html += `
             <tr>
                 <td>
                     <div class="ref-name">${p.jenis_pinjaman}</div>
                     <div class="ref-id">ID: LN-2023-${p.id.toString().padStart(3, '0')}</div>
                 </td>
+                <td><div class="ref-val">${rp(parseFloat(p.jumlah_pinjaman) || 0)}</div></td>
+                <td><div class="ref-val">${totalBungaLabel}</div></td>
                 <td><div class="ref-val">${rp(parseFloat(p.sisa_tagihan) || 0)}</div></td>
                 <td><div class="ref-val">${rp(parseFloat(p.cicilan_per_bulan) || 0)}</div></td>
+                <td>
+                    <div class="ref-val" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;${p.payment_method === 'mandiri' ? 'background:#DBEAFE;color:#1D4ED8;' : 'background:#DCFCE7;color:#15803D;'}">${paymentMethod}</div>
+                </td>
                 <td style="text-align:right;"><div class="ref-val ref-orange">${sisaBulan}</div></td>
             </tr>
         `;
@@ -857,8 +879,49 @@ function onJenis() {
     hitung();
 }
 
+function onTenorSelectChange() {
+    const val = document.getElementById('tenor_select').value;
+    const customWrap = document.getElementById('custom_tenor_wrap');
+    if (val === 'custom') {
+        customWrap.style.display = 'flex';
+        const customVal = document.getElementById('custom_tenor').value;
+        document.getElementById('tenor').value = customVal ? customVal : 0;
+        hitung();
+    } else {
+        customWrap.style.display = 'none';
+        document.getElementById('tenor').value = val;
+        hitung();
+    }
+}
+
+function updateCustomTenor(val) {
+    if (val && parseInt(val) > 0) {
+        document.getElementById('tenor').value = parseInt(val);
+    } else {
+        document.getElementById('tenor').value = 0;
+    }
+    hitung();
+}
+
 function updateTenor(val) {
-    document.getElementById('tenor-badge').textContent = val + ' Bulan';
+    const select = document.getElementById('tenor_select');
+    let optionExists = false;
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value == val) {
+            optionExists = true;
+            break;
+        }
+    }
+    
+    if (optionExists) {
+        select.value = val;
+        document.getElementById('custom_tenor_wrap').style.display = 'none';
+    } else {
+        select.value = 'custom';
+        document.getElementById('custom_tenor_wrap').style.display = 'flex';
+        document.getElementById('custom_tenor').value = val;
+    }
+    document.getElementById('tenor').value = val;
     hitung();
 }
 

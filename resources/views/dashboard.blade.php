@@ -166,6 +166,37 @@
 
         // Jalankan render saat halaman dimuat
         document.addEventListener('DOMContentLoaded', renderModules);
+
+        // Fungsi toggle note
+        function toggleNote() {
+            const panel = document.getElementById('note-panel');
+            if (panel.classList.contains('scale-0')) {
+                panel.classList.remove('scale-0', 'opacity-0', 'pointer-events-none');
+                panel.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
+                setTimeout(() => panel.querySelector('textarea').focus(), 300);
+            } else {
+                panel.classList.add('scale-0', 'opacity-0', 'pointer-events-none');
+                panel.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
+            }
+        }
     </script>
+
+    <!-- Floating Note Button & Panel -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+        <!-- Note Panel -->
+        <div id="note-panel" class="mb-4 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 transform scale-0 opacity-0 origin-bottom-right transition-all duration-300 pointer-events-none overflow-hidden">
+            <div class="bg-amber-400 px-4 py-3 flex justify-between items-center text-white shadow-sm">
+                <h3 class="font-bold flex items-center gap-2 text-sm"><i class="fas fa-sticky-note"></i> Catatan Cepat</h3>
+                <button onclick="toggleNote()" class="hover:text-amber-100 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-3 bg-yellow-50/50">
+                <textarea class="w-full h-32 bg-transparent border-none focus:ring-0 resize-none text-gray-700 placeholder-gray-400 text-sm outline-none" placeholder="Ketik catatan Anda di sini..."></textarea>
+            </div>
+        </div>
+        <!-- FAB Button -->
+        <button onclick="toggleNote()" class="pointer-events-auto w-14 h-14 bg-amber-400 hover:bg-amber-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center transform hover:-translate-y-1">
+            <i class="fas fa-pen text-xl"></i>
+        </button>
+    </div>
 </body>
 </html>

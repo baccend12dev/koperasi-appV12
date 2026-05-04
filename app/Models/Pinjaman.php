@@ -28,4 +28,5 @@ class Pinjaman extends Model
     {
         return $this->belongsTo(MasterJenisPinjaman::class, 'jenis_pinjaman_id');
     }
+
 }
