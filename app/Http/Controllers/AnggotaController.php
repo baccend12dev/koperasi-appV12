@@ -190,6 +190,7 @@ class AnggotaController extends Controller
             'no_hp' => 'nullable|string|max:255',
             'tanggungan' => 'nullable|integer|min:0|max:20',
             'alamat' => 'nullable|string',
+            'status_anggota' => 'required|string',
         ]);
 
         $anggota->update($validated);

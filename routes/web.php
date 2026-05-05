@@ -78,6 +78,9 @@ Route::get('/', function () {
     // ── Penagihan ──────────────────────────────────────────
     Route::get('penagihan', [App\Http\Controllers\PenagihanController::class, 'index'])->name('penagihan.index');
     Route::get('penagihan/tagihan-generator', [App\Http\Controllers\PenagihanController::class, 'generator'])->name('penagihan.generator');
+    Route::get('penagihan/invoice', [App\Http\Controllers\PenagihanController::class, 'invoice'])->name('penagihan.invoice');
+    Route::post('penagihan/invoice/generate', [App\Http\Controllers\PenagihanController::class, 'storeGenerateInvoice'])->name('penagihan.invoice.generate');
+    Route::get('penagihan/invoice/{id}', [App\Http\Controllers\PenagihanController::class, 'showInvoice'])->name('penagihan.invoice.show');
     Route::post('penagihan/tagihan-generator/generate', [App\Http\Controllers\PenagihanController::class, 'storeGenerate'])->name('penagihan.storeGenerate');
     Route::post('penagihan/tagihan-generator/generate-mandiri', [App\Http\Controllers\PenagihanController::class, 'storeGenerateMandiri'])->name('penagihan.storeGenerateMandiri');
     Route::post('penagihan/tagihan-generator/bayar', [App\Http\Controllers\PenagihanController::class, 'bayar'])->name('penagihan.bayar');

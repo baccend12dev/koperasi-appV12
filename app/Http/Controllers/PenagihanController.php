@@ -389,4 +389,91 @@ class PenagihanController extends Controller
             return back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
         }
     }
+
+    public function invoice(Request $request)
+    {
+        $invoices = \App\Models\InvoicePeriod::withCount('details')->latest()->paginate(10);
+        return view('penagihan.invoice_period', compact('invoices'));
+    }
+
+    public function storeGenerateInvoice(Request $request)
+    {
+        $request->validate([
+            'periode' => 'required|date_format:Y-m',
+        ]);
+
+        $periode = $request->periode;
+
+        if (\App\Models\InvoicePeriod::where('periode', $periode)->exists()) {
+            return back()->with('error', 'Invoice untuk periode ini sudah ada.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $invoice = \App\Models\InvoicePeriod::create([
+                'periode' => $periode,
+                'status' => 'generated',
+                'generated_at' => now(),
+                'created_by' => auth()->id() ?? null,
+            ]);
+
+            $pinjamans = Pinjaman::with('jenisPinjaman')->where('status', 'berjalan')->get();
+
+            $totalGaji = 0;
+            $totalMandiri = 0;
+
+            foreach ($pinjamans as $pinjam) {
+                $cicilan_ke = $pinjam->tenor - $pinjam->sisa_tenor + 1;
+                if ($cicilan_ke > $pinjam->tenor) {
+                    $cicilan_ke = $pinjam->tenor;
+                }
+
+                $cicilanAmount = $pinjam->cicilan_per_bulan;
+                $paymentMethod = strtolower($pinjam->payment_method) === 'mandiri' ? 'mandiri' : 'gaji';
+
+                \App\Models\InvoiceDetail::create([
+                    'invoice_period_id' => $invoice->id,
+                    'user_id' => $pinjam->user_id,
+                    'loan_id' => $pinjam->id,
+                    'payment_method' => $paymentMethod,
+                    'jenis_pinjaman' => $pinjam->jenisPinjaman->nama_jenis_pinjaman ?? 'Pinjaman',
+                    'cicilan_ke' => $cicilan_ke,
+                    'tenor' => $pinjam->tenor,
+                    'cicilan_amount' => $cicilanAmount,
+                    'sisa_pinjaman' => $pinjam->sisa_pinjaman,
+                    'sisa_tenor' => $pinjam->sisa_tenor,
+                    'status' => 'unpaid',
+                ]);
+
+                if ($paymentMethod === 'mandiri') {
+                    $totalMandiri += $cicilanAmount;
+                } else {
+                    $totalGaji += $cicilanAmount;
+                }
+            }
+
+            $invoice->update([
+                'total_gaji' => $totalGaji,
+                'total_mandiri' => $totalMandiri,
+                'total_amount' => $totalGaji + $totalMandiri,
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Invoice periode ' . $periode . ' berhasil digenerate.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function showInvoice($id)
+    {
+        $invoice = \App\Models\InvoicePeriod::findOrFail($id);
+        $details = \App\Models\InvoiceDetail::with('anggota')
+            ->where('invoice_period_id', $id)
+            ->orderBy('user_id')
+            ->get();
+
+        return view('penagihan.invoice_show', compact('invoice', 'details'));
+    }
 }

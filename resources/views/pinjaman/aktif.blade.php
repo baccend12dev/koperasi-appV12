@@ -188,6 +188,7 @@
                         <th class="px-6 py-4">TENOR (TOTAL / SISA)</th>
                         <th class="px-6 py-4">TERBAYAR</th>
                         <th class="px-6 py-4">SISA TAGIHAN</th>
+                        <th class="px-6 py-4">PEMBAYARAN</th>
                         <th class="px-6 py-4">STATUS</th>
                         <th class="px-6 py-4 text-center">AKSI</th>
                     </tr>
@@ -229,6 +230,13 @@
                                     <div class="font-bold text-indigo-600">Rp 0</div>
                                 @else
                                     <div class="font-bold text-amber-600">Rp {{ number_format($item->sisa_pinjaman, 0, ',', '.') }}</div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if ($item->payment_method == 'gaji')
+                                    <span class="badge">Gaji</span>
+                                @else
+                                    <span class="badge">Mandiri</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">

@@ -6,6 +6,7 @@
 @section('topbar-nav')
     <a href="{{ route('penagihan.index') }}" class="tb-link active">Dashboard</a>
     <a href="{{ route('penagihan.generator') }}" class="tb-link">Tagihan Generator</a>
+    <a href="{{ route('penagihan.invoice') }}" class="tb-link">Invoice</a>
 @endsection
 
 @section('page-title', 'Dashboard Penagihan')

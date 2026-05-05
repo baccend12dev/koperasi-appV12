@@ -169,6 +169,15 @@
         </div>
 
         <div class="form-group">
+            <label class="form-label">Status Anggota</label>
+            <select name="status_anggota" class="form-control">
+                <option value="active" {{ old('status_anggota', $anggota->status_anggota) === 'active' ? 'selected' : '' }}>Active</option>
+                <option value="nonactive" {{ old('status_anggota', $anggota->status_anggota) === 'nonactive' ? 'selected' : '' }}>Non-Active</option>
+            </select>
+            @error('status_anggota') <span style="color:var(--danger);font-size:12px;">{{ $message }}</span> @enderror
+        </div>
+
+        <div class="form-group">
             <label class="form-label">Alamat</label>
             <textarea name="alamat" class="form-control">{{ old('alamat', $anggota->alamat) }}</textarea>
             @error('alamat') <span style="color:var(--danger);font-size:12px;">{{ $message }}</span> @enderror
