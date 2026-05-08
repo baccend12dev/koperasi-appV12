@@ -203,6 +203,23 @@ class AnggotaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $anggota = Anggota::findOrFail($id);
+        
+        // Cek pinjaman berjalan atau pending
+        $adaPinjamanBerjalan = $anggota->pinjaman()->whereIn('status', ['pending', 'berjalan'])->exists();
+        if ($adaPinjamanBerjalan) {
+            return redirect()->back()->with('error', 'Tidak dapat menghapus anggota! Anggota ini masih memiliki pinjaman yang sedang berjalan atau pending.');
+        }
+
+        // Cek total simpanan
+        $saldo_awal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+        $total_simpanan = $anggota->transaksiSimpanan()->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela')) + $saldo_awal;
+        
+        if ($total_simpanan > 0) {
+            return redirect()->back()->with('error', 'Tidak dapat menghapus anggota! Anggota ini masih memiliki saldo simpanan.');
+        }
+
+        $anggota->delete();
+        return redirect()->route('anggota.index')->with('success', 'Anggota berhasil dihapus.');
     }
 }

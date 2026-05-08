@@ -434,8 +434,20 @@
             <span class="ps-info-value" style="line-height:1.4;">{{ $anggota->alamat }}</span>
         </div>
         @endif
+
+        <hr class="ps-divider">
+
+        <form action="{{ route('anggota.destroy', $anggota->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data anggota ini? Semua data terkait (simpanan, pinjaman, dll) mungkin akan terpengaruh atau terhapus.');" style="width: 100%;">
+            @csrf
+            @method('DELETE')
+            <button type="submit" style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 10px 16px; background-color: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Hapus Anggota
+            </button>
+        </form>
         </div>
 
+        
     {{-- ── MAIN CONTENT (Simpanan / Pinjaman) ── --}}
     <div class="profile-main">
         

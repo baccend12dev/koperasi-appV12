@@ -103,14 +103,14 @@
         const modules = [
             { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-th-large', color: 'text-purple-600', bgColor: 'bg-purple-100' },
             { id: 'keanggotaan', name: 'Keanggotaan', icon: 'fas fa-users', color: 'text-blue-500', bgColor: 'bg-blue-100', url: '/anggota' },
-            { id: 'simpanan', name: 'Simpanan', icon: 'fas fa-piggy-bank', color: 'text-pink-500', bgColor: 'bg-pink-100', url: '/simpanan' },
+            { id: 'simpanan', name: 'Simpanan', icon: 'fas fa-money-bill-1', color: 'text-pink-500', bgColor: 'bg-pink-100', url: '/simpanan' },
             { id: 'pinjaman', name: 'Pinjaman', icon: 'fas fa-hand-holding-dollar', color: 'text-green-500', bgColor: 'bg-green-100', url: '/pinjaman' },
             { id: 'penagihan', name: 'Penagihan', icon: 'fas fa-calculator', color: 'text-orange-500', bgColor: 'bg-orange-100', url: '/penagihan' },
             { id: 'kasir', name: 'Pembayaran / Pencairan', icon: 'fas fa-cash-register', color: 'text-teal-500', bgColor: 'bg-teal-100', url: '/pencairan/pinjaman' },
             { id: 'persetujuan', name: 'Persetujuan', icon: 'fas fa-check-double', color: 'text-indigo-500', bgColor: 'bg-indigo-100', url: '/persetujuan/pinjaman' },
             { id: 'dokumen', name: 'Dokumen', icon: 'fas fa-folder-open', color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
             { id: 'laporan', name: 'Laporan', icon: 'fas fa-chart-pie', color: 'text-red-500', bgColor: 'bg-red-100', url: '/laporan' },
-            { id: 'rapat', name: 'Rapat', icon: 'fas fa-calendar-check', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/rapat' },
+            { id: 'simulasi', name: 'Simulasi', icon: 'fa-solid fa-wand-magic-sparkles', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/simulasi' },
             { id: 'diskusi', name: 'Diskusi', icon: 'fas fa-comments', color: 'text-amber-500', bgColor: 'bg-amber-100' },
             { id: 'konfigurasi', name: 'Konfigurasi', icon: 'fas fa-cog', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/konfigurasi' }
         ];

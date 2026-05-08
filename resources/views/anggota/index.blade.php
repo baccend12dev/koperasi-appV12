@@ -179,7 +179,7 @@
                         <td>{{ $item->tgl_msk ? \Carbon\Carbon::parse($item->tgl_msk)->format('d M Y') : '—' }}</td>
                         <td>{{ $item->department_id ? $item->departemen?->nama : '—' }}</td>
                         <td>{{ $item->bagian ?? '—' }}</td>
-                            <td>{{ $item->alamat ?? '—' }}</td>
+                        <td>{{ $item->alamat ?? '—' }}</td>
                         <td>
                             @if($item->ikatan_kerja == 'Permanent')
                                 <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; background-color:#e6f4ea; color:#137333; font-weight:600;">{{ ucfirst($item->ikatan_kerja) }}</span>
