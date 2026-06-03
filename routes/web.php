@@ -6,6 +6,7 @@ use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\SimpananController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,12 +15,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('dashboard');
-})->name('dashboard');
-
-
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
     // ── Anggota ──────────────────────────────────────────
     Route::resource('anggota', AnggotaController::class);
@@ -88,7 +87,6 @@ Route::get('/', function () {
     Route::get('penagihan/tagihan-generator/{id}', [App\Http\Controllers\PenagihanController::class, 'show'])->name('penagihan.show');
     Route::delete('penagihan/tagihan-generator/detail/{id}', [App\Http\Controllers\PenagihanController::class, 'destroyDetail'])->name('penagihan.destroyDetail');
 
-
     // ── Persetujuan (Approval) ───────────────────────────
     Route::get('persetujuan/pinjaman', [App\Http\Controllers\PersetujuanController::class, 'pinjaman'])->name('persetujuan.pinjaman');
     Route::get('persetujuan/pengambilan', [App\Http\Controllers\PersetujuanController::class, 'pengambilan'])->name('persetujuan.pengambilan');
@@ -107,9 +105,15 @@ Route::get('/', function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-// login
-Route::get('/login', fn() => view('auth.login'))->name('login');    
+Route::middleware(['auth', 'role:Admin,Super Admin'])->prefix('pengurus')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('pengurus.users.index');
+    })->name('pengurus.index');
+    Route::get('/users', [App\Http\Controllers\Pengurus\UserController::class, 'index'])->name('pengurus.users.index');
+    Route::get('/roles', [App\Http\Controllers\Pengurus\RoleController::class, 'index'])->name('pengurus.roles.index');
+    Route::get('/permissions', [App\Http\Controllers\Pengurus\PermissionController::class, 'index'])->name('pengurus.permissions.index');
+});
 
-// logout
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+require __DIR__.'/auth.php';

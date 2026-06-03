@@ -6,7 +6,9 @@
 @section('topbar-nav')
     <a href="{{ route('penagihan.index') }}" class="tb-link">Dashboard</a>
     <a href="{{ route('penagihan.generator') }}" class="tb-link active">Tagihan Generator</a>
-@endsection
+    <a href="{{ route('penagihan.invoice') }}" class="tb-link">Invoice</a>
+
+    @endsection
 
 @section('subbar-actions')
     <button onclick="openModalGenerate()" class="btn-primary" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none;margin-right:6px;">

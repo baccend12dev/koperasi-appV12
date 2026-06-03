@@ -469,11 +469,12 @@ class PenagihanController extends Controller
     public function showInvoice($id)
     {
         $invoice = \App\Models\InvoicePeriod::findOrFail($id);
-        $details = \App\Models\InvoiceDetail::with('anggota')
+        $details = \App\Models\InvoiceDetail::with('anggota','pinjaman.jenisPinjaman')
             ->where('invoice_period_id', $id)
             ->orderBy('user_id')
             ->get();
 
+        // dd($details);
         return view('penagihan.invoice_show', compact('invoice', 'details'));
     }
 }

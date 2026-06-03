@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -65,10 +67,25 @@
             <button class="w-10 h-10 rounded-full bg-white/50 hover:bg-white text-gray-600 shadow-sm hover:shadow-md transition-all flex items-center justify-center">
                 <i class="fas fa-bell"></i>
             </button>
-            <div class="flex items-center gap-2 cursor-pointer bg-white/50 hover:bg-white px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all">
-                <img src="https://ui-avatars.com/api/?name=Admin+Koperasi&background=4f46e5&color=fff" alt="User Profile" class="w-8 h-8 rounded-full">
-                <span class="text-sm font-semibold text-gray-700 hidden sm:block">Admin</span>
-                <i class="fas fa-chevron-down text-xs text-gray-500 ml-1"></i>
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <div @click="open = !open" class="flex items-center gap-2 cursor-pointer bg-white/50 hover:bg-white px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()?->name ?? 'User') }}&background=4f46e5&color=fff" alt="User Profile" class="w-8 h-8 rounded-full">
+                    <span class="text-sm font-semibold text-gray-700 hidden sm:block">{{ auth()->user()?->name ?? 'User' }}</span>
+                    <i class="fas fa-chevron-down text-xs text-gray-500 ml-1"></i>
+                </div>
+                
+                <div x-show="open" x-transition x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30" style="display: none;">
+                    <div class="px-4 py-2 border-b border-gray-100">
+                        <strong class="block text-sm text-gray-800">{{ auth()->user()?->name }}</strong>
+                        <span class="text-xs text-gray-500">{{ auth()->user()?->email }}</span>
+                    </div>
+                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Profil Saya</a>
+                    <hr class="border-gray-100">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors" style="border: none; background: none; cursor: pointer;">Keluar</button>
+                    </form>
+                </div>
             </div>
         </div>
     </header>
@@ -111,7 +128,7 @@
             { id: 'dokumen', name: 'Dokumen', icon: 'fas fa-folder-open', color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
             { id: 'laporan', name: 'Laporan', icon: 'fas fa-chart-pie', color: 'text-red-500', bgColor: 'bg-red-100', url: '/laporan' },
             { id: 'simulasi', name: 'Simulasi', icon: 'fa-solid fa-wand-magic-sparkles', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/simulasi' },
-            { id: 'diskusi', name: 'Diskusi', icon: 'fas fa-comments', color: 'text-amber-500', bgColor: 'bg-amber-100' },
+            { id: 'pengurus', name: 'Pengurus', icon: 'fa-solid fa-user-tie', color: 'text-amber-500', bgColor: 'bg-amber-100', url: '/pengurus' },
             { id: 'konfigurasi', name: 'Konfigurasi', icon: 'fas fa-cog', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/konfigurasi' }
         ];
 

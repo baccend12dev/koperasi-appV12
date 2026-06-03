@@ -17,53 +17,84 @@
     
     .bon-card {
         background: #fff;
-        border: 1px solid #ccc;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        border-radius: 12px;
         margin-bottom: 30px;
         padding: 30px;
         page-break-inside: avoid;
     }
-    .bon-title {
-        font-size: 22px;
+    .bon-header {
+        background: #f1f5f9;
+        border-left: 4px solid #3b82f6;
+        padding: 12px 20px;
+        margin-bottom: 24px;
+        border-radius: 4px;
+    }
+    .bon-header h2 {
+        margin: 0;
+        font-size: 20px;
         font-weight: 800;
-        margin-top: 0;
-        margin-bottom: 20px;
+        color: #1e293b;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
-        color: #111;
-        letter-spacing: 1px;
     }
     .info-table {
         width: 100%;
-        margin-bottom: 20px;
-        font-size: 15px;
-        color: #222;
+        margin-bottom: 24px;
+        font-size: 14px;
+        color: #334155;
+        border-collapse: collapse;
     }
     .info-table td {
-        padding: 4px 0;
+        padding: 8px 12px;
+        border-bottom: 1px dashed #e2e8f0;
     }
     .info-label {
-        font-weight: 700;
+        font-weight: 600;
+        color: #64748b;
         width: 15%;
     }
     
     .data-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 15px;
-        margin-bottom: 20px;
-    }
-    .data-table th, .data-table td {
-        border: 1px solid #888;
-        padding: 10px;
-        text-align: left;
-        color: #111;
+        font-size: 14px;
+        margin-bottom: 8px;
     }
     .data-table th {
-        background-color: #f1f3f4;
+        background-color: #f8fafc;
+        color: #475569;
         font-weight: 700;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #cbd5e1;
+        padding: 12px 10px;
+    }
+    .data-table td {
+        border-bottom: 1px solid #e2e8f0;
+        padding: 12px 10px;
+        color: #334155;
     }
     .data-table tfoot td {
         font-weight: 700;
+        background-color: #f8fafc;
+        border-top: 2px solid #cbd5e1;
+        border-bottom: 2px solid #cbd5e1;
+        color: #1e293b;
+        padding: 12px 10px;
     }
+    
+    /* Alignments & Widths */
+    .text-left { text-align: left; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .w-jenis { width: 40%; }
+    .w-cicilan-ke { width: 15%; }
+    .w-tenor { width: 15%; }
+    .w-cicilan { width: 15%; }
+    .w-sisa { width: 15%; }
     
     .bon-footer {
         font-size: 14px;
@@ -77,7 +108,33 @@
         #printContainer, #printContainer * { visibility: visible; }
         #printContainer { position: absolute; left: 0; top: 0; width: 100%; }
         .no-print { display: none !important; }
-        .bon-card { border: none; padding: 0; margin-bottom: 50px; page-break-inside: avoid; }
+        .bon-card { border: none; padding: 0; margin-bottom: 50px; page-break-inside: avoid; box-shadow: none !important; }
+        
+        .data-table th, .data-table td {
+            border-bottom: 1px solid #94a3b8 !important;
+        }
+        .data-table th {
+            border-bottom: 2px solid #475569 !important;
+            background-color: #f1f5f9 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .data-table tfoot td {
+            border-top: 2px solid #475569 !important;
+            border-bottom: 2px solid #475569 !important;
+            background-color: #f1f5f9 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .bon-header {
+            background: #f1f5f9 !important;
+            border-left: 4px solid #1d4ed8 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .info-table td {
+            border-bottom: 1px dashed #cbd5e1 !important;
+        }
     }
 </style>
 
@@ -105,7 +162,9 @@
             @endphp
             
             <div class="bon-card">
-                <h2 class="bon-title" style="background:#e8eff5; display:inline-block; padding:10px 20px; width:100%; box-sizing:border-box;">BON CICILAN</h2>
+                <div class="bon-header">
+                    <h2>BON CICILAN</h2>
+                </div>
                 
                 <table class="info-table">
                     <tr>
@@ -125,11 +184,11 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Jenis</th>
-                            <th>Cicilan ke</th>
-                            <th>Tenor</th>
-                            <th>Cicilan</th>
-                            <th>Sisa</th>
+                            <th class="text-left w-jenis">Jenis</th>
+                            <th class="text-center w-cicilan-ke">Cicilan ke</th>
+                            <th class="text-center w-tenor">Tenor</th>
+                            <th class="text-right w-cicilan">Cicilan</th>
+                            <th class="text-right w-sisa">Sisa</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,19 +198,19 @@
                                 $totSisa += $d->sisa_pinjaman;
                             @endphp
                         <tr>
-                            <td>{{ $d->jenis_pinjaman }}</td>
-                            <td>{{ $d->cicilan_ke }}</td>
-                            <td>{{ $d->tenor }}</td>
-                            <td>Rp {{ number_format($d->cicilan_amount, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($d->sisa_pinjaman, 0, ',', '.') }}</td>
+                            <td class="text-left">{{ $d->pinjaman->jenisPinjaman->nama_pinjaman ?? '-' }}</td>
+                            <td class="text-center">{{ $d->cicilan_ke }}</td>
+                            <td class="text-center">{{ $d->tenor }}</td>
+                            <td class="text-right">Rp {{ number_format($d->cicilan_amount, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($d->sisa_pinjaman, 0, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" style="text-transform:uppercase;">TOTAL</td>
-                            <td>Rp {{ number_format($totCicilan, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($totSisa, 0, ',', '.') }}</td>
+                            <td colspan="3" class="text-left" style="text-transform:uppercase;">TOTAL</td>
+                            <td class="text-right">Rp {{ number_format($totCicilan, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($totSisa, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -170,20 +229,116 @@
 function exportToExcel(containerID, filename = ''){
     var container = document.getElementById(containerID);
     
+    // Clone the container so we can modify the DOM for Excel export without affecting the UI
+    var clone = container.cloneNode(true);
+    
+    // Convert .bon-header divs into styled tables because Excel doesn't render div border/padding well
+    var headers = clone.querySelectorAll('.bon-header');
+    headers.forEach(function(header) {
+        var h2 = header.querySelector('h2');
+        var text = h2 ? h2.innerText : (header.innerText || header.textContent);
+        
+        var headerTable = document.createElement('table');
+        headerTable.style.width = '100%';
+        headerTable.style.marginBottom = '15px';
+        headerTable.style.borderCollapse = 'collapse';
+        
+        var tr = document.createElement('tr');
+        var td = document.createElement('td');
+        td.style.backgroundColor = '#f1f5f9';
+        td.style.borderLeft = '4px solid #3b82f6';
+        td.style.fontSize = '14pt';
+        td.style.fontWeight = 'bold';
+        td.style.padding = '10px 15px';
+        td.style.color = '#1e293b';
+        td.innerText = text.trim();
+        
+        tr.appendChild(td);
+        headerTable.appendChild(tr);
+        header.parentNode.replaceChild(headerTable, header);
+    });
+    
+    // Convert .bon-card divs into styled outer tables so they render with border and padding in Excel
+    var cards = clone.querySelectorAll('.bon-card');
+    cards.forEach(function(card) {
+        var outerTable = document.createElement('table');
+        outerTable.style.width = '100%';
+        outerTable.style.border = '1px solid #cbd5e1';
+        outerTable.style.marginBottom = '30px';
+        outerTable.style.borderCollapse = 'collapse';
+        
+        var tr = document.createElement('tr');
+        var td = document.createElement('td');
+        td.style.padding = '20px';
+        td.style.backgroundColor = '#ffffff';
+        
+        // Move all children of the card div to the td
+        while (card.firstChild) {
+            td.appendChild(card.firstChild);
+        }
+        
+        tr.appendChild(td);
+        outerTable.appendChild(tr);
+        card.parentNode.replaceChild(outerTable, card);
+    });
+    
     // Convert to a giant html table structure that Excel understands better
     var htmlContent = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
         <head>
             <meta charset="utf-8">
             <style>
-                .bon-card { margin-bottom: 30px; border: 1px solid #000; padding: 20px; }
-                table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-                .data-table th, .data-table td { border: 1px solid #888; padding: 8px; }
-                .info-table td { padding: 4px; }
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                }
+                .info-table { 
+                    width: 100%; 
+                    margin-bottom: 20px; 
+                    border-collapse: collapse;
+                }
+                .info-table td { 
+                    padding: 8px 12px; 
+                    font-size: 11pt;
+                    color: #334155;
+                    border-bottom: 1px dashed #cbd5e1;
+                }
+                .info-label { 
+                    font-weight: bold; 
+                    color: #64748b; 
+                    width: 15%;
+                }
+                .data-table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-bottom: 10px;
+                }
+                .data-table th { 
+                    background-color: #f8fafc; 
+                    color: #475569; 
+                    font-weight: bold; 
+                    font-size: 10pt;
+                    border: 1px solid #cbd5e1; 
+                    padding: 10px; 
+                }
+                .data-table td { 
+                    border: 1px solid #cbd5e1; 
+                    padding: 10px; 
+                    font-size: 10pt;
+                    color: #334155;
+                }
+                .data-table tfoot td { 
+                    font-weight: bold; 
+                    background-color: #f8fafc;
+                    border: 1px solid #cbd5e1; 
+                    padding: 10px; 
+                }
+                .text-left { text-align: left; }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
             </style>
         </head>
         <body>
-            ${container.innerHTML}
+            ${clone.innerHTML}
         </body>
         </html>
     `;

@@ -177,11 +177,11 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs" style="flex-shrink:0;">
-                                        {{ strtoupper(substr($item->anggota->nama_anggota ?? 'U', 0, 2)) }}
+                                        {{ strtoupper(substr($item->anggota?->nama_anggota ?? 'U', 0, 2)) }}
                                     </div>
                                     <div>
-                                        <div class="font-bold text-gray-800">{{ $item->anggota->nama_anggota }}</div>
-                                        <div class="text-xs text-gray-400 mt-0.5">NIK: {{ $item->anggota->nik }}</div>
+                                        <div class="font-bold text-gray-800">{{ $item->anggota?->nama_anggota ?? 'UNKNOWN' }}</div>
+                                        <div class="text-xs text-gray-400 mt-0.5">NIK: {{ $item->anggota?->nik ?? '-' }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -217,7 +217,7 @@
                                                     <div>
                                                         <h3 class="text-lg font-bold text-gray-900">Review Pengajuan Pinjaman</h3>
                                                         <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                                            <p class="text-sm text-gray-500">{{ $item->anggota->nama_anggota }} ({{ $item->anggota->nik }})</p>
+                                                            <p class="text-sm text-gray-500">{{ $item->anggota?->nama_anggota ?? 'UNKNOWN' }} ({{ $item->anggota?->nik ?? '-' }})</p>
                                                             @if(($item->payment_method ?? 'gaji') === 'gaji')
                                                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#DCFCE7;color:#15803D;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">
                                                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>

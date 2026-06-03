@@ -172,8 +172,9 @@
                             <input type="checkbox" class="row-check" value="{{ $item->id }}">
                         </td>
                         <td>
-                            <div class="td-name" style="font-weight: 500; color: #111;">{{ $item->anggota->nama_anggota }}</div>
-                            <div style="font-size: 12px; color: var(--text-3);">{{ $item->anggota->nik }}</div>
+                            <div class="td-name" style="font-weight: 500; color: #111;">
+                                {{ $item->anggota?->nama_anggota ?? '-' }}
+                            </div>
                         </td>
                         <td style="color: var(--text-2);">{{ $item->created_at->format('d M Y') }}</td>
                         <td>{{ $item->jenisPinjaman?->nama_pinjaman ?? '-' }}</td>

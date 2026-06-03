@@ -7,8 +7,11 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -28,7 +31,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'], // email or NIK
             'password' => ['required', 'string'],
         ];
     }
@@ -42,13 +45,54 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        $loginInput = $this->input('email');
 
+        // Find user by email or NIK
+        $user = User::where('email', $loginInput)
+            ->orWhere('nik', $loginInput)
+            ->first();
+
+        // 1. Akun tidak ditemukan
+        if (!$user) {
+            RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'Akun tidak ditemukan.',
             ]);
         }
+
+        // 2. Password salah
+        if (!Hash::check($this->input('password'), $user->password)) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'password' => 'Password salah.',
+            ]);
+        }
+
+        // 3. Pastikan status user aktif
+        if ($user->status !== 'active') {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => 'Status user tidak aktif. Silakan hubungi pengurus.',
+            ]);
+        }
+
+        // 4. Simpan session/auth user
+        Auth::login($user, $this->boolean('remember'));
+
+        // 5. Update field last_login_at
+        $user->forceFill([
+            'last_login_at' => now(),
+        ])->save();
+
+        // 6. Catat aktivitas login pada log aplikasi
+        Log::info('User successfully logged in', [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'nik' => $user->nik,
+            'role' => $user->role ? $user->role->name : 'N/A',
+            'ip' => $this->ip(),
+        ]);
 
         RateLimiter::clear($this->throttleKey());
     }
