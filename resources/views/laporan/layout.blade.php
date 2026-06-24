@@ -192,7 +192,7 @@
 
     {{-- ── Pinjaman ── --}}
     <li class="lap-nav-item">
-        <a href="#"
+        <a href="{{ route('laporan.pinjaman') }}"
            class="lap-nav-link {{ request()->routeIs('laporan.pinjaman') ? 'active' : '' }}">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="5" width="20" height="14" rx="2"/>
@@ -234,7 +234,7 @@
         <div class="lap-sub-wrap {{ request()->routeIs('laporan.pembayaran*') ? 'open' : '' }}">
             <ul class="lap-nav-sub">
                 <li class="lap-nav-item">
-                    <a href="#"
+                    <a href="{{ route('laporan.pembayaran.angsuran') }}"
                        class="lap-nav-link {{ request()->routeIs('laporan.pembayaran.angsuran') ? 'active' : '' }}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 11 12 14 22 4"/>
