@@ -165,13 +165,28 @@
 
     {{-- ── Simpanan ── --}}
     <li class="lap-nav-item">
-        <a href="#"
+        <a href="{{ route('laporan.simpanan') }}"
            class="lap-nav-link {{ request()->routeIs('laporan.simpanan') ? 'active' : '' }}">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
-            Simpanan
+            Saldo Simpanan
+        </a>
+    </li>
+
+    {{-- ── Transaksi Simpanan ── --}}
+    <li class="lap-nav-item">
+        <a href="{{ route('laporan.transaksi_simpanan') }}"
+           class="lap-nav-link {{ request()->routeIs('laporan.transaksi_simpanan') ? 'active' : '' }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Transaksi Simpanan
         </a>
     </li>
 
@@ -289,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     {{-- Page header dalam konten (opsional, setiap halaman bisa override) --}}
     @hasSection('laporan-subtitle')
     <div style="margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #6B7280; margin: 0;">@yield('laporan-subtitle')</p>
+        <div style="font-size: 13px; color: #6B7280; margin: 0;">@yield('laporan-subtitle')</div>
     </div>
     @endif
 
