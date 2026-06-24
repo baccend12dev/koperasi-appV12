@@ -44,6 +44,11 @@ class Anggota extends Model
         return $this->hasMany(TransaksiSimpanan::class, 'anggota_id');
     }
 
+    public function saldoAwalSimpanan()
+    {
+        return $this->hasOne(SaldoAwalSimpanan::class, 'anggota_id');
+    }
+
     public function pinjaman()
     {
         return $this->hasMany(Pinjaman::class, 'user_id');

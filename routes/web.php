@@ -34,6 +34,8 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Laporan ───────────────────────────────────────────
     Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('laporan/simpanan', [LaporanController::class, 'simpanan'])->name('laporan.simpanan');
+    Route::get('laporan/transaksi-simpanan', [LaporanController::class, 'transaksiSimpanan'])->name('laporan.transaksi_simpanan');
 
     // ── Simpanan ───────────────────────────────────────────
     Route::get('simpanan/tagihangenerator', [SimpananController::class, 'tagihangenerator'])

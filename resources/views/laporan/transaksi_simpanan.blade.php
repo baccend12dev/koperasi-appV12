@@ -8,7 +8,7 @@
 @section('laporan-subtitle')
     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
         <span>Laporan rincian transaksi simpanan anggota per periode</span>
-        <button type="submit" form="filterForm" name="export" value="excel" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #10B981;border-radius:6px;background:#10B981;font-size:11px;font-weight:600;color:#fff;cursor:pointer;transition:background-color 0.15s, border-color 0.15s; outline: none; text-decoration: none; font-family: inherit;">
+        <button type="button" onclick="submitExport()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #10B981;border-radius:6px;background:#10B981;font-size:11px;font-weight:600;color:#fff;cursor:pointer;transition:background-color 0.15s, border-color 0.15s; outline: none; text-decoration: none; font-family: inherit;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Export Excel
         </button>
@@ -180,8 +180,19 @@
                          </td>
                     </tr>
                 @endforelse
-            </tbody>
         </table>
+
+        {{-- Pagination (Bottom of table) --}}
+        @if($transaksi->hasPages())
+            <div class="pagination-wrapper" style="padding: 10px 14px; border-top: 1px solid #E5E7EB; background: #fff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="font-size: 11px; color: #6B7280;">
+                    Menampilkan {{ $transaksi->firstItem() }} sampai {{ $transaksi->lastItem() }} dari {{ $transaksi->total() }} data
+                </div>
+                <div class="pagination-links" style="font-size: 12px;">
+                    {{ $transaksi->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 @endsection
 
@@ -203,7 +214,7 @@
             color: #000 !important;
             padding: 0 !important;
         }
-        #topbar, #sidebar, #subbar, .filter-card, .sb-pagination, .pag-btn, form, button, a {
+        #topbar, #sidebar, #subbar, .filter-card, .sb-pagination, .pag-btn, .pagination-wrapper, form, button, a {
             display: none !important;
         }
         .data-table-wrap {
@@ -238,4 +249,27 @@
         }
     }
 </style>
+@endpush
+
+@push('laporan-scripts')
+<script>
+    function submitExport() {
+        const form = document.getElementById('filterForm');
+        if (!form) return;
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'export';
+        input.value = 'excel';
+        form.appendChild(input);
+        
+        form.submit();
+        
+        setTimeout(() => {
+            if (input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+        }, 100);
+    }
+</script>
 @endpush

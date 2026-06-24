@@ -5,17 +5,12 @@
 @extends('laporan.layout')
 
 @section('laporan-title', 'Laporan Saldo Simpanan')
-@section('laporan-subtitle', 'Laporan akumulasi saldo simpanan riil dan saldo awal seluruh anggota koperasi')
-
-@section('laporan-actions')
-    <div style="display: flex; gap: 8px;">
-        <button type="submit" form="filterForm" name="export" value="excel" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #10B981;border-radius:6px;background:#10B981;font-size:11px;font-weight:600;color:#fff;cursor:pointer;transition:background-color 0.15s, border-color 0.15s; outline: none; border: 1px solid #10B981; font-family: inherit;">
+@section('laporan-subtitle')
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
+        <span>Laporan akumulasi saldo simpanan riil dan saldo awal seluruh anggota koperasi</span>
+        <button type="button" onclick="submitExport()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #10B981;border-radius:6px;background:#10B981;font-size:11px;font-weight:600;color:#fff;cursor:pointer;transition:background-color 0.15s, border-color 0.15s; outline: none; text-decoration: none; font-family: inherit;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Export Excel
-        </button>
-        <button onclick="window.print()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#fff;font-size:11px;font-weight:600;color:#374151;cursor:pointer;transition:background-color 0.15s, border-color 0.15s; font-family: inherit;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-            Cetak Laporan
         </button>
     </div>
 @endsection
@@ -183,8 +178,19 @@
                          </td>
                     </tr>
                 @endforelse
-            </tbody>
         </table>
+
+        {{-- Pagination (Bottom of table) --}}
+        @if($members->hasPages())
+            <div class="pagination-wrapper" style="padding: 10px 14px; border-top: 1px solid #E5E7EB; background: #fff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="font-size: 11px; color: #6B7280;">
+                    Menampilkan {{ $members->firstItem() }} sampai {{ $members->lastItem() }} dari {{ $members->total() }} data
+                </div>
+                <div class="pagination-links" style="font-size: 12px;">
+                    {{ $members->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 @endsection
 
@@ -206,7 +212,7 @@
             color: #000 !important;
             padding: 0 !important;
         }
-        #topbar, #sidebar, #subbar, .filter-card, .sb-pagination, .pag-btn, form, button, a {
+        #topbar, #sidebar, #subbar, .filter-card, .sb-pagination, .pag-btn, .pagination-wrapper, form, button, a {
             display: none !important;
         }
         .data-table-wrap {
@@ -241,4 +247,27 @@
         }
     }
 </style>
+@endpush
+
+@push('laporan-scripts')
+<script>
+    function submitExport() {
+        const form = document.getElementById('filterForm');
+        if (!form) return;
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'export';
+        input.value = 'excel';
+        form.appendChild(input);
+        
+        form.submit();
+        
+        setTimeout(() => {
+            if (input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+        }, 100);
+    }
+</script>
 @endpush

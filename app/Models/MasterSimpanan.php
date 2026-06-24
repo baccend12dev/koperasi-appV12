@@ -21,4 +21,9 @@ class MasterSimpanan extends Model
     {
         return $this->belongsTo(Anggota::class);
     }
+
+    public function getTotalSimpananAttribute()
+    {
+        return ($this->simpanan_pokok ?? 0) + ($this->simpanan_wajib ?? 0) + ($this->simpanan_sukarela ?? 0);
+    }
 }
