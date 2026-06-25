@@ -501,59 +501,7 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
                     <input type="hidden" id="tenor" name="tenor" value="24">
                 </div>
 
-                {{-- ══ PAYMENT METHOD SECTION ══ --}}
-                <div class="pm-section">
-                    <div class="pm-label">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-                        Rencana Pembayaran Angsuran
-                    </div>
-                    <div class="pm-grid">
-
-                        {{-- Pilihan: Potongan Gaji --}}
-                        <label class="pm-card">
-                            <input type="radio" name="payment_method" value="gaji" checked>
-                            <div class="pm-card-inner">
-                                <div class="pm-icon pm-icon-gaji">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="2" y="7" width="20" height="14" rx="2"/>
-                                        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                                        <line x1="12" y1="12" x2="12" y2="16"/>
-                                        <line x1="10" y1="14" x2="14" y2="14"/>
-                                    </svg>
-                                </div>
-                                <div class="pm-text">
-                                    <h4>Potongan Gaji</h4>
-                                    <p>Angsuran dipotong otomatis dari gaji setiap bulan</p>
-                                </div>
-                                <div class="pm-check">
-                                    <div class="pm-check-dot"></div>
-                                </div>
-                            </div>
-                        </label>
-
-                        {{-- Pilihan: Mandiri --}}
-                        <label class="pm-card">
-                            <input type="radio" name="payment_method" value="mandiri">
-                            <div class="pm-card-inner">
-                                <div class="pm-icon pm-icon-mandiri">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="2" y="5" width="20" height="14" rx="2"/>
-                                        <path d="M2 10h20"/>
-                                        <path d="M6 15h2M10 15h6"/>
-                                    </svg>
-                                </div>
-                                <div class="pm-text">
-                                    <h4>Mandiri</h4>
-                                    <p>Anggota membayar sendiri ke kasir / transfer</p>
-                                </div>
-                                <div class="pm-check">
-                                    <div class="pm-check-dot"></div>
-                                </div>
-                            </div>
-                        </label>
-
-                    </div>
-                </div>
+                <input type="hidden" name="payment_method" value="gaji">
 
                 {{-- REFINANCING SECTION --}}
                 <div class="refinance-box">
@@ -681,7 +629,7 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
                                 <td style="padding:6px 0;">
                                     <span style="display:inline-flex;align-items:center;gap:4px;background:#DBEAFE;color:#1D4ED8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">
                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-                                        Mandiri
+                                        Cash (Manual)
                                     </span>
                                 </td>
                                 <td style="text-align:right;color:#374151;font-weight:600;" id="kf-mandiri-before">Rp 0</td>
@@ -1086,7 +1034,7 @@ let _simpanan = 0, _gajiExisting = 0, _mandiriExisting = 0;
 
 function updateKondisiFinansial(cicilanBaru) {
     // Determine payment method
-    const pm = document.querySelector('input[name="payment_method"]:checked')?.value || 'gaji';
+    const pm = document.querySelector('input[name="payment_method"]')?.value || 'gaji';
 
     const gajiAfter    = pm === 'gaji'    ? _gajiExisting + cicilanBaru    : _gajiExisting;
     const mandiriAfter = pm === 'mandiri' ? _mandiriExisting + cicilanBaru : _mandiriExisting;
@@ -1111,11 +1059,6 @@ function toggleKondisi() {
 // Inisialisasi on load
 document.addEventListener("DOMContentLoaded", () => {
     updateTenor(document.getElementById('tenor').value);
-
-    // Re-run kondisi card when payment method changes
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', () => hitung());
-    });
 });
 </script>
 @endsection

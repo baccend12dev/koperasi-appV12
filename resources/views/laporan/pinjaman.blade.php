@@ -71,7 +71,7 @@
 
             <!-- Periode -->
             <div>
-                <label style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: #4B5563; margin-bottom: 4px; letter-spacing: 0.05em;">Periode (Mulai Pinjaman)</label>
+                <label style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: #4B5563; margin-bottom: 4px; letter-spacing: 0.05em;">Periode </label>
                 <input type="month" name="periode" value="{{ $periode }}" style="width: 100%; height: 32px; padding: 6px 10px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 12px; color: #1F2937; outline: none; box-sizing: border-box; background: #fff; cursor: pointer;">
             </div>
 
@@ -122,22 +122,22 @@
         <!-- Pokok -->
         <div style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #3B82F6;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #6B7280; letter-spacing: 0.05em; margin-bottom: 2px;">Total Pokok Pinjaman</div>
-            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumPokok, 0, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumPokok, 2, ',', '.') }}</div>
         </div>
         <!-- Tagihan (Pokok + Bunga) -->
         <div style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #8B5CF6;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #6B7280; letter-spacing: 0.05em; margin-bottom: 2px;">Total Pinjaman + Bunga</div>
-            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumTotal, 0, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumTotal, 2, ',', '.') }}</div>
         </div>
         <!-- Terbayar -->
         <div style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #10B981;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #6B7280; letter-spacing: 0.05em; margin-bottom: 2px;">Total Telah Terbayar</div>
-            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumTerbayar, 0, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumTerbayar, 2, ',', '.') }}</div>
         </div>
         <!-- Outstanding -->
         <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #F59E0B;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #B45309; letter-spacing: 0.05em; margin-bottom: 2px;">Sisa Pinjaman (Outstanding)</div>
-            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Rp {{ number_format($sumSisa, 0, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Rp {{ number_format($sumSisa, 2, ',', '.') }}</div>
         </div>
     </div>
 
@@ -152,6 +152,7 @@
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 100px;">Departemen</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 120px;">Jenis Pinjaman</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 120px;">Pinjaman (Pokok / Total)</th>
+                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 120px;">Cicil per Bulan</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: center; width: 110px;">Tenor (Total / Sisa)</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Terbayar</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Sisa Tagihan</th>
@@ -164,8 +165,10 @@
                     @php
                         $pokok = $item->jumlah_pinjaman ?? 0;
                         $total_kontrak = $item->total_pinjaman ?? 0;
-                        $terbayar = $item->total_terbayar ?? 0;
-                        $sisa = $item->status == 'lunas' ? 0 : ($item->sisa_pinjaman ?? 0);
+                        $terbayar = $item->total_terbayar_historis ?? 0;
+                        $sisa = $total_kontrak - $terbayar;
+                        if ($sisa < 0) $sisa = 0;
+                        $statusLabel = $sisa <= 0 ? 'lunas' : 'berjalan';
                     @endphp
                     <tr style="border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
                         <td style="padding: 10px 12px; font-size: 12px; color: #4B5563; vertical-align: middle;">{{ $pinjaman->firstItem() + $index }}</td>
@@ -177,31 +180,34 @@
                             <div style="font-weight: 600; color: #111827; font-size: 12px;">{{ $item->anggota->nama_anggota ?? '—' }}</div>
                             <div style="font-size: 10px; color: #6B7280; margin-top: 1px;">{{ $item->anggota->nik ?? '—' }}</div>
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">{{ $item->anggota->departemen->nama ?? '—' }}</td>
+                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">{{ $item->anggota->bagian ?? '—' }}</td>
                         <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">
                             {{ $item->jenisPinjaman?->nama_pinjaman ?? '—' }}
                         </td>
                         <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; vertical-align: middle; line-height: 1.3;">
-                            <div style="font-weight: 600;">Rp {{ number_format($pokok, 0, ',', '.') }}</div>
-                            <div style="color: #6B7280; font-size: 10px;">Total: Rp {{ number_format($total_kontrak, 0, ',', '.') }}</div>
+                            <div style="font-weight: 600;">Rp {{ number_format($pokok, 2, ',', '.') }}</div>
+                            <div style="color: #6B7280; font-size: 10px;">Total: Rp {{ number_format($total_kontrak, 2, ',', '.') }}</div>
+                        </td>
+                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; vertical-align: middle;">
+                            Rp {{ number_format($item->cicilan_per_bulan, 2, ',', '.') }}
                         </td>
                         <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: center; vertical-align: middle; line-height: 1.3;">
                             <div style="font-weight: 600;">{{ $item->tenor }} Bln</div>
-                            <div style="color: #6B7280; font-size: 10px;">Sisa: {{ $item->sisa_tenor }} Bln</div>
+                            <div style="color: #6B7280; font-size: 10px;">Sisa: {{ $item->sisa_tenor_historis }} Bln</div>
                         </td>
                         <td style="padding: 10px 12px; font-size: 12px; font-weight: 600; color: #10B981; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle;">
-                            Rp {{ number_format($terbayar, 0, ',', '.') }}
+                            Rp {{ number_format($terbayar, 2, ',', '.') }}
                         </td>
                         <td style="padding: 10px 12px; font-size: 12px; font-weight: 700; color: #D97706; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle;">
-                            Rp {{ number_format($sisa, 0, ',', '.') }}
+                            Rp {{ number_format($sisa, 2, ',', '.') }}
                         </td>
                         <td style="padding: 10px 12px; text-align: center; vertical-align: middle;">
-                            @if(strtolower($item->status) === 'berjalan')
+                            @if($statusLabel === 'berjalan')
                                 <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#e6f4ea; color:#137333; font-weight:600; text-transform: uppercase;">Berjalan</span>
-                            @elseif(strtolower($item->status) === 'lunas')
+                            @elseif($statusLabel === 'lunas')
                                 <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#e8f0fe; color:#1a73e8; font-weight:600; text-transform: uppercase;">Lunas</span>
                             @else
-                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#f5f5f5; color:#666; font-weight:600; text-transform: uppercase;">{{ $item->status }}</span>
+                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#f5f5f5; color:#666; font-weight:600; text-transform: uppercase;">{{ $statusLabel }}</span>
                             @endif
                         </td>
                         <td style="padding: 10px 12px; text-align: center; vertical-align: middle;">

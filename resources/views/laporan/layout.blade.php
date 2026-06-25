@@ -161,7 +161,7 @@
     </li>
 
     {{-- ── Separator ── --}}
-    <li><span class="lap-nav-label">Data Anggota</span></li>
+    <li><span class="lap-nav-label">Simpanan</span></li>
 
     {{-- ── Simpanan ── --}}
     <li class="lap-nav-item">
@@ -189,7 +189,7 @@
             Transaksi Simpanan
         </a>
     </li>
-
+    <li><span class="lap-nav-label">Pinjaman</span></li>
     {{-- ── Pinjaman ── --}}
     <li class="lap-nav-item">
         <a href="{{ route('laporan.pinjaman') }}"
@@ -198,27 +198,10 @@
                 <rect x="2" y="5" width="20" height="14" rx="2"/>
                 <line x1="2" y1="10" x2="22" y2="10"/>
             </svg>
-            Pinjaman
+           Master Pinjaman
         </a>
     </li>
-
-    {{-- ── Posisi Anggota ── --}}
-    <li class="lap-nav-item">
-        <a href="#"
-           class="lap-nav-link {{ request()->routeIs('laporan.posisi-anggota') ? 'active' : '' }}">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            Posisi Anggota
-        </a>
-    </li>
-
-    {{-- ── Separator ── --}}
-    <li><span class="lap-nav-label">Pembayaran Pinjaman</span></li>
-
-    {{-- ── Pembayaran Pinjaman (collapsible parent) ── --}}
+{{-- ── Pembayaran Pinjaman (collapsible parent) ── --}}
     <li class="lap-nav-item">
         <div class="lap-nav-parent {{ request()->routeIs('laporan.pembayaran*') ? 'open' : '' }}"
              onclick="toggleLapSub(this)">
@@ -268,6 +251,23 @@
             </ul>
         </div>
     </li>
+    {{-- ── Posisi Anggota ── --}}
+    <li class="lap-nav-item">
+        <a href="#"
+           class="lap-nav-link {{ request()->routeIs('laporan.posisi-anggota') ? 'active' : '' }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Posisi Anggota
+        </a>
+    </li>
+
+    {{-- ── Separator ── --}}
+    <li><span class="lap-nav-label">Pembayaran Pinjaman</span></li>
+
+    
 
 </ul>
 

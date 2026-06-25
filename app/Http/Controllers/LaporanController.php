@@ -298,35 +298,74 @@ class LaporanController extends Controller
             });
         }
 
-        // Filter: Status
-        $status = $request->input('status', 'berjalan');
-        if ($status !== 'semua') {
-            $query->where('status', $status);
-        }
-
         // Filter: Jenis Pinjaman
         if ($request->filled('jenis')) {
             $query->where('jenis_pinjaman_id', $request->jenis);
         }
 
-        // Filter: Periode (Bulan & Tahun) via input type="month"
-        $periode = null;
-        if ($request->has('periode')) {
-            $periode = $request->input('periode');
-        }
+        // Parse Periode
+        $periode = $request->input('periode');
+        $endOfMonth = null;
         if ($periode) {
             $parts = explode('-', $periode);
             if (count($parts) === 2) {
-                $query->whereYear('tanggal_mulai', $parts[0]);
-                $query->whereMonth('tanggal_mulai', $parts[1]);
+                $endOfMonth = \Carbon\Carbon::createFromDate($parts[0], $parts[1], 1)->endOfMonth()->format('Y-m-d');
             }
         }
 
-        // Calculate sums based on filtered query
-        $sumPokok = (clone $query)->sum('jumlah_pinjaman');
-        $sumTotal = (clone $query)->sum('total_pinjaman');
-        $sumTerbayar = (clone $query)->sum('total_terbayar');
-        $sumSisa = (clone $query)->where('status', '!=', 'lunas')->sum('sisa_pinjaman');
+        $query->select('pinjamans.*');
+
+        if ($endOfMonth) {
+            // Filter loans that started before or in this period
+            $query->where('tanggal_mulai', '<=', $endOfMonth);
+
+            // Subquery for payments up to end of period
+            $query->selectSub(function($q) use ($endOfMonth) {
+                $q->from('pembayaran_angsurans')
+                  ->selectRaw('COALESCE(SUM(jumlah), 0)')
+                  ->whereColumn('pembayaran_angsurans.loan_id', 'pinjamans.id')
+                  ->where('tanggal_bayar', '<=', $endOfMonth);
+            }, 'total_terbayar_historis');
+
+            // Subquery for sisa tenor at the end of period
+            $query->selectSub(function($q) use ($endOfMonth) {
+                $q->from('pinjaman_angsurans')
+                  ->selectRaw('COUNT(*)')
+                  ->whereColumn('pinjaman_angsurans.loan_id', 'pinjamans.id')
+                  ->where(function($sub) use ($endOfMonth) {
+                      $sub->where('status', 'belum_bayar')
+                          ->orWhere('tanggal_bayar', '>', $endOfMonth);
+                  });
+            }, 'sisa_tenor_historis');
+
+            // Status filter (historical)
+            $status = $request->input('status', 'berjalan');
+            if ($status === 'berjalan') {
+                $query->whereRaw('(total_pinjaman - (SELECT COALESCE(SUM(jumlah), 0) FROM pembayaran_angsurans WHERE pembayaran_angsurans.loan_id = pinjamans.id AND tanggal_bayar <= ?)) > 0', [$endOfMonth]);
+            } elseif ($status === 'lunas') {
+                $query->whereRaw('(total_pinjaman - (SELECT COALESCE(SUM(jumlah), 0) FROM pembayaran_angsurans WHERE pembayaran_angsurans.loan_id = pinjamans.id AND tanggal_bayar <= ?)) <= 0', [$endOfMonth]);
+            }
+        } else {
+            // Real time (current) sisa tagihan
+            $query->selectRaw('total_terbayar as total_terbayar_historis');
+            $query->selectRaw('sisa_tenor as sisa_tenor_historis');
+
+            $status = $request->input('status', 'berjalan');
+            if ($status !== 'semua') {
+                $query->where('status', $status);
+            }
+        }
+
+        // Calculate sums based on filtered query (in-memory aggregation to avoid SQL errors and ensure database driver compatibility)
+        $allMatching = (clone $query)->get();
+        $sumPokok = $allMatching->sum('jumlah_pinjaman');
+        $sumTotal = $allMatching->sum('total_pinjaman');
+        $sumTerbayar = $allMatching->sum('total_terbayar_historis');
+        $sumCicilan = $allMatching->sum('cicilan_per_bulan');
+        $sumSisa = $allMatching->sum(function($item) {
+            $sisa = $item->total_pinjaman - $item->total_terbayar_historis;
+            return $sisa > 0 ? $sisa : 0;
+        });
 
         if ($request->get('export') === 'excel') {
             $filename = "laporan_pinjaman_berjalan_" . date('Ymd_His') . ".xls";
@@ -347,6 +386,7 @@ class LaporanController extends Controller
                 'sumPokok',
                 'sumTotal',
                 'sumTerbayar',
+                'sumCicilan',
                 'sumSisa'
             ))->render();
 

@@ -203,7 +203,8 @@
 
         <div class="form-group">
             <label class="form-label">Nominal Penarikan (Rp)</label>
-            <input type="number" name="nominal" class="form-control" placeholder="Contoh: 1000000" min="1" max="{{ $totalKeseluruhan }}" value="{{ old('nominal') }}" required>
+            <input type="text" id="nominal_display" class="form-control" placeholder="Contoh: 1.000.000" value="{{ old('nominal') ? number_format(old('nominal'), 0, ',', '.') : '' }}" required>
+            <input type="hidden" name="nominal" id="nominal" value="{{ old('nominal') }}">
             @error('nominal') <span style="color:var(--danger);font-size:12px;">{{ $message }}</span> @enderror
         </div>
 
@@ -213,7 +214,7 @@
             @error('alasan_pengajuan') <span style="color:var(--danger);font-size:12px;">{{ $message }}</span> @enderror
         </div>
 
-        {{-- REFINANCING SECTION --}}
+        <!-- {{-- REFINANCING SECTION --}}
         <div class="refinance-box">
             <div class="ref-header">
                 <div class="ref-title">
@@ -235,7 +236,7 @@
                     Memuat data pinjaman aktif...
                 </div>
             </div>
-        </div>
+        </div> -->
 
         {{-- SUMMARY BOX --}}
         <div class="summary-box" id="summary-box" style="display: none;">
@@ -349,7 +350,7 @@
     }
 
     function updateCalculations() {
-        const nominal = parseFloat(document.querySelector('input[name="nominal"]').value) || 0;
+        const nominal = parseFloat(document.getElementById('nominal').value) || 0;
         let totalSettlement = 0;
         
         const container = document.getElementById('pelunasan_inputs_container');
@@ -375,15 +376,29 @@
         else netValue.classList.remove('danger');
     }
 
-    document.querySelector('input[name="nominal"]').addEventListener('input', function() {
-        const max = parseFloat(this.getAttribute('max')) || 0;
-        let val = parseFloat(this.value) || 0;
-        
-        if (val > max) {
-            this.value = max;
-            // Optional: alert or show toast that the amount is capped
-        }
-        updateCalculations();
-    });
+    const nominalDisplay = document.getElementById('nominal_display');
+    const nominalHidden = document.getElementById('nominal');
+    const maxVal = parseFloat('{{ $totalKeseluruhan }}') || 0;
+
+    function formatNumber(numStr) {
+        return numStr.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    if (nominalDisplay) {
+        nominalDisplay.addEventListener('input', function() {
+            let rawVal = this.value.replace(/\./g, "").replace(/\D/g, "");
+            let numVal = parseFloat(rawVal) || 0;
+
+            if (numVal > maxVal) {
+                numVal = maxVal;
+                rawVal = maxVal.toString();
+            }
+
+            nominalHidden.value = rawVal;
+            this.value = formatNumber(rawVal);
+            
+            updateCalculations();
+        });
+    }
 </script>
 @endsection

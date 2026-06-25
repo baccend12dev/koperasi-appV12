@@ -129,7 +129,6 @@
                 <tr style="background: #F9FAFB; border-bottom: 1px solid #E5E7EB;">
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 40px;">No</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 110px;">Tanggal Bayar</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 110px;">Jatuh Tempo</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 180px;">Nama & NIK</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 100px;">Departemen</th>
                     <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 140px;">Jenis Pinjaman</th>
@@ -146,9 +145,6 @@
                         <td style="padding: 10px 12px; font-size: 12px; color: #4B5563; vertical-align: middle;">{{ $angsuran->firstItem() + $index }}</td>
                         <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">
                             {{ $item->tanggal_bayar ? \Carbon\Carbon::parse($item->tanggal_bayar)->format('d M Y') : '—' }}
-                        </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #6B7280; vertical-align: middle;">
-                            {{ $item->tanggal_jatuh_tempo ? \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->format('d M Y') : '—' }}
                         </td>
                         <td style="padding: 10px 12px; vertical-align: middle;">
                             <div style="font-weight: 600; color: #111827; font-size: 12px;">{{ $item->pinjaman->anggota->nama_anggota ?? '—' }}</div>

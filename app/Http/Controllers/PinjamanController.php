@@ -78,6 +78,20 @@ class PinjamanController extends Controller
             }
         }
 
+        $status = null;
+        if (!$request->has('status')) {
+            $status = 'pending';
+        } else {
+            $status = $request->input('status');
+        }
+
+        if ($status !== null && $status !== '' && $status !== 'semua') {
+            $statusRaw = strtolower($status);
+            $pengajuan_list = $pengajuan_list->filter(function($item) use ($statusRaw) {
+                return strtolower($item->status) == $statusRaw;
+            });
+        }
+
         $years = [date('Y') - 1, date('Y'), date('Y') + 1];
         sort($years);
         
@@ -118,7 +132,7 @@ class PinjamanController extends Controller
             return response()->stream($callback, 200, $headers);
         }
 
-        return view('pinjaman.pengajuan', compact('pengajuan_list', 'years', 'jenisPinjamanList')); 
+        return view('pinjaman.pengajuan', compact('pengajuan_list', 'years', 'jenisPinjamanList', 'status')); 
     }
 
     public function aktif(Request $request) {

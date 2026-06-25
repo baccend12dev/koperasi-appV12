@@ -22,7 +22,6 @@
         <tr style="background:#F3F4F6; font-weight:bold;">
             <th style="text-align:center; padding:5px;">NO</th>
             <th style="text-align:center; padding:5px;">TANGGAL BAYAR</th>
-            <th style="text-align:center; padding:5px;">JATUH TEMPO</th>
             <th style="text-align:center; padding:5px;">NIK</th>
             <th style="text-align:center; padding:5px;">NAMA ANGGOTA</th>
             <th style="text-align:center; padding:5px;">DEPARTEMEN</th>
@@ -42,7 +41,6 @@
             <tr>
                 <td style="text-align:center;">{{ $no++ }}</td>
                 <td style="text-align:center;">{{ $item->tanggal_bayar ? \Carbon\Carbon::parse($item->tanggal_bayar)->format('Y-m-d') : '-' }}</td>
-                <td style="text-align:center;">{{ $item->tanggal_jatuh_tempo ? \Carbon\Carbon::parse($item->tanggal_jatuh_tempo)->format('Y-m-d') : '-' }}</td>
                 <td style="mso-number-format:'\@'; text-align:center;">{{ $item->pinjaman->anggota->nik ?? '-' }}</td>
                 <td>{{ $item->pinjaman->anggota->nama_anggota ?? 'Unknown' }}</td>
                 <td>{{ $item->pinjaman->anggota->departemen->nama ?? '-' }}</td>

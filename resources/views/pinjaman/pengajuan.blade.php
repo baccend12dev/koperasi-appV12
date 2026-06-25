@@ -130,6 +130,15 @@
                 @endforeach
             </select>
         </div>
+        <div class="flex-1">
+            <label class="label-text">Status</label>
+            <select name="status" class="form-select">
+                <option value="" {{ $status == '' ? 'selected' : '' }}>Semua Status</option>
+                <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>Approved</option>
+                <option value="rejected" {{ $status == 'rejected' ? 'selected' : '' }}>Rejected</option>
+            </select>
+        </div>
         <div class="flex gap-2">
             <button type="submit" class="btn-search">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
