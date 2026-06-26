@@ -10,6 +10,7 @@
             @if($periode)
                 Periode: {{ \Carbon\Carbon::parse($periode)->translatedFormat('F Y') }} &mdash; 
             @endif
+            Jenis Pinjaman: {{ $jenis_pinjaman ?? 'Semua Jenis Pinjaman' }} &mdash; 
             Status: {{ strtoupper($status) }} &mdash; 
             Tanggal Ekspor: {{ date('d/m/Y H:i') }}
         </td>
@@ -58,13 +59,13 @@
                 <td>{{ $item->anggota->nama_anggota ?? 'Unknown' }}</td>
                 <td>{{ $item->anggota->bagian ?? '-' }}</td>
                 <td>{{ $item->jenisPinjaman?->nama_pinjaman ?? '-' }}</td>
-                <td style="text-align:right;">{{ number_format($pokok, 2, ',', '.') }}</td>
-                <td style="text-align:right;">{{ number_format($total_kontrak, 2, ',', '.') }}</td>
+                <td style="text-align:right;">{{ number_format($pokok, 2, '.', ',') }}</td>
+                <td style="text-align:right;">{{ number_format($total_kontrak, 2, '.', ',') }}</td>
                 <td style="text-align:center;">{{ $item->tenor }} Bln</td>
-                <td style="text-align:right;">{{ number_format($item->cicilan_per_bulan, 2, ',', '.') }}</td>
+                <td style="text-align:right;">{{ number_format($item->cicilan_per_bulan, 2, '.', ',') }}</td>
                 <td style="text-align:center;">{{ $item->sisa_tenor_historis }} Bln</td>
-                <td style="text-align:right;">{{ number_format($terbayar, 2, ',', '.') }}</td>
-                <td style="text-align:right;">{{ number_format($sisa, 2, ',', '.') }}</td>
+                <td style="text-align:right;">{{ number_format($terbayar, 2, '.', ',') }}</td>
+                <td style="text-align:right;">{{ number_format($sisa, 2, '.', ',') }}</td>
                 <td style="text-align:center;">{{ strtoupper($statusLabel) }}</td>
             </tr>
         @endforeach
@@ -72,13 +73,13 @@
     <tfoot>
         <tr style="background:#F3F4F6; font-weight:bold;">
             <td colspan="7" style="text-align:center;">TOTAL KESELURUHAN</td>
-            <td style="text-align:right;">{{ number_format($sumPokok, 2, ',', '.') }}</td>
-            <td style="text-align:right;">{{ number_format($sumTotal, 2, ',', '.') }}</td>
+            <td style="text-align:right;">{{ number_format($sumPokok, 2, '.', ',') }}</td>
+            <td style="text-align:right;">{{ number_format($sumTotal, 2, '.', ',') }}</td>
             <td ></td>
-            <td style="text-align:right;">{{ number_format($sumCicilan, 2, ',', '.') }}</td>
+            <td style="text-align:right;">{{ number_format($sumCicilan, 2, '.', ',') }}</td>
             <td ></td>
-            <td style="text-align:right;">{{ number_format($sumTerbayar, 2, ',', '.') }}</td>
-            <td style="text-align:right; color:#1D4ED8;">{{ number_format($sumSisa, 2, ',', '.') }}</td>
+            <td style="text-align:right;">{{ number_format($sumTerbayar, 2, '.', ',') }}</td>
+            <td style="text-align:right; color:#1D4ED8;">{{ number_format($sumSisa, 2, '.', ',') }}</td>
             <td></td>
         </tr>
     </tfoot>

@@ -6,6 +6,7 @@ use App\Models\LoanRequest;
 use App\Models\Pinjaman;
 use App\Models\Pencairan;
 use App\Models\PengambilanSimpanan;
+use App\Models\MasterJenisPinjaman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,15 +16,26 @@ class PencairanController extends Controller
     {
         $tahun = $request->get('tahun');
         $bulan = $request->get('bulan');
+        $jenis = $request->get('jenis');
 
         // Sidebar periode khusus pinjaman
         $sidebarPeriode = $this->getSidebarPeriode('pinjamans', 'created_at');
+
+        // List jenis pinjaman untuk filter dropdown
+        $jenisPinjamanList = MasterJenisPinjaman::with('children')
+            ->whereNull('parent_id')
+            ->orderBy('nama_pinjaman')
+            ->get();
 
         $query = Pinjaman::with('anggota', 'jenisPinjaman');
 
         if ($tahun) {
             $query->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [$tahun]);
             if ($bulan) $query->whereRaw('EXTRACT(MONTH FROM created_at) = ?', [$bulan]);
+        }
+
+        if ($jenis) {
+            $query->where('jenis_pinjaman_id', $jenis);
         }
 
         $listPinjaman = $query->latest()->get();
@@ -41,7 +53,8 @@ class PencairanController extends Controller
 
         return view('pencairan.pinjaman', compact(
             'listPinjaman', 'sidebarPeriode', 'pencairanExisting',
-            'tahun', 'bulan', 'totalPinjaman', 'totalPotongan', 'totalNet'
+            'tahun', 'bulan', 'jenis', 'totalPinjaman', 'totalPotongan', 'totalNet',
+            'jenisPinjamanList'
         ));
     }
 
@@ -124,5 +137,54 @@ class PencairanController extends Controller
         );
 
         return back()->with('success', 'Pencairan berhasil ditandai sebagai sudah dibayar.');
+    }
+
+    /**
+     * Tandai bulk pencairan sebagai sudah dibayar via checkbox.
+     */
+    public function markPaidBulk(Request $request)
+    {
+        $request->validate([
+            'ref_type'   => 'required|in:pinjaman,simpanan',
+            'ids'        => 'required|array|min:1',
+            'ids.*'      => 'required|integer',
+            'nominals'   => 'required|array',
+            'nominals.*' => 'required|numeric',
+            'anggota_ids'   => 'required|array',
+            'anggota_ids.*' => 'required|integer',
+            'metode'     => 'required|in:transfer,cash',
+            'tanggal'    => 'required|date',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $refType    = $request->ref_type;
+        $ids        = $request->ids;
+        $nominals   = $request->nominals;
+        $anggotaIds = $request->anggota_ids;
+        $metode     = $request->metode;
+        $tanggal    = $request->tanggal;
+        $keterangan = $request->keterangan;
+        $createdBy  = auth()->id() ?? 1;
+
+        foreach ($ids as $key => $id) {
+            Pencairan::updateOrCreate(
+                [
+                    'ref_type' => $refType,
+                    'ref_id'   => $id,
+                ],
+                [
+                    'anggota_id'  => $anggotaIds[$key] ?? null,
+                    'nominal'     => $nominals[$key]   ?? 0,
+                    'status'      => 'paid',
+                    'metode'      => $metode,
+                    'tanggal'     => $tanggal,
+                    'keterangan'  => $keterangan,
+                    'created_by'  => $createdBy,
+                ]
+            );
+        }
+
+        $count = count($ids);
+        return back()->with('success', "$count data pencairan berhasil ditandai sebagai sudah dibayar.");
     }
 }

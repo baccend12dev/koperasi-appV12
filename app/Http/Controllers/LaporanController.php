@@ -377,12 +377,21 @@ class LaporanController extends Controller
                 "Expires"             => "0"
             ];
 
+            $jenis_pinjaman = 'Semua Jenis Pinjaman';
+            if ($request->filled('jenis')) {
+                $jpSelected = \App\Models\MasterJenisPinjaman::find($request->jenis);
+                if ($jpSelected) {
+                    $jenis_pinjaman = $jpSelected->nama_pinjaman;
+                }
+            }
+
             $pinjaman_export = $query->orderBy('tanggal_mulai', 'desc')->get();
 
             $html = view('laporan.export_pinjaman_excel', compact(
                 'pinjaman_export',
                 'periode',
                 'status',
+                'jenis_pinjaman',
                 'sumPokok',
                 'sumTotal',
                 'sumTerbayar',

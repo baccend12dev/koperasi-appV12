@@ -74,6 +74,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pinjaman/angsuran', [App\Http\Controllers\PinjamanController::class, 'storeAngsuran'])->name('pinjaman.angsuran.store');
     Route::post('pinjaman/angsuran/bayar', [App\Http\Controllers\PinjamanController::class, 'bayarAngsuran'])->name('pinjaman.angsuran.bayar');
     Route::get('pinjaman/angsuran/{id}', [App\Http\Controllers\PinjamanController::class, 'showAngsuran'])->name('pinjaman.angsuran.show');
+    Route::get('simulasi', [App\Http\Controllers\PinjamanController::class, 'simulasi'])->name('pinjaman.simulasi');
     Route::get('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'masterJenis'])->name('pinjaman.masterJenis');
     Route::post('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'storeMasterJenis'])->name('pinjaman.masterJenis.store');
     Route::put('pinjaman/master-jenis/{id}', [App\Http\Controllers\PinjamanController::class, 'updateMasterJenis'])->name('pinjaman.masterJenis.update');
@@ -93,7 +94,9 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Persetujuan (Approval) ───────────────────────────
     Route::get('persetujuan/pinjaman', [App\Http\Controllers\PersetujuanController::class, 'pinjaman'])->name('persetujuan.pinjaman');
+    Route::post('persetujuan/pinjaman/approve-bulk', [App\Http\Controllers\PersetujuanController::class, 'approvePinjamanBulk'])->name('persetujuan.pinjaman.approve.bulk');
     Route::get('persetujuan/pengambilan', [App\Http\Controllers\PersetujuanController::class, 'pengambilan'])->name('persetujuan.pengambilan');
+    Route::post('persetujuan/pengambilan/approve-bulk', [App\Http\Controllers\PersetujuanController::class, 'approvePengambilanBulk'])->name('persetujuan.pengambilan.approve.bulk');
     Route::post('persetujuan/pengambilan/{id}/approve', [App\Http\Controllers\PersetujuanController::class, 'approvePengambilan'])->name('persetujuan.pengambilan.approve');
     Route::post('persetujuan/pengambilan/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPengambilan'])->name('persetujuan.pengambilan.reject');
 
@@ -101,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pencairan/pinjaman', [App\Http\Controllers\PencairanController::class, 'pinjaman'])->name('pencairan.pinjaman');
     Route::get('pencairan/pengambilan', [App\Http\Controllers\PencairanController::class, 'pengambilan'])->name('pencairan.pengambilan');
     Route::post('pencairan/bayar', [App\Http\Controllers\PencairanController::class, 'markPaid'])->name('pencairan.bayar');
+    Route::post('pencairan/bayar-bulk', [App\Http\Controllers\PencairanController::class, 'markPaidBulk'])->name('pencairan.bayar.bulk');
 
     // ── Konfigurasi ───────────────────────────────────────
     Route::get('konfigurasi', fn() => view('konfigurasi.index'))->name('konfigurasi.index');

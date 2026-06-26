@@ -116,33 +116,175 @@
 <div class="px-6 pt-2 pb-6 space-y-6">
 
 <style>
-    .stats-grid { display:grid; grid-template-columns:repeat(1, 1fr); gap:16px; }
-    @media (min-width: 768px) { .stats-grid { grid-template-columns:repeat(3, 1fr); } }
-    .stat-card-dark {
-        background:#0B1727; border-radius:12px; padding:22px;
-        color:#fff; position:relative; overflow:hidden;
-    }
-    .stat-card-light {
-        background:#fff; border-radius:12px; padding:22px;
-        box-shadow:0 1px 3px rgba(0,0,0,.05); border:1px solid #f1f5f9;
-        position:relative; overflow:hidden;
-    }
     .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:12px; font-size:11px; font-weight:600; }
-    .badge-paid      { background:#D1FAE5; color:#059669; }
-    .badge-pending   { background:#FEF3C7; color:#D97706; }
+    .badge-paid    { background:#D1FAE5; color:#059669; }
+    .badge-pending { background:#FEF3C7; color:#D97706; }
+
+    /* Checkbox styles */
+    .bulk-checkbox {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #D97706;
+        border-radius: 4px;
+    }
+
+    /* Bulk action bar */
+    #bulk-action-bar-wd {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        background: #FFFBEB;
+        border: 1px solid #FDE68A;
+        border-radius: 10px;
+        padding: 10px 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+    }
+    #bulk-action-bar-wd.visible {
+        display: flex;
+    }
+    #bulk-count-label-wd {
+        font-size: 13px;
+        font-weight: 600;
+        color: #92400E;
+    }
+    .btn-bulk-bayar-wd {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        background: #D97706;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .btn-bulk-bayar-wd:hover { background: #B45309; }
+    .btn-bulk-clear-wd {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6B7280;
+        background: #fff;
+        border: 1px solid #D1D5DB;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-bulk-clear-wd:hover { background: #F3F4F6; }
+
+    /* Row selected highlight */
+    tr.row-selected td { background: #FFFBEB !important; }
+
+    /* Filter bar */
+    .filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .filter-search-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+    }
+    .filter-search-wrap svg {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+        pointer-events: none;
+    }
+    .filter-search-input {
+        width: 100%;
+        height: 36px;
+        padding: 0 12px 0 34px;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #374151;
+        background: #fff;
+        outline: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    .filter-search-input:focus {
+        border-color: #D97706;
+        box-shadow: 0 0 0 3px rgba(217,119,6,0.1);
+    }
+    .filter-search-input::placeholder { color: #9CA3AF; }
+    .filter-status-tabs {
+        display: flex;
+        background: #F3F4F6;
+        border-radius: 8px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .filter-tab {
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6B7280;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+    .filter-tab.active {
+        background: #fff;
+        color: #92400E;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .filter-tab:hover:not(.active) { color: #374151; }
+    .filter-result-info {
+        font-size: 12px;
+        color: #9CA3AF;
+        white-space: nowrap;
+    }
+    #no-result-row-wd { display: none; }
 </style>
 
-{{-- Stats --}}
-<div class="stats-grid">
-    <div class="stat-card-dark" style="background: #92400E;">
-        <div class="text-amber-200 text-xs font-bold tracking-wider mb-2">TOTAL PENARIKAN SIMPANAN</div>
-        <div class="text-2xl font-bold text-white">Rp {{ number_format($totalNominal, 0, ',', '.') }}</div>
-        <div class="absolute right-5 top-1/2 -translate-y-1/2 bg-white/10 p-3 rounded-xl">
-            <svg class="w-7 h-7 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+{{-- Filter Bar --}}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+    <div class="filter-bar">
+        <div class="filter-search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
+            <input type="text" id="filter-search-wd" class="filter-search-input" placeholder="Cari nama anggota atau NIK..." oninput="applyFilterWd()">
         </div>
+        <div class="filter-status-tabs">
+            <button class="filter-tab active" data-status="semua" onclick="setStatusFilterWd('semua', this)">Semua</button>
+            <button class="filter-tab" data-status="pending" onclick="setStatusFilterWd('pending', this)">Belum Bayar</button>
+            <button class="filter-tab" data-status="paid" onclick="setStatusFilterWd('paid', this)">Lunas</button>
+        </div>
+        <span class="filter-result-info" id="filter-info-wd"></span>
     </div>
+</div>
+
+{{-- Bulk Action Bar --}}
+<div id="bulk-action-bar-wd">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+    </svg>
+    <span id="bulk-count-label-wd">0 dipilih</span>
+    <button type="button" class="btn-bulk-bayar-wd" onclick="openBulkModalWd()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Tandai Sudah Dibayar
+    </button>
+    <button type="button" class="btn-bulk-clear-wd" onclick="clearSelectionWd()">Batal Pilih</button>
 </div>
 
 {{-- Tabel --}}
@@ -162,6 +304,9 @@
         <table class="w-full text-left text-sm text-gray-600 min-w-max">
             <thead class="bg-gray-50/50 text-xs uppercase text-gray-400 font-semibold border-b border-gray-100">
                 <tr>
+                    <th class="px-4 py-4">
+                        <input type="checkbox" id="check-all-wd" class="bulk-checkbox" title="Pilih semua belum bayar" onchange="toggleAllWd(this)">
+                    </th>
                     <th class="px-6 py-4">TANGGAL APPROVE</th>
                     <th class="px-6 py-4">ANGGOTA</th>
                     <th class="px-6 py-4">NOMINAL WD</th>
@@ -169,10 +314,25 @@
                     <th class="px-6 py-4 text-center">AKSI</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-gray-100" id="wd-tbody">
                 @forelse($listPengambilan as $row)
-                @php $p = $pencairanExisting->get($row->id); @endphp
-                <tr class="hover:bg-gray-50/50 transition-colors">
+                @php $p = $pencairanExisting->get($row->id); $isPaid = $p && $p->status === 'paid'; @endphp
+                <tr class="hover:bg-gray-50/50 transition-colors {{ $isPaid ? '' : 'row-pending-wd' }}"
+                    data-id="{{ $row->id }}"
+                    data-nominal="{{ $row->nominal }}"
+                    data-anggota="{{ $row->anggota_id }}">
+                    <td class="px-4 py-4">
+                        @if(!$isPaid)
+                        <input type="checkbox"
+                               class="bulk-checkbox row-check-wd"
+                               value="{{ $row->id }}"
+                               data-nominal="{{ $row->nominal }}"
+                               data-anggota="{{ $row->anggota_id }}"
+                               onchange="onCheckChangeWd()">
+                        @else
+                        <span class="text-gray-300 text-xs">—</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
                         {{ \Carbon\Carbon::parse($row->updated_at)->format('d M Y') }}
                     </td>
@@ -192,7 +352,7 @@
                     </td>
 
                     <td class="px-6 py-4 text-center">
-                        @if($p && $p->status === 'paid')
+                        @if($isPaid)
                             <span class="badge badge-paid">LUNAS</span>
                             <div class="text-[10px] text-gray-400 mt-1">{{ ucfirst($p->metode) }} · {{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</div>
                         @else
@@ -201,7 +361,7 @@
                     </td>
 
                     <td class="px-6 py-4 text-center">
-                        @if($p && $p->status === 'paid')
+                        @if($isPaid)
                             <span class="text-xs text-gray-400">—</span>
                         @else
                         <div x-data="{ openBayar: false }">
@@ -213,7 +373,7 @@
                             <template x-teleport="body">
                                 <div x-show="openBayar" class="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4" x-transition.opacity style="display:none;">
                                     <div @click.away="openBayar = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-                                        
+
                                         <div class="flex justify-between items-start mb-5">
                                             <div>
                                                 <h3 class="text-base font-bold text-gray-900">Konfirmasi Pembayaran</h3>
@@ -267,7 +427,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-6 py-14 text-center text-gray-400">
+                    <td colspan="6" class="px-6 py-14 text-center text-gray-400">
                         <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                         </svg>
@@ -275,6 +435,16 @@
                     </td>
                 </tr>
                 @endforelse
+                {{-- Row ditampilkan saat filter tidak menemukan hasil --}}
+                <tr id="no-result-row-wd" style="display:none;">
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                        <svg class="w-9 h-9 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8" stroke-width="1.5"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="1.5"/>
+                        </svg>
+                        <div class="text-sm font-medium text-gray-400">Tidak ada data yang sesuai filter</div>
+                        <div class="text-xs text-gray-300 mt-1">Coba ubah kata kunci atau status</div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -288,4 +458,200 @@
 </div>
 
 </div>
+
+{{-- Modal Bulk Bayar Penarikan Simpanan --}}
+<div id="modal-bulk-wd" class="fixed inset-0 z-[9999] items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4" style="display:none;">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+        <div class="flex justify-between items-start mb-5">
+            <div>
+                <h3 class="text-base font-bold text-gray-900">Tandai Sudah Dibayar (Bulk)</h3>
+                <p class="text-xs text-gray-500 mt-0.5" id="bulk-modal-subtitle-wd">0 transaksi dipilih</p>
+            </div>
+            <button onclick="closeBulkModalWd()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- List item terpilih --}}
+        <div id="bulk-selected-list-wd" class="mb-4 max-h-40 overflow-y-auto space-y-1.5 text-sm text-gray-600 bg-amber-50 rounded-xl p-3"></div>
+
+        <div class="bg-emerald-50 rounded-xl p-4 mb-5 text-center">
+            <div class="text-xs text-emerald-600 font-semibold mb-1 uppercase tracking-wider">TOTAL NOMINAL DIBAYARKAN</div>
+            <div class="text-2xl font-bold text-emerald-700" id="bulk-total-nominal-wd">Rp 0</div>
+        </div>
+
+        <form action="{{ route('pencairan.bayar.bulk') }}" method="POST" id="bulk-form-wd" class="space-y-4">
+            @csrf
+            <input type="hidden" name="ref_type" value="simpanan">
+            <div id="bulk-hidden-inputs-wd"></div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Tanggal Bayar</label>
+                    <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Metode</label>
+                    <select name="metode" class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500" required>
+                        <option value="transfer">Transfer</option>
+                        <option value="cash">Cash</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Keterangan (Opsional)</label>
+                <input type="text" name="keterangan" placeholder="No. ref / catatan..." class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 shadow-sm focus:border-amber-500 focus:ring-amber-500">
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeBulkModalWd()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-amber-600 rounded-lg hover:bg-amber-700 shadow-sm transition-all active:scale-95">
+                    Simpan & Tandai Lunas
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// ─── Filter logic ──────────────────────────────────────────
+let activeStatusWd = 'semua';
+
+function setStatusFilterWd(status, btn) {
+    activeStatusWd = status;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilterWd();
+}
+
+function applyFilterWd() {
+    const q = document.getElementById('filter-search-wd').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#wd-tbody tr:not(#no-result-row-wd)');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const isPaid    = row.querySelector('.badge-paid') !== null;
+        const isPending = row.querySelector('.badge-pending') !== null;
+
+        let statusOk = true;
+        if (activeStatusWd === 'paid')    statusOk = isPaid;
+        if (activeStatusWd === 'pending') statusOk = isPending;
+
+        let searchOk = true;
+        if (q) {
+            const text = row.textContent.toLowerCase();
+            searchOk = text.includes(q);
+        }
+
+        const show = statusOk && searchOk;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    document.getElementById('no-result-row-wd').style.display = (visible === 0) ? '' : 'none';
+
+    const total = rows.length;
+    const info = document.getElementById('filter-info-wd');
+    if (q || activeStatusWd !== 'semua') {
+        info.textContent = visible + ' dari ' + total + ' data';
+    } else {
+        info.textContent = '';
+    }
+
+    rows.forEach(row => {
+        if (row.style.display === 'none') {
+            const cb = row.querySelector('.row-check-wd');
+            if (cb) cb.checked = false;
+        }
+    });
+    onCheckChangeWd();
+}
+
+// ─── Checkbox & Bulk logic ──────────────────────────────────
+function getCheckedWd() {
+    return [...document.querySelectorAll('.row-check-wd:checked')];
+}
+
+function onCheckChangeWd() {
+    const checked = getCheckedWd();
+    const bar = document.getElementById('bulk-action-bar-wd');
+    const label = document.getElementById('bulk-count-label-wd');
+    label.textContent = checked.length + ' dipilih';
+    if (checked.length > 0) {
+        bar.classList.add('visible');
+    } else {
+        bar.classList.remove('visible');
+    }
+
+    // Highlight rows
+    document.querySelectorAll('.row-check-wd').forEach(cb => {
+        cb.closest('tr').classList.toggle('row-selected', cb.checked);
+    });
+
+    // Sync check-all state (only visible rows)
+    const allVisible = [...document.querySelectorAll('.row-check-wd')].filter(cb => cb.closest('tr').style.display !== 'none');
+    document.getElementById('check-all-wd').indeterminate = checked.length > 0 && checked.length < allVisible.length;
+    document.getElementById('check-all-wd').checked = allVisible.length > 0 && checked.length === allVisible.length;
+}
+
+function toggleAllWd(source) {
+    document.querySelectorAll('.row-check-wd').forEach(cb => {
+        if (cb.closest('tr').style.display !== 'none') {
+            cb.checked = source.checked;
+        }
+    });
+    onCheckChangeWd();
+}
+
+function clearSelectionWd() {
+    document.querySelectorAll('.row-check-wd').forEach(cb => cb.checked = false);
+    document.getElementById('check-all-wd').checked = false;
+    onCheckChangeWd();
+}
+
+function formatRupiahWd(n) {
+    return 'Rp ' + Number(n).toLocaleString('id-ID');
+}
+
+function openBulkModalWd() {
+    const checked = getCheckedWd();
+    if (checked.length === 0) return;
+
+    let total = 0;
+    let listHtml = '';
+    let hiddenHtml = '';
+
+    checked.forEach((cb, i) => {
+        const nom = parseFloat(cb.dataset.nominal);
+        const anggota = cb.dataset.anggota;
+        total += nom;
+        const row = cb.closest('tr');
+        const namaEl = row.querySelector('.font-bold.text-gray-800');
+        const nama = namaEl ? namaEl.textContent.trim() : '-';
+        listHtml += `<div class="flex justify-between items-center py-1 border-b border-amber-100 last:border-0">
+            <span class="text-amber-900 font-medium">${nama}</span>
+            <span class="text-emerald-700 font-bold">${formatRupiahWd(nom)}</span>
+        </div>`;
+        hiddenHtml += `<input type="hidden" name="ids[]" value="${cb.value}">`;
+        hiddenHtml += `<input type="hidden" name="nominals[]" value="${nom}">`;
+        hiddenHtml += `<input type="hidden" name="anggota_ids[]" value="${anggota}">`;
+    });
+
+    document.getElementById('bulk-modal-subtitle-wd').textContent = checked.length + ' transaksi dipilih';
+    document.getElementById('bulk-selected-list-wd').innerHTML = listHtml;
+    document.getElementById('bulk-total-nominal-wd').textContent = formatRupiahWd(total);
+    document.getElementById('bulk-hidden-inputs-wd').innerHTML = hiddenHtml;
+
+    const modal = document.getElementById('modal-bulk-wd');
+    modal.style.display = 'flex';
+}
+
+function closeBulkModalWd() {
+    document.getElementById('modal-bulk-wd').style.display = 'none';
+}
+
+// Close on backdrop click
+document.getElementById('modal-bulk-wd').addEventListener('click', function(e) {
+    if (e.target === this) closeBulkModalWd();
+});
+</script>
 @endsection

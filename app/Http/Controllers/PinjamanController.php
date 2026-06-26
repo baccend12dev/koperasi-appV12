@@ -281,6 +281,11 @@ class PinjamanController extends Controller
         return view('pinjaman.create', compact('jenisPinjamanList'));
     }
 
+    public function simulasi() {
+        $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();
+        return view('pinjaman.simulasi', compact('jenisPinjamanList'));
+    }
+
     public function storePengajuan(Request $request) {
         $request->validate([
             'user_id' => 'required|exists:anggotas,id',
@@ -342,7 +347,7 @@ class PinjamanController extends Controller
             return response()->json(['success' => false, 'message' => 'Query kosong']);
         }
 
-        $anggota = \App\Models\Anggota::with('transaksiSimpanan')
+        $anggota = \App\Models\Anggota::with(['transaksiSimpanan', 'masterSimpanan', 'departemen'])
             ->where('nik', $q)
             ->orWhere('no_ktp', $q)
             ->first();
@@ -352,13 +357,24 @@ class PinjamanController extends Controller
         }
 
         $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
-        $simpananTotal = 0;
+
+        // Breakdown simpanan per jenis dari transaksi
+        $simpananPokok    = 0;
+        $simpananWajib    = 0;
+        $simpananSukarela = 0;
+
         if ($anggota->transaksiSimpanan) {
-            $simpananTotal = $anggota->transaksiSimpanan->sum(function ($item) {
-                return $item->simpanan_pokok + $item->simpanan_wajib + $item->simpanan_sukarela;
-            });
+            $simpananPokok    = $anggota->transaksiSimpanan->sum('simpanan_pokok');
+            $simpananWajib    = $anggota->transaksiSimpanan->sum('simpanan_wajib');
+            $simpananSukarela = $anggota->transaksiSimpanan->sum('simpanan_sukarela');
         }
-        $simpananTotal += $saldoAwal;
+        $simpananTotal = $simpananPokok + $simpananWajib + $simpananSukarela + $saldoAwal;
+
+        // Simpanan wajib + sukarela bulanan (ambil dari master_simpanan jika ada)
+        $simpananWajibBulanan = 0;
+        if ($anggota->masterSimpanan) {
+            $simpananWajibBulanan = ($anggota->masterSimpanan->simpanan_wajib ?? 0) + ($anggota->masterSimpanan->simpanan_sukarela ?? 0);
+        }
 
         // Active loans (status berjalan)
         $pinjamanAktifDb = \App\Models\Pinjaman::where('user_id', $anggota->id)
@@ -389,45 +405,54 @@ class PinjamanController extends Controller
         }
             
         $pinjamanAktifTotal = $pinjamanAktifDb->sum('sisa_pinjaman');
+        $totalCicilanPerBulan = $pinjamanAktifDb->sum('cicilan_per_bulan');
+
+        // Batas pinjaman: 5x total simpanan, max 50 juta
         $maksPinjaman = 20000000;
         if ($simpananTotal > 0) {
-            $maksPinjaman = $simpananTotal * 5;
+            $maksPinjaman = min($simpananTotal * 5, 50000000);
         }
         $sisaLimit = max(0, $maksPinjaman - $pinjamanAktifTotal - $pinjamanPendingDb->sum('jumlah_pengajuan'));
 
         $listPinjaman = $pinjamanAktifDb->map(function($p) {
             $jp = \App\Models\MasterJenisPinjaman::find($p->jenis_pinjaman_id);
             return [
-                'id'              => $p->id,
-                'jenis_pinjaman'  => $jp ? $jp->nama_pinjaman : 'Pinjaman',
-                'sisa_tenor'      => $p->sisa_tenor,
-                'sisa_tenor_label'=> $p->sisa_tenor . ' bulan',
-                'sisa_tagihan'    => $p->sisa_pinjaman,
-                'jumlah_pinjaman' => $p->jumlah_pinjaman,
-                'total_pinjaman'  => $p->total_pinjaman,
+                'id'                => $p->id,
+                'jenis_pinjaman'    => $jp ? $jp->nama_pinjaman : 'Pinjaman',
+                'sisa_tenor'        => $p->sisa_tenor,
+                'sisa_tenor_label'  => $p->sisa_tenor . ' bulan',
+                'sisa_tagihan'      => $p->sisa_pinjaman,
+                'jumlah_pinjaman'   => $p->jumlah_pinjaman,
+                'total_pinjaman'    => $p->total_pinjaman,
                 'cicilan_per_bulan' => $p->cicilan_per_bulan,
-                'total_bunga'     => $p->total_bunga,
-                'bunga'           => $p->bunga,
-                'tenor'           => $p->tenor,
-                'payment_method'  => $p->payment_method,
-                'status'          => $p->status
+                'total_bunga'       => $p->total_bunga,
+                'bunga'             => $p->bunga,
+                'tenor'             => $p->tenor,
+                'payment_method'    => $p->payment_method,
+                'status'            => $p->status
             ];
         });
 
         return response()->json([
-            
             'success' => true,
             'data' => [
-                'nama' => $anggota->nama_anggota,
-                'nik' => $anggota->nik,
-                'user_id' => $anggota->id,
-                'tgl_masuk' => \Carbon\Carbon::parse($anggota->tgl_bergabung)->format('d M Y'),
-                'total_simpanan' => $simpananTotal,
-                'maks_pinjaman' => $maksPinjaman,
-                'pinjaman_aktif' => $pinjamanAktifTotal,
-                'sisa_limit' => $sisaLimit,
-                'pinjaman_berjalan' => $listPinjaman,
-                'usage_per_parent' => $usagePerParent
+                'nama'                  => $anggota->nama_anggota,
+                'nik'                   => $anggota->nik,
+                'user_id'               => $anggota->id,
+                'departemen'            => $anggota->departemen->nama_departemen ?? '-',
+                'jabatan'               => $anggota->jabatan ?? '-',
+                'tgl_masuk'             => $anggota->tgl_msk ? \Carbon\Carbon::parse($anggota->tgl_msk)->format('d M Y') : '-',
+                'simpanan_pokok'        => $simpananPokok,
+                'simpanan_wajib'        => $simpananWajib,
+                'simpanan_sukarela'     => $simpananSukarela,
+                'simpanan_wajib_bulanan'=> $simpananWajibBulanan,
+                'total_simpanan'        => $simpananTotal,
+                'maks_pinjaman'         => $maksPinjaman,
+                'pinjaman_aktif'        => $pinjamanAktifTotal,
+                'total_cicilan_per_bulan' => $totalCicilanPerBulan,
+                'sisa_limit'            => $sisaLimit,
+                'pinjaman_berjalan'     => $listPinjaman,
+                'usage_per_parent'      => $usagePerParent
             ]
         ]);
     }

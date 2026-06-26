@@ -27,9 +27,10 @@ class PersetujuanController extends Controller
             $query->where('jenis_pinjaman_id', $request->jenis);
         }
         
-        // Show all statuses, sort pending first
-        $pengajuan_list = $query->get();
-        // dd($pengajuan_list);
+        // Show all statuses, sort pending first then latest
+        $pengajuan_list = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 WHEN status = 'approved' THEN 1 ELSE 2 END")
+                                ->orderBy('created_at', 'desc')
+                                ->get();
         
         // Calculate member financial stats for approval modal if pending
         foreach ($pengajuan_list as $item) {
@@ -100,20 +101,17 @@ class PersetujuanController extends Controller
     }
 
     public function pengambilan(Request $request) {
-        $filterStatus = $request->get('status', 'pending');
+        $filterStatus = $request->get('status', 'semua');
 
         $query = PengambilanSimpanan::with([
-            'anggota.transaksiSimpanan', 
-            'anggota.pinjamanAktif.jenisPinjaman', 
+            'anggota.transaksiSimpanan',
+            'anggota.pinjamanAktif.jenisPinjaman',
             'anggota.masterSimpanan',
             'settlements.pinjaman.jenisPinjaman'
-        ])->latest();
+        ])->orderByRaw("CASE WHEN status = 'pending' THEN 0 WHEN status = 'approved' THEN 1 ELSE 2 END")
+          ->orderBy('created_at', 'desc');
 
-        if ($filterStatus !== 'all') {
-            $query->where('status', $filterStatus);
-        }
-
-        $pengambilan_list = $query->paginate(15)->withQueryString();
+        $pengambilan_list = $query->get();
 
         // Calculate member financial stats for modal (pending items only)
         foreach ($pengambilan_list as $item) {
@@ -269,6 +267,37 @@ class PersetujuanController extends Controller
         return back()->with('success', 'Pengajuan penarikan ditolak.');
     }
 
+    /**
+     * Bulk approve multiple withdrawal requests via checkbox selection.
+     */
+    public function approvePengambilanBulk(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:pengambilan_simpanan,id',
+        ]);
+
+        $successCount = 0;
+        $errors = [];
+
+        foreach ($request->ids as $id) {
+            try {
+                $this->approvePengambilan($request, $id);
+                $successCount++;
+            } catch (\Exception $e) {
+                $errors[] = "ID #{$id}: " . $e->getMessage();
+            }
+        }
+
+        if ($successCount > 0 && empty($errors)) {
+            return back()->with('success', "{$successCount} pengajuan penarikan simpanan berhasil disetujui.");
+        } elseif ($successCount > 0) {
+            return back()->with('success', "{$successCount} disetujui, " . count($errors) . " gagal.");
+        } else {
+            return back()->with('error', 'Gagal menyetujui pengajuan: ' . implode(', ', $errors));
+        }
+    }
+
     public function approvePinjaman($id) {
         $loanRequest = LoanRequest::with('topups')->findOrFail($id);
         
@@ -387,5 +416,36 @@ class PersetujuanController extends Controller
         ]);
 
         return back()->with('success', 'Pengajuan pinjaman ditolak.');
+    }
+
+    /**
+     * Bulk approve multiple loan requests via checkbox selection.
+     */
+    public function approvePinjamanBulk(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:loan_requests,id',
+        ]);
+
+        $successCount = 0;
+        $errors = [];
+
+        foreach ($request->ids as $id) {
+            try {
+                $this->approvePinjaman($id);
+                $successCount++;
+            } catch (\Exception $e) {
+                $errors[] = "ID #{$id}: " . $e->getMessage();
+            }
+        }
+
+        if ($successCount > 0 && empty($errors)) {
+            return back()->with('success', "{$successCount} pengajuan pinjaman berhasil disetujui.");
+        } elseif ($successCount > 0) {
+            return back()->with('success', "{$successCount} disetujui, " . count($errors) . " gagal.");
+        } else {
+            return back()->with('error', 'Gagal menyetujui pengajuan: ' . implode(', ', $errors));
+        }
     }
 }
