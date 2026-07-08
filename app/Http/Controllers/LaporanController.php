@@ -119,7 +119,10 @@ class LaporanController extends Controller
         $query->withSum('transaksiSimpanan as total_pokok', 'simpanan_pokok')
               ->withSum('transaksiSimpanan as total_wajib', 'simpanan_wajib')
               ->withSum('transaksiSimpanan as total_sukarela', 'simpanan_sukarela')
-              ->withSum('saldoAwalSimpanan as total_saldo_awal', 'nominal');
+              ->withSum('saldoAwalSimpanan as total_saldo_awal', 'nominal')
+              ->withSum('saldoAwalSimpanan as saldo_awal_pokok', 'pokok')
+              ->withSum('saldoAwalSimpanan as saldo_awal_wajib', 'wajib')
+              ->withSum('saldoAwalSimpanan as saldo_awal_sukarela', 'sukarela');
 
         // Totals query for the cards
         $memberIdsQuery = \App\Models\Anggota::query();
@@ -138,11 +141,14 @@ class LaporanController extends Controller
 
         $memberIds = $memberIdsQuery->pluck('id');
 
-        $sumPokok = \App\Models\TransaksiSimpanan::whereIn('anggota_id', $memberIds)->sum('simpanan_pokok');
-        $sumWajib = \App\Models\TransaksiSimpanan::whereIn('anggota_id', $memberIds)->sum('simpanan_wajib');
-        $sumSukarela = \App\Models\TransaksiSimpanan::whereIn('anggota_id', $memberIds)->sum('simpanan_sukarela');
+        $sumPokok = \App\Models\TransaksiSimpanan::whereIn('anggota_id', $memberIds)->sum('simpanan_pokok')
+                    + \App\Models\SaldoAwalSimpanan::whereIn('anggota_id', $memberIds)->sum('pokok');
+        $sumWajib = \App\Models\TransaksiSimpanan::whereIn('anggota_id', $memberIds)->sum('simpanan_wajib')
+                    + \App\Models\SaldoAwalSimpanan::whereIn('anggota_id', $memberIds)->sum('wajib');
+        $sumSukarela = \App\Models\TransaksiSimpanan::whereIn('anggota_id', $memberIds)->sum('simpanan_sukarela')
+                    + \App\Models\SaldoAwalSimpanan::whereIn('anggota_id', $memberIds)->sum('sukarela');
         $sumSaldoAwal = \App\Models\SaldoAwalSimpanan::whereIn('anggota_id', $memberIds)->sum('nominal');
-        $grandTotal = $sumPokok + $sumWajib + $sumSukarela + $sumSaldoAwal;
+        $grandTotal = $sumPokok + $sumWajib + $sumSukarela;
 
         if ($request->get('export') === 'excel') {
             $filename = "laporan_saldo_simpanan_" . date('Ymd_His') . ".xls";
@@ -156,13 +162,26 @@ class LaporanController extends Controller
 
             $members_export = $query->orderBy('nama_anggota')->get();
 
+            $filterDepartemen = null;
+            if ($request->filled('departemen_id')) {
+                $dep = \App\Models\Departemen::find($request->departemen_id);
+                if ($dep) {
+                    $filterDepartemen = $dep->nama;
+                }
+            }
+            $filterStatus = $request->status_anggota;
+            $filterSearch = $request->q;
+
             $html = view('laporan.export_simpanan_excel', compact(
                 'members_export',
                 'sumPokok',
                 'sumWajib',
                 'sumSukarela',
                 'sumSaldoAwal',
-                'grandTotal'
+                'grandTotal',
+                'filterDepartemen',
+                'filterStatus',
+                'filterSearch'
             ))->render();
 
             return response($html, 200, $headers);
@@ -248,13 +267,36 @@ class LaporanController extends Controller
 
             $transaksi_export = $query->orderBy('transaction_date', 'desc')->get();
 
+            $filterDepartemen = null;
+            if ($request->filled('departemen_id')) {
+                $dep = \App\Models\Departemen::find($request->departemen_id);
+                if ($dep) {
+                    $filterDepartemen = $dep->nama;
+                }
+            }
+            $filterSearch = $request->q;
+            $filterJenis = null;
+            if ($request->filled('jenis')) {
+                $jenis = $request->jenis;
+                if ($jenis === 'langsung') {
+                    $filterJenis = 'Simpanan Langsung Sukarela';
+                } elseif ($jenis === 'penarikan') {
+                    $filterJenis = 'Penarikan Simpanan';
+                } elseif ($jenis === 'bulanan') {
+                    $filterJenis = 'Simpanan Bulanan/Wajib/Pokok';
+                }
+            }
+
             $html = view('laporan.export_transaksi_simpanan_excel', compact(
                 'transaksi_export',
                 'periode',
                 'sumPokok',
                 'sumWajib',
                 'sumSukarela',
-                'grandTotal'
+                'grandTotal',
+                'filterDepartemen',
+                'filterSearch',
+                'filterJenis'
             ))->render();
 
             return response($html, 200, $headers);
@@ -387,6 +429,15 @@ class LaporanController extends Controller
 
             $pinjaman_export = $query->orderBy('tanggal_mulai', 'desc')->get();
 
+            $filterDepartemen = null;
+            if ($request->filled('departemen_id')) {
+                $dep = \App\Models\Departemen::find($request->departemen_id);
+                if ($dep) {
+                    $filterDepartemen = $dep->nama;
+                }
+            }
+            $filterSearch = $request->q;
+
             $html = view('laporan.export_pinjaman_excel', compact(
                 'pinjaman_export',
                 'periode',
@@ -396,7 +447,9 @@ class LaporanController extends Controller
                 'sumTotal',
                 'sumTerbayar',
                 'sumCicilan',
-                'sumSisa'
+                'sumSisa',
+                'filterDepartemen',
+                'filterSearch'
             ))->render();
 
             return response($html, 200, $headers);
@@ -498,12 +551,28 @@ class LaporanController extends Controller
             $orderByField = ($status === 'belum_bayar') ? 'tanggal_jatuh_tempo' : 'tanggal_bayar';
             $angsuran_export = $query->orderBy($orderByField, 'desc')->get();
 
+            $filterDepartemen = null;
+            if ($request->filled('departemen_id')) {
+                $dep = \App\Models\Departemen::find($request->departemen_id);
+                if ($dep) {
+                    $filterDepartemen = $dep->nama;
+                }
+            }
+            $filterSearch = $request->q;
+            $filterMetode = null;
+            if ($request->filled('metode')) {
+                $filterMetode = $request->metode === 'gaji' ? 'Payroll' : 'Manual';
+            }
+
             $html = view('laporan.export_transaksi_pinjaman_excel', compact(
                 'angsuran_export',
                 'periode',
                 'status',
                 'sumTagihan',
-                'sumTerbayar'
+                'sumTerbayar',
+                'filterDepartemen',
+                'filterSearch',
+                'filterMetode'
             ))->render();
 
             return response($html, 200, $headers);
@@ -528,4 +597,191 @@ class LaporanController extends Controller
             'sumTerbayar'
         ));
     }
+
+    public function sisaPinjaman(Request $request)
+    {
+        $query = \App\Models\Pinjaman::with(['anggota.departemen', 'jenisPinjaman']);
+
+        // Filter: Departemen
+        if ($request->filled('departemen_id')) {
+            $query->whereHas('anggota', function($q) use ($request) {
+                $q->where('department_id', $request->departemen_id);
+            });
+        }
+
+        // Filter: Search Name/NIK
+        if ($request->filled('q')) {
+            $query->whereHas('anggota', function($q) use ($request) {
+                $q->where('nama_anggota', 'ilike', '%' . $request->q . '%')
+                  ->orWhere('nik', 'ilike', '%' . $request->q . '%');
+            });
+        }
+
+        // Filter: Jenis Pinjaman
+        if ($request->filled('jenis')) {
+            $query->where('jenis_pinjaman_id', $request->jenis);
+        }
+
+        // Parse Periode
+        $periode = $request->input('periode');
+        $endOfMonth = null;
+        if ($periode) {
+            $parts = explode('-', $periode);
+            if (count($parts) === 2) {
+                $endOfMonth = \Carbon\Carbon::createFromDate($parts[0], $parts[1], 1)->endOfMonth()->format('Y-m-d');
+            }
+        }
+
+        $query->select('pinjamans.*');
+
+        if ($endOfMonth) {
+            // Filter loans that started before or in this period
+            $query->where('tanggal_mulai', '<=', $endOfMonth);
+
+            // Subquery for payments up to end of period
+            $query->selectSub(function($q) use ($endOfMonth) {
+                $q->from('pembayaran_angsurans')
+                  ->selectRaw('COALESCE(SUM(jumlah), 0)')
+                  ->whereColumn('pembayaran_angsurans.loan_id', 'pinjamans.id')
+                  ->where('tanggal_bayar', '<=', $endOfMonth);
+            }, 'total_terbayar_historis');
+
+            // Subquery for sisa tenor at the end of period
+            $query->selectSub(function($q) use ($endOfMonth) {
+                $q->from('pinjaman_angsurans')
+                  ->selectRaw('COUNT(*)')
+                  ->whereColumn('pinjaman_angsurans.loan_id', 'pinjamans.id')
+                  ->where(function($sub) use ($endOfMonth) {
+                      $sub->where('status', 'belum_bayar')
+                          ->orWhere('tanggal_bayar', '>', $endOfMonth);
+                  });
+            }, 'sisa_tenor_historis');
+
+            // Status filter (historical) - default is berjalan
+            $status = $request->input('status', 'berjalan');
+            if ($status === 'berjalan') {
+                $query->whereRaw('(total_pinjaman - (SELECT COALESCE(SUM(jumlah), 0) FROM pembayaran_angsurans WHERE pembayaran_angsurans.loan_id = pinjamans.id AND tanggal_bayar <= ?)) > 0', [$endOfMonth]);
+            } elseif ($status === 'lunas') {
+                $query->whereRaw('(total_pinjaman - (SELECT COALESCE(SUM(jumlah), 0) FROM pembayaran_angsurans WHERE pembayaran_angsurans.loan_id = pinjamans.id AND tanggal_bayar <= ?)) <= 0', [$endOfMonth]);
+            }
+        } else {
+            // Real time (current) sisa tagihan
+            $query->selectRaw('total_terbayar as total_terbayar_historis');
+            $query->selectRaw('sisa_tenor as sisa_tenor_historis');
+
+            $status = $request->input('status', 'berjalan');
+            if ($status !== 'semua') {
+                $query->where('status', $status);
+            }
+        }
+
+        // Calculate sums based on filtered query
+        $allMatching = (clone $query)->get();
+        
+        // Add dynamic properties sisa_pokok & sisa_bunga to each record
+        foreach ($allMatching as $item) {
+            $t = $item->tenor > 0 ? $item->tenor : 1;
+            $item->sisa_pokok = $item->sisa_tenor_historis * ($item->jumlah_pinjaman / $t);
+            $item->sisa_bunga = $item->sisa_tenor_historis * ($item->total_bunga / $t);
+            $item->sisa_total_hutang = $item->total_pinjaman - $item->total_terbayar_historis;
+            if ($item->sisa_total_hutang < 0) {
+                $item->sisa_total_hutang = 0;
+            }
+        }
+
+        $sumPokok = $allMatching->sum('jumlah_pinjaman');
+        $sumBunga = $allMatching->sum('total_bunga');
+        $sumSisaPokok = $allMatching->sum('sisa_pokok');
+        $sumSisaBunga = $allMatching->sum('sisa_bunga');
+        $sumSisaTotal = $allMatching->sum('sisa_total_hutang');
+
+        if ($request->get('export') === 'excel') {
+            $filename = "laporan_sisa_pinjaman_" . date('Ymd_His') . ".xls";
+            $headers = [
+                "Content-type"        => "application/vnd.ms-excel",
+                "Content-Disposition" => "attachment; filename=$filename",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+
+            $jenis_pinjaman = 'Semua Jenis Pinjaman';
+            if ($request->filled('jenis')) {
+                $jpSelected = \App\Models\MasterJenisPinjaman::find($request->jenis);
+                if ($jpSelected) {
+                    $jenis_pinjaman = $jpSelected->nama_pinjaman;
+                }
+            }
+
+            $pinjaman_export = $query->orderBy('tanggal_mulai', 'desc')->get();
+            foreach ($pinjaman_export as $item) {
+                $t = $item->tenor > 0 ? $item->tenor : 1;
+                $item->sisa_pokok = $item->sisa_tenor_historis * ($item->jumlah_pinjaman / $t);
+                $item->sisa_bunga = $item->sisa_tenor_historis * ($item->total_bunga / $t);
+                $item->sisa_total_hutang = $item->total_pinjaman - $item->total_terbayar_historis;
+                if ($item->sisa_total_hutang < 0) {
+                    $item->sisa_total_hutang = 0;
+                }
+            }
+
+            $filterDepartemen = null;
+            if ($request->filled('departemen_id')) {
+                $dep = \App\Models\Departemen::find($request->departemen_id);
+                if ($dep) {
+                    $filterDepartemen = $dep->nama;
+                }
+            }
+            $filterSearch = $request->q;
+
+            $html = view('laporan.export_sisa_pinjaman_excel', compact(
+                'pinjaman_export',
+                'periode',
+                'status',
+                'jenis_pinjaman',
+                'sumPokok',
+                'sumBunga',
+                'sumSisaPokok',
+                'sumSisaBunga',
+                'sumSisaTotal',
+                'filterDepartemen',
+                'filterSearch'
+            ))->render();
+
+            return response($html, 200, $headers);
+        }
+
+        $departments = \App\Models\Departemen::orderBy('nama')->get();
+        $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();
+
+        $pinjaman = $query->orderBy('tanggal_mulai', 'desc')
+            ->paginate(15)
+            ->appends(array_merge(
+                $request->except(['page', 'export']),
+                ['periode' => $periode ?? '']
+            ));
+
+        foreach ($pinjaman as $item) {
+            $t = $item->tenor > 0 ? $item->tenor : 1;
+            $item->sisa_pokok = $item->sisa_tenor_historis * ($item->jumlah_pinjaman / $t);
+            $item->sisa_bunga = $item->sisa_tenor_historis * ($item->total_bunga / $t);
+            $item->sisa_total_hutang = $item->total_pinjaman - $item->total_terbayar_historis;
+            if ($item->sisa_total_hutang < 0) {
+                $item->sisa_total_hutang = 0;
+            }
+        }
+
+        return view('laporan.sisa_pinjaman', compact(
+            'pinjaman',
+            'departments',
+            'jenisPinjamanList',
+            'periode',
+            'status',
+            'sumPokok',
+            'sumBunga',
+            'sumSisaPokok',
+            'sumSisaBunga',
+            'sumSisaTotal'
+        ));
+    }
 }
+

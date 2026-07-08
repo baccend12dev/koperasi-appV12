@@ -1,11 +1,11 @@
 <table border="1">
     <tr>
-        <td colspan="12" style="font-size:16px; font-weight:bold; text-align:center; padding:10px; background:#EFF6FF; color:#1D4ED8;">
+        <td colspan="11" style="font-size:16px; font-weight:bold; text-align:center; padding:10px; background:#EFF6FF; color:#1D4ED8;">
             LAPORAN RINCIAN TRANSAKSI PEMBAYARAN PINJAMAN (ANGSURAN)
         </td>
     </tr>
     <tr>
-        <td colspan="12" style="font-size:11px; text-align:center; padding:6px; background:#F9FAFB; color:#374151;">
+        <td colspan="11" style="font-size:11px; text-align:center; padding:6px; background:#F9FAFB; color:#374151;">
             Koperasi Karyawan OPI &mdash; 
             @if($periode)
                 Periode: {{ \Carbon\Carbon::parse($periode)->translatedFormat('F Y') }} &mdash; 
@@ -14,7 +14,17 @@
             Tanggal Ekspor: {{ date('d/m/Y H:i') }}
         </td>
     </tr>
-    <tr><td colspan="12"></td></tr>
+    @if(!empty($filterSearch) || !empty($filterDepartemen) || !empty($filterMetode))
+    <tr>
+        <td colspan="11" style="font-size:11px; text-align:center; padding:6px; background:#F3F4F6; color:#374151; font-weight:bold;">
+            Filter &mdash; 
+            @if(!empty($filterSearch)) Pencarian: "{{ $filterSearch }}" &mdash; @endif
+            @if(!empty($filterDepartemen)) Departemen: {{ $filterDepartemen }} &mdash; @endif
+            @if(!empty($filterMetode)) Metode: {{ $filterMetode }} &mdash; @endif
+        </td>
+    </tr>
+    @endif
+    <tr><td colspan="11"></td></tr>
 </table>
 
 <table border="1">

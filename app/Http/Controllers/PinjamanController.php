@@ -16,7 +16,7 @@ class PinjamanController extends Controller
     {
         $status = $request->input('status', 'semua');
         $search = $request->input('search');
-        $departemen_id = $request->input('departemen_id');
+        $sort = $request->input('sort');
 
         $query = \App\Models\Anggota::with(['departemen', 'pinjaman' => function($q) use ($status) {
             if ($status !== 'semua') {
@@ -37,14 +37,33 @@ class PinjamanController extends Controller
             });
         }
 
-        if ($departemen_id) {
-            $query->where('departemen_id', $departemen_id);
+        // Apply sorting
+        if ($sort === 'jumlah_pinjaman_tertinggi') {
+            $query->withSum(['pinjaman as total_pinjaman_sum' => function($q) use ($status) {
+                if ($status !== 'semua') {
+                    $q->where('status', $status);
+                }
+            }], 'jumlah_pinjaman')
+            ->orderBy('total_pinjaman_sum', 'desc');
+        } elseif ($sort === 'jumlah_pinjaman_terbanyak') {
+            $query->withCount(['pinjaman as total_pinjaman_count' => function($q) use ($status) {
+                if ($status !== 'semua') {
+                    $q->where('status', $status);
+                }
+            }])
+            ->orderBy('total_pinjaman_count', 'desc');
+        } elseif ($sort === 'jumlah_sisa_terbanyak') {
+            $query->withSum(['pinjaman as total_sisa_sum' => function($q) use ($status) {
+                if ($status !== 'semua') {
+                    $q->where('status', $status);
+                }
+            }], 'sisa_pinjaman')
+            ->orderBy('total_sisa_sum', 'desc');
         }
 
         $anggotaList = $query->paginate(15)->withQueryString();
-        $departemens = \App\Models\Departemen::all();
 
-        return view('pinjaman.index', compact('anggotaList', 'status', 'search', 'departemen_id', 'departemens'));
+        return view('pinjaman.index', compact('anggotaList', 'status', 'search', 'sort'));
     }
 
     public function pengajuan(Request $request) { 
@@ -356,19 +375,22 @@ class PinjamanController extends Controller
             return response()->json(['success' => false, 'message' => 'Anggota tidak ditemukan']);
         }
 
-        $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+        $saldoAwalModel = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->first();
+        $saldoAwalPokok    = $saldoAwalModel ? $saldoAwalModel->pokok : 0;
+        $saldoAwalWajib    = $saldoAwalModel ? $saldoAwalModel->wajib : 0;
+        $saldoAwalSukarela = $saldoAwalModel ? $saldoAwalModel->sukarela : 0;
 
-        // Breakdown simpanan per jenis dari transaksi
-        $simpananPokok    = 0;
-        $simpananWajib    = 0;
-        $simpananSukarela = 0;
+        // Breakdown simpanan per jenis dari transaksi + saldo awal
+        $simpananPokok    = $saldoAwalPokok;
+        $simpananWajib    = $saldoAwalWajib;
+        $simpananSukarela = $saldoAwalSukarela;
 
         if ($anggota->transaksiSimpanan) {
-            $simpananPokok    = $anggota->transaksiSimpanan->sum('simpanan_pokok');
-            $simpananWajib    = $anggota->transaksiSimpanan->sum('simpanan_wajib');
-            $simpananSukarela = $anggota->transaksiSimpanan->sum('simpanan_sukarela');
+            $simpananPokok    += $anggota->transaksiSimpanan->sum('simpanan_pokok');
+            $simpananWajib    += $anggota->transaksiSimpanan->sum('simpanan_wajib');
+            $simpananSukarela += $anggota->transaksiSimpanan->sum('simpanan_sukarela');
         }
-        $simpananTotal = $simpananPokok + $simpananWajib + $simpananSukarela + $saldoAwal;
+        $simpananTotal = $simpananPokok + $simpananWajib + $simpananSukarela;
 
         // Simpanan wajib + sukarela bulanan (ambil dari master_simpanan jika ada)
         $simpananWajibBulanan = 0;

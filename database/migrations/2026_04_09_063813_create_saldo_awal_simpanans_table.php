@@ -14,6 +14,12 @@ return new class extends Migration
         Schema::create('saldo_awal_simpanans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('anggota_id')->constrained('anggotas')->onDelete('cascade');
+            $table->decimal('pokok', 15, 2)->default(0);
+            $table->decimal('wajib', 15, 2)->default(0);
+            $table->decimal('sukarela', 15, 2)->default(0);
+            $table->decimal('bunga', 15, 2)->default(0);
+            $table->decimal('shu', 15, 2)->default(0);
+            $table->decimal('hadir_rat', 15, 2)->default(0);
             $table->decimal('nominal', 15, 2);
             $table->date('tanggal_awal');
             $table->text('keterangan')->nullable();

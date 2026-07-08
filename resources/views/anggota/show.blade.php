@@ -520,11 +520,21 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $saldo_awal_db = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
+                                    $saldo_awal_model = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->first();
+                                    $saldo_awal_db = $saldo_awal_model ? $saldo_awal_model->nominal : 0;
+                                    $saldo_awal_pokok = $saldo_awal_model ? $saldo_awal_model->pokok : 0;
+                                    $saldo_awal_wajib = $saldo_awal_model ? $saldo_awal_model->wajib : 0;
+                                    $saldo_awal_sukarela = $saldo_awal_model ? $saldo_awal_model->sukarela : 0;
+                                    $saldo_awal_bunga = $saldo_awal_model ? $saldo_awal_model->bunga : 0;
+                                    $saldo_awal_shu = $saldo_awal_model ? $saldo_awal_model->shu : 0;
+
                                     $saldo_awal = $saldo_awal_db;
                                     foreach($riwayat_simpanan as $rs) {
                                         if (\Carbon\Carbon::parse($rs->transaction_date)->format('Y') < $year) {
                                             $saldo_awal += ($rs->simpanan_pokok + $rs->simpanan_wajib + $rs->simpanan_sukarela);
+                                            $saldo_awal_pokok += $rs->simpanan_pokok;
+                                            $saldo_awal_wajib += $rs->simpanan_wajib;
+                                            $saldo_awal_sukarela += $rs->simpanan_sukarela;
                                         }
                                     }
 
@@ -537,11 +547,11 @@
                                 
                                 <tr>
                                     <td style="font-weight:500;">saldo awal {{ $year }}</td>
-                                    <td style="text-align:right;">-</td>
-                                    <td style="text-align:right;">-</td>
-                                    <td style="text-align:right;">-</td>
-                                    <td style="text-align:right;">-</td>
-                                    <td style="text-align:right;">-</td>
+                                    <td style="text-align:right;">{{ number_format($saldo_awal_pokok, 0, ',', '.') }}</td>
+                                    <td style="text-align:right;">{{ number_format($saldo_awal_wajib, 0, ',', '.') }}</td>
+                                    <td style="text-align:right;">{{ number_format($saldo_awal_sukarela, 0, ',', '.') }}</td>
+                                    <td style="text-align:right;">{{ $saldo_awal_bunga > 0 ? number_format($saldo_awal_bunga, 0, ',', '.') : '-' }}</td>
+                                    <td style="text-align:right;">{{ $saldo_awal_shu > 0 ? number_format($saldo_awal_shu, 0, ',', '.') : '-' }}</td>
                                     <td style="text-align:right;">-</td>
                                     <td style="text-align:right; font-weight:600;">{{ number_format($running_total, 0, ',', '.') }}</td>
                                 </tr>

@@ -334,7 +334,7 @@
 .sim-field input.with-prefix { padding-left: 36px; }
 .sim-field input:focus, .sim-field select:focus { border-color: #1E3A5F; box-shadow: 0 0 0 2px rgba(30,58,95,0.08); }
 .sim-form-footer {
-    display: flex; justify-content: flex-end;
+    display: flex; justify-content: flex-end; gap: 12px;
     border-top: 1px solid #F3F4F6; padding-top: 16px;
 }
 .sim-hitung-btn {
@@ -347,6 +347,16 @@
 }
 .sim-hitung-btn:hover { background: #162d4a; }
 .sim-hitung-btn svg { opacity: 0.85; }
+.sim-reset-btn {
+    height: 40px; padding: 0 24px;
+    background: #f3f4f6; color: #374151;
+    border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    font-family: inherit; transition: background 0.15s, border-color 0.15s;
+}
+.sim-reset-btn:hover { background: #e5e7eb; border-color: #9ca3af; }
+.sim-reset-btn svg { opacity: 0.85; }
 
 /* ══════════════════════════════
    RESULTS PANEL (Stitch)
@@ -433,6 +443,17 @@
 .sim-ringkasan-item span:last-child { font-weight: 700; }
 .sim-ringkasan-total-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
 .sim-ringkasan-total-val { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.1; }
+
+/* Limit notice */
+.limit-notice {
+    display: none; align-items: flex-start; gap: 7px;
+    margin-top: 8px; padding: 8px 12px;
+    background: #FFFBEB; border: 1px solid #FDE68A;
+    border-radius: 7px; font-size: 11px; color: #92400e; font-weight: 500;
+    line-height: 1.5;
+}
+.limit-notice.show { display: flex; }
+.limit-notice svg { flex-shrink: 0; margin-top: 1px; color: #b45309; }
 </style>
 
 <div class="sim-layout">
@@ -600,7 +621,7 @@
                                 <span style="font-size:12.5px; color:#374151; font-weight:600;">Input Gaji Bulanan:</span>
                                 <div style="position:relative; width:180px;">
                                     <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; font-weight:600; color:#4B5563;">Rp</span>
-                                    <input type="number" id="sc-input-gaji" placeholder="0" oninput="hitungRasioTotal()"
+                                    <input type="text" id="sc-input-gaji" placeholder="0" oninput="formatRupiahInput(this); hitungRasioTotal()"
                                            style="width:100%; height:32px; padding: 0 10px 0 30px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none; text-align:right; font-family:inherit;" />
                                 </div>
                             </div>
@@ -627,9 +648,13 @@
                                 <label for="si-jumlah">Jumlah Pinjaman</label>
                                 <div class="sim-field-input-wrap">
                                     <span class="sim-field-prefix">Rp</span>
-                                    <input type="number" id="si-jumlah" class="with-prefix"
-                                        placeholder="10.000.000" min="100000" step="100000"
-                                        oninput="hitungSimulasi()" />
+                                    <input type="text" id="si-jumlah" class="with-prefix"
+                                        placeholder="10.000.000"
+                                        oninput="formatRupiahInput(this); hitungSimulasi()" />
+                                </div>
+                                <div class="limit-notice" id="limit-notice">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                                    <span id="limit-notice-text">Jumlah melebihi batas maksimal jenis pinjaman ini. Pengajuan tetap bisa dikirim namun perlu persetujuan admin.</span>
                                 </div>
                             </div>
                             <div class="sim-field">
@@ -676,7 +701,11 @@
 
                         </div>
                         <div class="sim-form-footer">
-                            <button class="sim-hitung-btn" onclick="hitungSimulasi()">
+                            <button type="button" class="sim-reset-btn" onclick="resetSimulasi()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg>
+                                Reset
+                            </button>
+                            <button type="button" class="sim-hitung-btn" onclick="hitungSimulasi()">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                                 Hitung Simulasi
                             </button>
@@ -814,6 +843,15 @@ function cariAnggota() {
             document.getElementById('sim-content').style.display = 'flex';
             // reset form & hasil
             ['si-jumlah','si-tenor','si-bunga','si-jenis'].forEach(id => document.getElementById(id).value = '');
+            const selectJenis = document.getElementById('si-jenis');
+            if (selectJenis) {
+                selectJenis.dataset.activelimit   = 0;
+                selectJenis.dataset.sisa_limit    = 0;
+                selectJenis.dataset.sudah_dipakai = 0;
+                selectJenis.dataset.activenama    = '';
+            }
+            const notice = document.getElementById('limit-notice');
+            if (notice) notice.classList.remove('show');
             document.getElementById('sim-hasil-panel').style.display = 'none';
         })
         .catch(() => {
@@ -932,17 +970,62 @@ function onJenisChange() {
     if (selectedOption && selectedOption.value) {
         const bunga = parseFloat(selectedOption.dataset.bunga) || 0;
         document.getElementById('si-bunga').value = bunga;
+
+        // Hitung sisa limit efektif:
+        // limit_maksimal_parent - pinjaman aktif yang sudah berjalan pada parent yang sama
+        const limitParent  = parseFloat(selectedOption.dataset.limit)  || 0;
+        const parentId     = selectedOption.dataset.parent || '';
+        const parentNama   = selectedOption.dataset.parentNama || '';
+        const usagePerParent = anggotaData ? (anggotaData.usage_per_parent || {}) : {};
+        const sudahDigunakan = parseFloat(usagePerParent[parentId]) || 0;
+        const sisaLimit    = Math.max(0, limitParent - sudahDigunakan);
+
+        // Simpan ke dataset untuk dipakai hitungSimulasi()
+        select.dataset.activelimit    = limitParent;
+        select.dataset.sisa_limit     = sisaLimit;
+        select.dataset.sudah_dipakai  = sudahDigunakan;
+        select.dataset.activenama     = parentNama;
     } else {
         document.getElementById('si-bunga').value = '';
+        select.dataset.activelimit   = 0;
+        select.dataset.sisa_limit    = 0;
+        select.dataset.sudah_dipakai = 0;
+        select.dataset.activenama    = '';
     }
     hitungSimulasi();
 }
 
 function hitungSimulasi() {
-    const jumlah = parseFloat(document.getElementById('si-jumlah').value) || 0;
+    const rawJumlah = document.getElementById('si-jumlah').value.replace(/[^\d]/g, "");
+    const jumlah = parseFloat(rawJumlah) || 0;
     const tenor  = parseInt(document.getElementById('si-tenor').value)    || 0;
     const bunga  = parseFloat(document.getElementById('si-bunga').value)  || 0;
     const panel  = document.getElementById('sim-hasil-panel');
+
+    // Cek limit dari parent pinjaman (jenis)
+    const jenisEl      = document.getElementById('si-jenis');
+    const limitMax     = parseFloat(jenisEl.dataset.activelimit)   || 0;
+    const sisaLimitJenis = parseFloat(jenisEl.dataset.sisa_limit)    || 0;
+    const sudahDipakai = parseFloat(jenisEl.dataset.sudah_dipakai) || 0;
+    const parentNama   = jenisEl.dataset.activenama || '';
+    const notice       = document.getElementById('limit-notice');
+    const noticeText   = document.getElementById('limit-notice-text');
+
+    if (notice && noticeText) {
+        if (limitMax > 0 && jumlah > sisaLimitJenis) {
+            noticeText.innerHTML =
+                `Jumlah pengajuan <strong>${fmt(jumlah)}</strong> melebihi sisa limit yang tersedia.<br>` +
+                `<span style="font-size:10px">` +
+                `Limit ${parentNama}: ${fmt(limitMax)} &nbsp;|&nbsp; ` +
+                `Sudah digunakan: ${fmt(sudahDipakai)} &nbsp;|&nbsp; ` +
+                `Sisa tersedia: <strong>${fmt(sisaLimitJenis)}</strong>` +
+                `</span><br>` +
+                `<span style="font-size:10px">Pengajuan tetap bisa dikirim, namun memerlukan persetujuan admin.</span>`;
+            notice.classList.add('show');
+        } else {
+            notice.classList.remove('show');
+        }
+    }
 
     if (!jumlah || !tenor || jumlah < 100000) {
         panel.style.display = 'none';
@@ -998,7 +1081,8 @@ function hitungSimulasi() {
 }
 
 function hitungRasioTotal() {
-    const gaji = parseFloat(document.getElementById('sc-input-gaji').value) || 0;
+    const rawGaji = document.getElementById('sc-input-gaji').value.replace(/[^\d]/g, "");
+    const gaji = parseFloat(rawGaji) || 0;
     const rasioBox = document.getElementById('sc-rasio-box');
     const rasioVal = document.getElementById('sc-rasio-val');
 
@@ -1028,6 +1112,44 @@ function hitungRasioTotal() {
     }
 
     if (rasioBox) rasioBox.style.display = 'flex';
+}
+
+function formatRupiahInput(inputElement) {
+    let value = inputElement.value.replace(/[^\d]/g, "");
+    if (value === "") {
+        inputElement.value = "";
+        return;
+    }
+    let formatted = new Intl.NumberFormat('id-ID').format(parseInt(value));
+    inputElement.value = formatted;
+}
+
+function resetSimulasi() {
+    document.getElementById('si-jumlah').value = '';
+    document.getElementById('si-jenis').value = '';
+    document.getElementById('si-tenor').value = '';
+    document.getElementById('si-bunga').value = '';
+
+    const select = document.getElementById('si-jenis');
+    if (select) {
+        select.dataset.activelimit   = 0;
+        select.dataset.sisa_limit    = 0;
+        select.dataset.sudah_dipakai = 0;
+        select.dataset.activenama    = '';
+    }
+
+    const notice = document.getElementById('limit-notice');
+    if (notice) {
+        notice.classList.remove('show');
+    }
+
+    const panel = document.getElementById('sim-hasil-panel');
+    if (panel) {
+        panel.style.display = 'none';
+    }
+
+    simulasiCicilanBaru = 0;
+    hitungRasioTotal();
 }
 
 // Enter key

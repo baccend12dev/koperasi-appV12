@@ -154,12 +154,14 @@ class PersetujuanController extends Controller
             $anggotaId = $pengambilan->anggota_id;
             
             // --- 1. DEDUCT SAVINGS ---
-            $totalSukarela = \App\Models\TransaksiSimpanan::where('anggota_id', $anggotaId)->sum('simpanan_sukarela');
-            $totalWajib = \App\Models\TransaksiSimpanan::where('anggota_id', $anggotaId)->sum('simpanan_wajib');
-            $totalPokok = \App\Models\TransaksiSimpanan::where('anggota_id', $anggotaId)->sum('simpanan_pokok');
-            $saldoAwal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggotaId)->sum('nominal');
-            
-            $totalSukarela += $saldoAwal; 
+            $saldoAwalModel = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggotaId)->first();
+            $saldoAwalPokok = $saldoAwalModel ? $saldoAwalModel->pokok : 0;
+            $saldoAwalWajib = $saldoAwalModel ? $saldoAwalModel->wajib : 0;
+            $saldoAwalSukarela = $saldoAwalModel ? $saldoAwalModel->sukarela : 0;
+
+            $totalSukarela = \App\Models\TransaksiSimpanan::where('anggota_id', $anggotaId)->sum('simpanan_sukarela') + $saldoAwalSukarela;
+            $totalWajib = \App\Models\TransaksiSimpanan::where('anggota_id', $anggotaId)->sum('simpanan_wajib') + $saldoAwalWajib;
+            $totalPokok = \App\Models\TransaksiSimpanan::where('anggota_id', $anggotaId)->sum('simpanan_pokok') + $saldoAwalPokok; 
 
             $nominalToDeduct = $pengambilan->nominal;
             $deductSukarela = 0;

@@ -37,6 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('laporan/simpanan', [LaporanController::class, 'simpanan'])->name('laporan.simpanan');
     Route::get('laporan/transaksi-simpanan', [LaporanController::class, 'transaksiSimpanan'])->name('laporan.transaksi_simpanan');
     Route::get('laporan/pinjaman', [LaporanController::class, 'pinjaman'])->name('laporan.pinjaman');
+    Route::get('laporan/sisa-pinjaman', [LaporanController::class, 'sisaPinjaman'])->name('laporan.sisa_pinjaman');
     Route::get('laporan/transaksi-pinjaman', [LaporanController::class, 'transaksiPinjaman'])->name('laporan.pembayaran.angsuran');
 
     // ── Simpanan ───────────────────────────────────────────

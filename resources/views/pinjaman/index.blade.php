@@ -217,6 +217,9 @@
         <form action="{{ route('pinjaman.index') }}" method="GET" id="filterForm">
             <!-- Retain current status if filtering by anything else -->
             <input type="hidden" name="status" value="{{ $status }}">
+            @if(request('sort'))
+                <input type="hidden" name="sort" value="{{ request('sort') }}">
+            @endif
             
             <div class="filter-group">
                 <div class="filter-title">Pencarian</div>
@@ -238,15 +241,19 @@
             </div>
 
             <div class="filter-group">
-                <div class="filter-title">Departemen</div>
-                <a href="{{ request()->fullUrlWithQuery(['departemen_id' => null]) }}" class="filter-item {{ request('departemen_id') ? '' : 'active' }}">
-                    Semua Departemen
+                <div class="filter-title">Urutkan</div>
+                <a href="{{ request()->fullUrlWithQuery(['sort' => null]) }}" class="filter-item {{ !request('sort') ? 'active' : '' }}">
+                    Bawaan
                 </a>
-                @foreach($departemens as $dept)
-                <a href="{{ request()->fullUrlWithQuery(['departemen_id' => $dept->id]) }}" class="filter-item {{ request('departemen_id') == $dept->id ? 'active' : '' }}">
-                    {{ $dept->nama }}
+                <a href="{{ request()->fullUrlWithQuery(['sort' => 'jumlah_pinjaman_tertinggi']) }}" class="filter-item {{ request('sort') === 'jumlah_pinjaman_tertinggi' ? 'active' : '' }}">
+                    Jumlah Pinjaman Tertinggi
                 </a>
-                @endforeach
+                <a href="{{ request()->fullUrlWithQuery(['sort' => 'jumlah_pinjaman_terbanyak']) }}" class="filter-item {{ request('sort') === 'jumlah_pinjaman_terbanyak' ? 'active' : '' }}">
+                    Jumlah Pinjaman Terbanyak
+                </a>
+                <a href="{{ request()->fullUrlWithQuery(['sort' => 'jumlah_sisa_terbanyak']) }}" class="filter-item {{ request('sort') === 'jumlah_sisa_terbanyak' ? 'active' : '' }}">
+                    Jumlah Sisa Terbanyak
+                </a>
             </div>
         </form>
     </div>
@@ -256,7 +263,7 @@
         <div class="content-block">
             <h3 class="block-header">
                 Data Pinjaman Anggota
-                @if($search || $status !== 'semua' || request('departemen_id'))
+                @if($search || $status !== 'semua' || request('sort'))
                     <a href="{{ route('pinjaman.index') }}" style="font-size: 13px; font-weight: normal; color: #1a73e8; text-decoration: none;">Reset Filter</a>
                 @endif
             </h3>
@@ -365,7 +372,7 @@
                     @empty
                         <tr>
                             <td colspan="7" style="text-align: center; color: #888; padding: 40px 16px;">
-                                @if($search || $status !== 'semua' || request('departemen_id'))
+                                @if($search || $status !== 'semua' || request('sort'))
                                     Tidak ada data pinjaman yang sesuai dengan filter.
                                 @else
                                     Belum ada data pinjaman.

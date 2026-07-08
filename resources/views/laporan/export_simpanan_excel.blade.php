@@ -1,15 +1,25 @@
 <table border="1">
     <tr>
-        <td colspan="8" style="font-size:16px; font-weight:bold; text-align:center; padding:10px; background:#EFF6FF; color:#1D4ED8;">
+        <td colspan="10" style="font-size:16px; font-weight:bold; text-align:center; padding:10px; background:#EFF6FF; color:#1D4ED8;">
             LAPORAN SALDO SIMPANAN ANGGOTA
         </td>
     </tr>
     <tr>
-        <td colspan="8" style="font-size:11px; text-align:center; padding:6px; background:#F9FAFB; color:#374151;">
+        <td colspan="10" style="font-size:11px; text-align:center; padding:6px; background:#F9FAFB; color:#374151;">
             Koperasi Karyawan OPI &mdash; Tanggal Ekspor: {{ date('d/m/Y H:i') }}
         </td>
     </tr>
-    <tr><td colspan="8"></td></tr>
+    @if(!empty($filterSearch) || !empty($filterDepartemen) || !empty($filterStatus))
+    <tr>
+        <td colspan="10" style="font-size:11px; text-align:center; padding:6px; background:#F3F4F6; color:#374151; font-weight:bold;">
+            Filter &mdash; 
+            @if(!empty($filterSearch)) Pencarian: "{{ $filterSearch }}" &mdash; @endif
+            @if(!empty($filterDepartemen)) Departemen: {{ $filterDepartemen }} &mdash; @endif
+            @if(!empty($filterStatus)) Status: {{ strtoupper($filterStatus) }} &mdash; @endif
+        </td>
+    </tr>
+    @endif
+    <tr><td colspan="10"></td></tr>
 </table>
 
 <table border="1">
@@ -33,11 +43,11 @@
         @endphp
         @foreach($members_export as $item)
             @php
-                $pokok = $item->total_pokok ?? 0;
-                $wajib = $item->total_wajib ?? 0;
-                $sukarela = $item->total_sukarela ?? 0;
+                $pokok = ($item->total_pokok ?? 0) + ($item->saldo_awal_pokok ?? 0);
+                $wajib = ($item->total_wajib ?? 0) + ($item->saldo_awal_wajib ?? 0);
+                $sukarela = ($item->total_sukarela ?? 0) + ($item->saldo_awal_sukarela ?? 0);
                 $saldoAwal = $item->total_saldo_awal ?? 0;
-                $total = $pokok + $wajib + $sukarela + $saldoAwal;
+                $total = $pokok + $wajib + $sukarela;
             @endphp
             <tr>
                 <td style="text-align:center;">{{ $no++ }}</td>

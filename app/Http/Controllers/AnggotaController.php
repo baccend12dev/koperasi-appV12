@@ -120,8 +120,23 @@ class AnggotaController extends Controller
     {
         $anggota = Anggota::with(['departemen', 'masterSimpanan'])->findOrFail($id);
         
-        $saldo_awal = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->sum('nominal');
-        $total_simpanan = $anggota->transaksiSimpanan()->sum(\Illuminate\Support\Facades\DB::raw('simpanan_pokok + simpanan_wajib + simpanan_sukarela')) + $saldo_awal;
+        $saldoAwalModel = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->first();
+        $saldoAwalPokok = $saldoAwalModel ? $saldoAwalModel->pokok : 0;
+        $saldoAwalWajib = $saldoAwalModel ? $saldoAwalModel->wajib : 0;
+        $saldoAwalSukarela = $saldoAwalModel ? $saldoAwalModel->sukarela : 0;
+        $saldo_awal = $saldoAwalModel ? $saldoAwalModel->nominal : 0;
+
+        $simpanan_pokok = $saldoAwalPokok;
+        $simpanan_wajib = $saldoAwalWajib;
+        $simpanan_sukarela = $saldoAwalSukarela;
+
+        if ($anggota->transaksiSimpanan()->exists()) {
+            $simpanan_pokok += $anggota->transaksiSimpanan()->sum('simpanan_pokok');
+            $simpanan_wajib += $anggota->transaksiSimpanan()->sum('simpanan_wajib');
+            $simpanan_sukarela += $anggota->transaksiSimpanan()->sum('simpanan_sukarela');
+        }
+
+        $total_simpanan = $simpanan_pokok + $simpanan_wajib + $simpanan_sukarela;
         $max_pinjaman = $total_simpanan > 0 ? $total_simpanan * 5 : 20000000;
         
         $pinjaman_aktif_amount = $anggota->pinjamanAktif()->sum('jumlah_pinjaman');

@@ -190,62 +190,62 @@
         </a>
     </li>
     <li><span class="lap-nav-label">Pinjaman</span></li>
-    {{-- ── Pinjaman ── --}}
+    {{-- ── Pinjaman (collapsible parent) ── --}}
     <li class="lap-nav-item">
-        <a href="{{ route('laporan.pinjaman') }}"
-           class="lap-nav-link {{ request()->routeIs('laporan.pinjaman') ? 'active' : '' }}">
+        <div class="lap-nav-parent {{ request()->routeIs('laporan.pinjaman*') || request()->routeIs('laporan.sisa_pinjaman*') || request()->routeIs('laporan.pinjaman_dibayar*') || request()->routeIs('laporan.penagihan_pinjaman*') ? 'open' : '' }}"
+             onclick="toggleLapSub(this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="5" width="20" height="14" rx="2"/>
                 <line x1="2" y1="10" x2="22" y2="10"/>
             </svg>
-           Master Pinjaman
-        </a>
-    </li>
-{{-- ── Pembayaran Pinjaman (collapsible parent) ── --}}
-    <li class="lap-nav-item">
-        <div class="lap-nav-parent {{ request()->routeIs('laporan.pembayaran*') ? 'open' : '' }}"
-             onclick="toggleLapSub(this)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            Pembayaran Pinjaman
+            Pinjaman
             <svg class="caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"/>
             </svg>
         </div>
-        <div class="lap-sub-wrap {{ request()->routeIs('laporan.pembayaran*') ? 'open' : '' }}">
+        <div class="lap-sub-wrap {{ request()->routeIs('laporan.pinjaman*') || request()->routeIs('laporan.sisa_pinjaman*') || request()->routeIs('laporan.pinjaman_dibayar*') || request()->routeIs('laporan.penagihan_pinjaman*') ? 'open' : '' }}">
             <ul class="lap-nav-sub">
                 <li class="lap-nav-item">
-                    <a href="{{ route('laporan.pembayaran.angsuran') }}"
-                       class="lap-nav-link {{ request()->routeIs('laporan.pembayaran.angsuran') ? 'active' : '' }}">
+                    <a href="{{ route('laporan.pinjaman') }}"
+                       class="lap-nav-link {{ request()->routeIs('laporan.pinjaman') ? 'active' : '' }}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 11 12 14 22 4"/>
-                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
-                        Angsuran
+                        Master Pinjaman
+                    </a>
+                </li>
+                <li class="lap-nav-item">
+                    <a href="{{ route('laporan.sisa_pinjaman') }}"
+                       class="lap-nav-link {{ request()->routeIs('laporan.sisa_pinjaman') ? 'active' : '' }}">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>
+                        Sisa Pinjaman
                     </a>
                 </li>
                 <li class="lap-nav-item">
                     <a href="#"
-                       class="lap-nav-link {{ request()->routeIs('laporan.pembayaran.pelunasan') ? 'active' : '' }}">
+                       class="lap-nav-link {{ request()->routeIs('laporan.pinjaman_dibayar') ? 'active' : '' }}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                            <polyline points="22 4 12 14.01 9 11.01"/>
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
-                        Pelunasan
+                        Pinjaman Dibayar
                     </a>
                 </li>
                 <li class="lap-nav-item">
                     <a href="#"
-                       class="lap-nav-link {{ request()->routeIs('laporan.pembayaran.semua') ? 'active' : '' }}">
+                       class="lap-nav-link {{ request()->routeIs('laporan.penagihan_pinjaman') ? 'active' : '' }}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                            <line x1="8" y1="18" x2="21" y2="18"/>
-                            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
-                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        Semua Pembayaran
+                        Penagihan Pinjaman
                     </a>
                 </li>
             </ul>
@@ -263,9 +263,6 @@
             Posisi Anggota
         </a>
     </li>
-
-    {{-- ── Separator ── --}}
-    <li><span class="lap-nav-label">Pembayaran Pinjaman</span></li>
 
     
 
@@ -299,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
      akan mengisi section berikut:
 ══════════════════════════════════════════════════ --}}
 @section('content')
-<div style="padding: 24px; max-width: 1300px; margin: 0 auto;">
+<div style="padding: 24px; max-width: 100%; margin: 0 auto; box-sizing: border-box;">
 
     {{-- Page header dalam konten (opsional, setiap halaman bisa override) --}}
     @hasSection('laporan-subtitle')

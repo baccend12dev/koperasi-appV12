@@ -135,11 +135,11 @@
             <tbody>
                 @forelse($members as $index => $item)
                     @php
-                        $pokok = $item->total_pokok ?? 0;
-                        $wajib = $item->total_wajib ?? 0;
-                        $sukarela = $item->total_sukarela ?? 0;
+                        $pokok = ($item->total_pokok ?? 0) + ($item->saldo_awal_pokok ?? 0);
+                        $wajib = ($item->total_wajib ?? 0) + ($item->saldo_awal_wajib ?? 0);
+                        $sukarela = ($item->total_sukarela ?? 0) + ($item->saldo_awal_sukarela ?? 0);
                         $saldoAwal = $item->total_saldo_awal ?? 0;
-                        $total = $pokok + $wajib + $sukarela + $saldoAwal;
+                        $total = $pokok + $wajib + $sukarela;
                     @endphp
                     <tr style="border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
                         <td style="padding: 10px 12px; font-size: 12px; color: #4B5563; vertical-align: middle;">{{ $members->firstItem() + $index }}</td>
