@@ -16,23 +16,34 @@
 @endsection
 
 @section('subbar-pagination')
-    @if($pinjaman->hasPages())
-        <span class="pag-info" style="font-size:11px;color:#6B7280;margin-right:6px;">
-            {{ $pinjaman->firstItem() }}–{{ $pinjaman->lastItem() }} / {{ $pinjaman->total() }}
-        </span>
-        <a href="{{ $pinjaman->previousPageUrl() ?? '#' }}"
-           class="pag-btn" {!! $pinjaman->onFirstPage() ? 'style="opacity:.4;pointer-events:none"' : '' !!} style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid #D1D5DB;border-radius:5px;color:#374151;text-decoration:none;margin-right:3px;">
-            <svg width="6" height="10" viewBox="0 0 7 12" fill="none">
-                <path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </a>
-        <a href="{{ $pinjaman->nextPageUrl() ?? '#' }}"
-           class="pag-btn" {!! !$pinjaman->hasMorePages() ? 'style="opacity:.4;pointer-events:none"' : '' !!} style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid #D1D5DB;border-radius:5px;color:#374151;text-decoration:none;">
-            <svg width="6" height="10" viewBox="0 0 7 12" fill="none">
-                <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </a>
-    @endif
+    <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#6B7280;">
+            <select name="per_page" form="filterForm" onchange="document.getElementById('filterForm').submit();" style="height:24px;padding:0 4px;font-size:11px;color:#374151;border:1px solid #D1D5DB;border-radius:4px;background:#fff;cursor:pointer;outline:none;">
+                <option value="10" {{ request('per_page', 15) == 10 ? 'selected' : '' }}>10</option>
+                <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+                <option value="25" {{ request('per_page', 15) == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page', 15) == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page', 15) == 100 ? 'selected' : '' }}>100</option>
+            </select>
+        </div>
+        @if($pinjaman->hasPages() || $pinjaman->total() > 0)
+            <span class="pag-info" style="font-size:11px;color:#6B7280;margin-left:2px;">
+                {{ $pinjaman->firstItem() ?? 0 }}–{{ $pinjaman->lastItem() ?? 0 }} / {{ $pinjaman->total() }}
+            </span>
+            <a href="{{ $pinjaman->previousPageUrl() ?? '#' }}"
+               class="pag-btn" {!! $pinjaman->onFirstPage() ? 'style="opacity:.4;pointer-events:none"' : '' !!} style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid #D1D5DB;border-radius:5px;color:#374151;text-decoration:none;">
+                <svg width="6" height="10" viewBox="0 0 7 12" fill="none">
+                    <path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <a href="{{ $pinjaman->nextPageUrl() ?? '#' }}"
+               class="pag-btn" {!! !$pinjaman->hasMorePages() ? 'style="opacity:.4;pointer-events:none"' : '' !!} style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid #D1D5DB;border-radius:5px;color:#374151;text-decoration:none;">
+                <svg width="6" height="10" viewBox="0 0 7 12" fill="none">
+                    <path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        @endif
+    </div>
 @endsection
 
 @section('laporan-content')
@@ -52,7 +63,7 @@
     {{-- Filter Card (Compact) --}}
     <div class="filter-card" style="background: #ffffff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
         <form method="GET" action="{{ route('laporan.pinjaman') }}" id="filterForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) 150px; gap: 12px; align-items: flex-end;">
-            <!-- Search -->
+        <!-- Search -->
             <div>
                 <label style="display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: #4B5563; margin-bottom: 4px; letter-spacing: 0.05em;">Cari Anggota</label>
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Nama atau NIK..." style="width: 100%; height: 32px; padding: 6px 10px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 12px; color: #1F2937; outline: none; box-sizing: border-box;">
@@ -122,22 +133,22 @@
         <!-- Pokok -->
         <div style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #3B82F6;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #6B7280; letter-spacing: 0.05em; margin-bottom: 2px;">Total Pokok Pinjaman</div>
-            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumPokok, 2, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">{{ number_format($sumPokok, 2, ',', '.') }}</div>
         </div>
         <!-- Tagihan (Pokok + Bunga) -->
         <div style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #8B5CF6;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #6B7280; letter-spacing: 0.05em; margin-bottom: 2px;">Total Pinjaman + Bunga</div>
-            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumTotal, 2, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">{{ number_format($sumTotal, 2, ',', '.') }}</div>
         </div>
         <!-- Terbayar -->
         <div style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #10B981;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #6B7280; letter-spacing: 0.05em; margin-bottom: 2px;">Total Telah Terbayar</div>
-            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">Rp {{ number_format($sumTerbayar, 2, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #1F2937;">{{ number_format($sumTerbayar, 2, ',', '.') }}</div>
         </div>
         <!-- Outstanding -->
         <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 10px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-top: 3px solid #F59E0B;">
             <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #B45309; letter-spacing: 0.05em; margin-bottom: 2px;">Sisa Pinjaman (Outstanding)</div>
-            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Rp {{ number_format($sumSisa, 2, ',', '.') }}</div>
+            <div style="font-size: 15px; font-weight: 800; color: #B45309;">{{ number_format($sumSisa, 2, ',', '.') }}</div>
         </div>
     </div>
 
@@ -147,15 +158,16 @@
             <thead>
                 <tr style="background: #107C41; color: #FFFFFF; border-bottom: 2px solid #0B5C30;">
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 35px; text-align: center;">No</th>
-                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 130px;">Periode Kontrak</th>
+                    <!-- <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 130px;">Periode Kontrak</th> -->
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 170px;">Nama & NIK</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 95px;">Departemen</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 110px;">Jenis Pinjaman</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Pinjaman (Pokok / Total)</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Bunga</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Cicil per Bulan</th>
-                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 100px;">Tenor (Total / Sisa)</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 100px;">Tenor </th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 110px;">Terbayar</th>
-                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Sisa Tagihan</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Sisa Tagihan</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 75px;">Status</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 60px;">Aksi</th>
                 </tr>
@@ -173,34 +185,38 @@
                     @endphp
                     <tr style="background-color: {{ $rowBg }}; border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $pinjaman->firstItem() + $index }}</td>
-                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
+                        <!-- <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
                             <div style="font-weight: 700;">{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '—' }}</div>
                             <div style="color: #4B5563; font-size: 10px; font-weight: 600; margin-top: 1px;">s.d. {{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') : '—' }}</div>
-                        </td>
+                        </td> -->
                         <td style="padding: 5px 8px; border: 1px solid #E5E7EB; vertical-align: middle;">
                             <div style="font-weight: 700; color: #000000; font-size: 11px; line-height: 1.2;">{{ $item->anggota->nama_anggota ?? '—' }}</div>
-                            <div style="font-size: 10px; color: #4B5563; font-weight: 600; margin-top: 1px;">NIK: {{ $item->anggota->nik ?? '—' }}</div>
+                            <div style="font-size: 11px; color: #4B5563; font-weight: 600; margin-top: 1px;">NIK: {{ $item->anggota->nik ?? '—' }}</div>
                         </td>
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $item->anggota->bagian ?? '—' }}</td>
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">
                             {{ $item->jenisPinjaman?->nama_pinjaman ?? '—' }}
                         </td>
+                        <td style="padding: 5px 8px; font-size: 12px; color: #000000; border: 1px solid #E5E7EB; text-align: right; vertical-align: middle; line-height: 1.2; font-variant-numeric: tabular-nums;">
+                            <div style="font-weight: 700;"> {{ number_format($pokok, 2, ',', '.') }}</div>
+                            <div style="color: #4B5563; font-size: 11px; font-weight: 600;">Total: {{ number_format($total_kontrak, 2, ',', '.') }}</div>
+                        </td>
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; text-align: right; vertical-align: middle; line-height: 1.2; font-variant-numeric: tabular-nums;">
-                            <div style="font-weight: 700;">Rp {{ number_format($pokok, 2, ',', '.') }}</div>
-                            <div style="color: #4B5563; font-size: 10px; font-weight: 600;">Total: Rp {{ number_format($total_kontrak, 2, ',', '.') }}</div>
+                            <div style="font-weight: 700;"> {{ number_format($item->total_bunga ?? 0, 2, ',', '.') }}</div>
+                            <div style="color: #4B5563; font-size: 11px; font-weight: 600;">({{ number_format($item->bunga ?? 0, 1, ',', '.') }}%)</div>
                         </td>
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: right; border: 1px solid #E5E7EB; vertical-align: middle; font-variant-numeric: tabular-nums;">
-                            Rp {{ number_format($item->cicilan_per_bulan, 2, ',', '.') }}
+                         {{ number_format($item->cicilan_per_bulan, 2, ',', '.') }}
                         </td>
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
-                            <div style="font-weight: 700;">{{ $item->tenor }} Bln</div>
-                            <div style="color: #4B5563; font-size: 10px; font-weight: 600;">Sisa: {{ $item->sisa_tenor_historis }} Bln</div>
+                            <div style="font-weight: 700;">{{ $item->tenor }} </div>
+                            <div style="color: #4B5563; font-size: 10px; font-weight: 600;">Sisa: {{ $item->sisa_tenor_historis }} </div>
                         </td>
                         <td style="padding: 5px 8px; font-size: 11px; font-weight: 700; color: #047857; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle;">
-                            Rp {{ number_format($terbayar, 2, ',', '.') }}
+                            {{ number_format($terbayar, 2, ',', '.') }}
                         </td>
                         <td style="padding: 5px 8px; font-size: 11px; font-weight: 800; color: #B45309; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle; background-color: rgba(245, 158, 11, 0.05);">
-                            Rp {{ number_format($sisa, 2, ',', '.') }}
+                             {{ number_format($sisa, 2, ',', '.') }}
                         </td>
                         <td style="padding: 5px 8px; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">
                             @if($statusLabel === 'berjalan')

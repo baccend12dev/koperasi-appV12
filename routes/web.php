@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pinjaman/angsuran/bayar', [App\Http\Controllers\PinjamanController::class, 'bayarAngsuran'])->name('pinjaman.angsuran.bayar');
     Route::get('pinjaman/angsuran/{id}', [App\Http\Controllers\PinjamanController::class, 'showAngsuran'])->name('pinjaman.angsuran.show');
     Route::get('simulasi', [App\Http\Controllers\PinjamanController::class, 'simulasi'])->name('pinjaman.simulasi');
+    Route::get('simulasi/print', [App\Http\Controllers\PinjamanController::class, 'printSimulasi'])->name('pinjaman.simulasi.print');
     Route::get('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'masterJenis'])->name('pinjaman.masterJenis');
     Route::post('pinjaman/master-jenis', [App\Http\Controllers\PinjamanController::class, 'storeMasterJenis'])->name('pinjaman.masterJenis.store');
     Route::put('pinjaman/master-jenis/{id}', [App\Http\Controllers\PinjamanController::class, 'updateMasterJenis'])->name('pinjaman.masterJenis.update');

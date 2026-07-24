@@ -458,8 +458,9 @@ class LaporanController extends Controller
         $departments = \App\Models\Departemen::orderBy('nama')->get();
         $jenisPinjamanList = \App\Models\MasterJenisPinjaman::with('children')->whereNull('parent_id')->get();
 
+        $perPage = (int) $request->input('per_page', 15);
         $pinjaman = $query->orderBy('tanggal_mulai', 'desc')
-            ->paginate(15)
+            ->paginate($perPage)
             ->appends(array_merge(
                 $request->except(['page', 'export']),
                 ['periode' => $periode ?? '']

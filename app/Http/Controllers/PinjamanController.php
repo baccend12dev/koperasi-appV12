@@ -479,6 +479,70 @@ class PinjamanController extends Controller
         ]);
     }
 
+    public function printSimulasi(Request $request) {
+        $nik = $request->get('nik');
+        $anggota = null;
+        if ($nik) {
+            $anggota = \App\Models\Anggota::with(['departemen'])->where('nik', $nik)->first();
+        }
+
+        if (!$anggota) {
+            return redirect()->back()->with('error', 'Anggota tidak ditemukan');
+        }
+
+        $saldoAwalModel = \App\Models\SaldoAwalSimpanan::where('anggota_id', $anggota->id)->first();
+        $simpananPokok    = ($saldoAwalModel ? $saldoAwalModel->pokok : 0) + ($anggota->transaksiSimpanan ? $anggota->transaksiSimpanan->sum('simpanan_pokok') : 0);
+        $simpananWajib    = ($saldoAwalModel ? $saldoAwalModel->wajib : 0) + ($anggota->transaksiSimpanan ? $anggota->transaksiSimpanan->sum('simpanan_wajib') : 0);
+        $simpananSukarela = ($saldoAwalModel ? $saldoAwalModel->sukarela : 0) + ($anggota->transaksiSimpanan ? $anggota->transaksiSimpanan->sum('simpanan_sukarela') : 0);
+        $simpananTotal = $simpananPokok + $simpananWajib + $simpananSukarela;
+
+        $simpananWajibBulanan = 0;
+        if ($anggota->masterSimpanan) {
+            $simpananWajibBulanan = ($anggota->masterSimpanan->simpanan_wajib ?? 0) + ($anggota->masterSimpanan->simpanan_sukarela ?? 0);
+        }
+
+        $pinjamanAktifDb = \App\Models\Pinjaman::where('user_id', $anggota->id)->where('status', 'berjalan')->get();
+        $pinjamanAktifTotal = $pinjamanAktifDb->sum('sisa_pinjaman');
+        $totalCicilanPerBulan = $pinjamanAktifDb->sum('cicilan_per_bulan');
+
+        $maksPinjaman = 20000000;
+        if ($simpananTotal > 0) {
+            $maksPinjaman = min($simpananTotal * 5, 50000000);
+        }
+
+        $listPinjaman = $pinjamanAktifDb->map(function($p) {
+            $jp = \App\Models\MasterJenisPinjaman::find($p->jenis_pinjaman_id);
+            return [
+                'jenis_pinjaman'    => $jp ? $jp->nama_pinjaman : 'Pinjaman',
+                'sisa_tenor'        => $p->sisa_tenor,
+                'sisa_tagihan'      => $p->sisa_pinjaman,
+                'jumlah_pinjaman'   => $p->jumlah_pinjaman,
+                'cicilan_per_bulan' => $p->cicilan_per_bulan,
+                'tenor'             => $p->tenor
+            ];
+        });
+
+        // Parameters from request
+        $jenisId = $request->get('jenis_id');
+        $jenisObj = \App\Models\MasterJenisPinjaman::find($jenisId);
+
+        $simulasi = [
+            'nama_jenis'          => $jenisObj ? $jenisObj->nama_pinjaman : 'Pinjaman Baru',
+            'jumlah'              => floatval($request->get('jumlah', 0)),
+            'tenor'               => intval($request->get('tenor', 0)),
+            'bunga_persen'        => floatval($request->get('bunga_persen', 0)),
+            'total_bunga'         => floatval($request->get('total_bunga', 0)),
+            'total_pengembalian'  => floatval($request->get('total_pengembalian', 0)),
+            'cicilan_per_bulan'   => floatval($request->get('cicilan_per_bulan', 0))
+        ];
+
+        return view('pinjaman.simulasi_print', compact(
+            'anggota', 'simpananPokok', 'simpananWajib', 'simpananSukarela', 'simpananTotal',
+            'simpananWajibBulanan', 'maksPinjaman', 'pinjamanAktifTotal', 'totalCicilanPerBulan',
+            'listPinjaman', 'simulasi'
+        ));
+    }
+
     public function angsuran(Request $request) {
         // List all tagihan batches
         $tagihanList = \App\Models\TagihanPinjaman::latest()->paginate(10);

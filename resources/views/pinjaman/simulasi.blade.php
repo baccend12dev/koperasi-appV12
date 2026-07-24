@@ -520,6 +520,11 @@
                     <div class="smp-bar-fill" id="smp-bar" style="width:0%"></div>
                 </div>
                 <div style="font-size:10px; color:#4B5563; font-weight:600; margin-top:4px; text-align:right;" id="smp-bar-txt">0%</div>
+
+                <button type="button" id="btn-cetak-anggota" onclick="cetakSimulasiPDF()" style="margin-top: 14px; width: 100%; height: 36px; background: #107C41; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 11.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Cetak Informasi Anggota / PDF
+                </button>
             </div>
         </div>
     </div>{{-- end sidebar --}}
@@ -1180,6 +1185,32 @@ function resetSimulasi() {
 
     simulasiCicilanBaru = 0;
     hitungRasioTotal();
+}
+
+function cetakSimulasiPDF() {
+    if (!anggotaData || !anggotaData.nik) {
+        alert('Silakan cari data anggota terlebih dahulu!');
+        return;
+    }
+
+    const nik = anggotaData.nik;
+    const jenisId = document.getElementById('si-jenis') ? document.getElementById('si-jenis').value : '';
+    const jumlahInput = document.getElementById('si-jumlah') ? document.getElementById('si-jumlah').value : '';
+    const jumlahStr = jumlahInput.replace(/[^\d]/g, "");
+    const tenor = document.getElementById('si-tenor') ? document.getElementById('si-tenor').value : '';
+    const bungaPersen = document.getElementById('si-bunga') ? document.getElementById('si-bunga').value : '';
+
+    const jumlah = parseFloat(jumlahStr) || 0;
+    const tenorInt = parseInt(tenor) || 0;
+    const bungaFloat = parseFloat(bungaPersen) || 0;
+
+    const totalBunga = (jumlah * (bungaFloat / 100) * (tenorInt / 12));
+    const totalPengembalian = jumlah + totalBunga;
+    const cicilanPerBulan = tenorInt > 0 ? (totalPengembalian / tenorInt) : 0;
+
+    const printUrl = `{{ route('pinjaman.simulasi.print') }}?nik=${encodeURIComponent(nik)}&jenis_id=${encodeURIComponent(jenisId)}&jumlah=${jumlah}&tenor=${tenorInt}&bunga_persen=${bungaFloat}&total_bunga=${totalBunga}&total_pengembalian=${totalPengembalian}&cicilan_per_bulan=${cicilanPerBulan}`;
+
+    window.open(printUrl, '_blank', 'width=900,height=800,scrollbars=yes');
 }
 
 // Enter key
