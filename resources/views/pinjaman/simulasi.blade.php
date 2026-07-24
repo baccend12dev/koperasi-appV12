@@ -270,28 +270,30 @@
 /* ── Right Column ── */
 .sim-right-col { display: flex; flex-direction: column; gap: 12px; }
 
-/* ── Pinjaman Aktif Table ── */
+/* ── Pinjaman Aktif Table (Excel-style) ── */
 .sim-table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
+    width: 100%; border-collapse: collapse; font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 .sim-table thead th {
-    text-align: left; padding: 11px 20px;
-    font-size: 11.5px; font-weight: 800; color: #1F2937;
-    text-transform: uppercase; letter-spacing: 0.4px;
-    border-bottom: 1px solid #E5E7EB;
-    background: #FAFAFA;
+    text-align: left; padding: 6px 8px;
+    font-size: 12px; font-weight: 700; color: #FFFFFF;
+    text-transform: uppercase; letter-spacing: 0.2px;
+    background: #107C41; border: 1px solid #0E6B37;
 }
 .sim-table th.right, .sim-table td.right { text-align: right; }
+.sim-table th.center, .sim-table td.center { text-align: center; }
 .sim-table tbody td {
-    padding: 12px 10px;
-    border-bottom: 1px solid #F3F4F6;
-    color: #111827; font-weight: 500; vertical-align: middle;
+    padding: 5px 8px;
+    border: 1px solid #E5E7EB;
+    color: #000000; font-weight: 600; vertical-align: middle;
+    font-variant-numeric: tabular-nums;
 }
-.sim-table tbody tr:hover { background: #FAFAFA; }
-.sim-table tbody tr:last-child td { border-bottom: none; }
+.sim-table tbody tr:nth-child(even) { background: #F9FAFB; }
+.sim-table tbody tr:hover { background: #F3F4F6 !important; }
 .sim-table .empty-row td {
-    text-align: center; padding: 28px;
-    color: #4B5563; font-weight: 500; font-size: 13px;
+    text-align: center; padding: 18px 8px;
+    color: #374151; font-weight: 600; font-size: 12px;
 }
 .sim-table-footer {
     padding: 12px 20px;
@@ -587,14 +589,14 @@
                         <table class="sim-table">
                             <thead>
                                 <tr>
-                                    <th>No</th>
+                                    <th class="center" style="width: 35px;">No</th>
                                     <th>Jenis Pinjaman</th>
                                     <th class="right">Pokok Pinjaman</th>
                                     <th class="right">Pokok + Bunga</th>
-                                    <th class="right">Tenor</th>
-                                    <th class="right">Sisa Tenor</th>
+                                    <th class="center">Tenor</th>
+                                    <th class="center">Sisa Tenor</th>
                                     <th class="right">Sisa Pinjaman</th>
-                                    <th class="right">Cicilan/Bulan</th>
+                                    <th class="right">Cicilan / Bulan</th>
                                 </tr>
                             </thead>
                             <tbody id="sc-tbody"></tbody>
@@ -780,6 +782,10 @@
                                     <span>Cicilan Simulasi Baru</span>
                                     <span id="rp-cicilan-baru">Rp 0</span>
                                 </div>
+                                <div class="sim-ringkasan-item" id="rp-rasio-item" style="display:none;">
+                                    <span>Rasio Gaji Diterima (Net)</span>
+                                    <span id="rp-rasio-val">-</span>
+                                </div>
                             </div>
                         </div>
                         <div>
@@ -836,6 +842,8 @@ function cariAnggota() {
             if (inputGaji) inputGaji.value = '';
             const rasioBox = document.getElementById('sc-rasio-box');
             if (rasioBox) rasioBox.style.display = 'none';
+            const rpRasioItem = document.getElementById('rp-rasio-item');
+            if (rpRasioItem) rpRasioItem.style.display = 'none';
             renderSidebar(res.data);
             renderMain(res.data);
             document.getElementById('sim-member-panel').classList.add('show');
@@ -880,7 +888,7 @@ function renderSidebar(d) {
 
     const maks = d.maks_pinjaman  ?? 0;
     const aktif= d.pinjaman_aktif ?? 0;
-    const sisa = d.sisa_limit     ?? 0;
+    const sisa = Math.max(0, maks - aktif);
     const pct  = maks > 0 ? Math.min((aktif / maks) * 100, 100) : 0;
 
     document.getElementById('smp-maks').textContent  = fmt(maks);
@@ -941,14 +949,14 @@ function renderMain(d) {
         list.forEach((p, i) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${i + 1}</td>
+                <td class="center">${i + 1}</td>
                 <td>${p.jenis_pinjaman}</td>
                 <td class="right">${fmt(p.jumlah_pinjaman)}</td>
                 <td class="right">${fmt(p.total_pinjaman)}</td>
-                <td class="right">${p.tenor} Bln</td>
-                <td class="right">${p.sisa_tenor} Bln</td>
-                <td class="right">${fmt(p.sisa_tagihan)}</td>
-                <td class="right" style="font-weight:700; color:#DC2626;">${fmt(p.cicilan_per_bulan)}</td>
+                <td class="center">${p.tenor} Bln</td>
+                <td class="center">${p.sisa_tenor} Bln</td>
+                <td class="right" style="color:#047857;">${fmt(p.sisa_tagihan)}</td>
+                <td class="right" style="font-weight:700; color:#B45309; background-color: rgba(245, 158, 11, 0.05);">${fmt(p.cicilan_per_bulan)}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -1085,9 +1093,12 @@ function hitungRasioTotal() {
     const gaji = parseFloat(rawGaji) || 0;
     const rasioBox = document.getElementById('sc-rasio-box');
     const rasioVal = document.getElementById('sc-rasio-val');
+    const rpRasioItem = document.getElementById('rp-rasio-item');
+    const rpRasioVal = document.getElementById('rp-rasio-val');
 
     if (gaji <= 0) {
         if (rasioBox) rasioBox.style.display = 'none';
+        if (rpRasioItem) rpRasioItem.style.display = 'none';
         return;
     }
 
@@ -1098,20 +1109,39 @@ function hitungRasioTotal() {
     const netSalary = gaji - grandTotal;
     const rasio = (netSalary / gaji) * 100;
     const displayRasio = Math.max(0, rasio);
-    rasioVal.textContent = displayRasio.toFixed(1) + '%';
+    const textRasio = displayRasio.toFixed(1) + '%';
+
+    let statusTxt = '';
+    let colorHex = '#059669';
 
     if (rasio >= 70) {
-        rasioVal.style.color = '#059669';
-        rasioVal.textContent += ' (Aman)';
+        statusTxt = ' (Aman)';
+        colorHex = '#059669';
     } else if (rasio >= 50) {
-        rasioVal.style.color = '#D97706';
-        rasioVal.textContent += ' (Perlu Perhatian)';
+        statusTxt = ' (Perlu Perhatian)';
+        colorHex = '#D97706';
     } else {
-        rasioVal.style.color = '#DC2626';
-        rasioVal.textContent += ' (Tidak Memenuhi Syarat)';
+        statusTxt = ' (Tidak Memenuhi Syarat)';
+        colorHex = '#DC2626';
     }
 
+    if (rasioVal) {
+        rasioVal.style.color = colorHex;
+        rasioVal.textContent = textRasio + statusTxt;
+    }
     if (rasioBox) rasioBox.style.display = 'flex';
+
+    if (rpRasioVal) {
+        let rpColorHex = '#34D399';
+        if (rasio < 50) {
+            rpColorHex = '#FCA5A5';
+        } else if (rasio < 70) {
+            rpColorHex = '#FCD34D';
+        }
+        rpRasioVal.style.color = rpColorHex;
+        rpRasioVal.textContent = textRasio + statusTxt;
+    }
+    if (rpRasioItem) rpRasioItem.style.display = 'flex';
 }
 
 function formatRupiahInput(inputElement) {

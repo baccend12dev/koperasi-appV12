@@ -783,5 +783,137 @@ class LaporanController extends Controller
             'sumSisaTotal'
         ));
     }
+
+    /**
+     * Laporan Cashflow (Arus Kas)
+     */
+    public function cashflow(Request $request)
+    {
+        $periode = $request->input('periode', date('Y-m'));
+        $parts = explode('-', $periode);
+        $year = $parts[0] ?? date('Y');
+        $month = $parts[1] ?? date('m');
+
+        $startDate = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
+        $endDate = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
+
+        // --- ARUS KAS MASUK (INFLOW) ---
+        // 1. Simpanan Masuk (Total Pokok + Wajib + Sukarela)
+        $simpananMasuk = \App\Models\TransaksiSimpanan::whereBetween('transaction_date', [$startDate, $endDate])
+            ->selectRaw('COALESCE(SUM(simpanan_pokok + simpanan_wajib + simpanan_sukarela), 0) as total')
+            ->value('total') ?? 0;
+
+        // 2. Angsuran Pinjaman Masuk (Pembayaran Angsuran)
+        $angsuranMasuk = \App\Models\PembayaranAngsuran::whereBetween('tanggal_bayar', [$startDate, $endDate])
+            ->sum('jumlah') ?? 0;
+
+        $totalInflow = (float)$simpananMasuk + (float)$angsuranMasuk;
+
+        // --- ARUS KAS KELUAR (OUTFLOW) ---
+        // 1. Pencairan Pinjaman (Pencairan ref_type = pinjaman status = paid)
+        $pencairanPinjaman = \App\Models\Pencairan::where('ref_type', 'pinjaman')
+            ->where('status', 'paid')
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->sum('nominal') ?? 0;
+
+        // 2. Penarikan Simpanan
+        $penarikanSimpanan = \App\Models\Pencairan::where('ref_type', 'simpanan')
+            ->where('status', 'paid')
+            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->sum('nominal') ?? 0;
+
+        if ($penarikanSimpanan == 0) {
+            $penarikanSimpanan = \App\Models\PengambilanSimpanan::where('status', 'disetujui')
+                ->whereBetween('updated_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->sum('nominal') ?? 0;
+        }
+
+        $totalOutflow = (float)$pencairanPinjaman + (float)$penarikanSimpanan;
+        $netCashflow = $totalInflow - $totalOutflow;
+
+        // Breakdown bulanan (6 bulan terakhir) untuk Grafik
+        $chartMonths = [];
+        $chartInflows = [];
+        $chartOutflows = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $dt = \Carbon\Carbon::createFromDate($year, $month, 1)->subMonths($i);
+            $sDate = $dt->copy()->startOfMonth()->format('Y-m-d');
+            $eDate = $dt->copy()->endOfMonth()->format('Y-m-d');
+
+            $inSimpanan = \App\Models\TransaksiSimpanan::whereBetween('transaction_date', [$sDate, $eDate])
+                ->selectRaw('COALESCE(SUM(simpanan_pokok + simpanan_wajib + simpanan_sukarela), 0) as total')
+                ->value('total') ?? 0;
+
+            $inAngsuran = \App\Models\PembayaranAngsuran::whereBetween('tanggal_bayar', [$sDate, $eDate])
+                ->sum('jumlah') ?? 0;
+
+            $in = (float)$inSimpanan + (float)$inAngsuran;
+
+            $out = \App\Models\Pencairan::where('status', 'paid')->whereBetween('tanggal', [$sDate, $eDate])->sum('nominal') ?? 0;
+            if ($out == 0) {
+                $out = \App\Models\PengambilanSimpanan::where('status', 'disetujui')
+                    ->whereBetween('updated_at', [$sDate . ' 00:00:00', $eDate . ' 23:59:59'])
+                    ->sum('nominal') ?? 0;
+            }
+
+            $chartMonths[] = $dt->translatedFormat('M Y');
+            $chartInflows[] = (float)$in;
+            $chartOutflows[] = (float)$out;
+        }
+
+        return view('laporan.cashflow', compact(
+            'periode',
+            'simpananMasuk',
+            'angsuranMasuk',
+            'totalInflow',
+            'pencairanPinjaman',
+            'penarikanSimpanan',
+            'totalOutflow',
+            'netCashflow',
+            'chartMonths',
+            'chartInflows',
+            'chartOutflows'
+        ));
+    }
+
+    /**
+     * Laporan Perbandingan (Komparasi Periode)
+     */
+    public function perbandingan(Request $request)
+    {
+        $periode1 = $request->input('periode1', date('Y-m', strtotime('-1 month')));
+        $periode2 = $request->input('periode2', date('Y-m'));
+
+        $getMetrics = function($periode) {
+            $parts = explode('-', $periode);
+            $year = $parts[0] ?? date('Y');
+            $month = $parts[1] ?? date('m');
+            $sDate = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
+            $eDate = \Carbon\Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
+
+            $setoranSimpanan = \App\Models\TransaksiSimpanan::whereBetween('transaction_date', [$sDate, $eDate])
+                ->selectRaw('COALESCE(SUM(simpanan_pokok + simpanan_wajib + simpanan_sukarela), 0) as total')
+                ->value('total') ?? 0;
+
+            $penarikanSimpanan = \App\Models\PengambilanSimpanan::where('status', 'disetujui')
+                ->whereBetween('updated_at', [$sDate . ' 00:00:00', $eDate . ' 23:59:59'])
+                ->sum('nominal') ?? 0;
+
+            return [
+                'setoran_simpanan' => (float)$setoranSimpanan,
+                'penarikan_simpanan' => (float)$penarikanSimpanan,
+                'pencairan_pinjaman' => (float)(\App\Models\Pinjaman::whereBetween('tanggal_mulai', [$sDate, $eDate])->sum('jumlah_cair') ?? 0),
+                'angsuran_masuk'    => (float)(\App\Models\PembayaranAngsuran::whereBetween('tanggal_bayar', [$sDate, $eDate])->sum('jumlah') ?? 0),
+                'total_pinjaman_aktif' => \App\Models\Pinjaman::where('tanggal_mulai', '<=', $eDate)->where('status', 'berjalan')->count(),
+            ];
+        };
+
+        $metrics1 = $getMetrics($periode1);
+        $metrics2 = $getMetrics($periode2);
+
+        return view('laporan.perbandingan', compact('periode1', 'periode2', 'metrics1', 'metrics2'));
+    }
 }
+
 

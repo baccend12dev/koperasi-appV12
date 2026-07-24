@@ -34,6 +34,7 @@
             <th style="text-align:center; padding:5px;">NIK</th>
             <th style="text-align:center; padding:5px;">NAMA ANGGOTA</th>
             <th style="text-align:center; padding:5px;">BAGIAN</th>
+            <th style="text-align:center; padding:5px;">Jenis Pinjaman</th>
             <th style="text-align:center; padding:5px;">TENOR</th>
             <th style="text-align:center; padding:5px;">SISA TENOR</th>
             <th style="text-align:center; padding:5px;">POKOK PINJAMAN</th>
@@ -57,8 +58,9 @@
                 <td style="mso-number-format:'\@'; text-align:center;">{{ $item->anggota->nik ?? '-' }}</td>
                 <td>{{ $item->anggota->nama_anggota ?? 'Unknown' }}</td>
                 <td>{{ $item->anggota->bagian ?? '-' }}</td>
-                <td style="text-align:center;">{{ $item->tenor }} Bln</td>
-                <td style="text-align:center;">{{ $item->sisa_tenor_historis }} Bln</td>
+                <td style="text-align:center;">{{ $item->jenisPinjaman->nama_pinjaman ?? '-' }}</td>
+                <td style="text-align:center;">{{ $item->tenor }}</td>
+                <td style="text-align:center;">{{ $item->sisa_tenor_historis }}</td>
                 <td style="text-align:right;">{{ number_format($item->jumlah_pinjaman, 2, '.', ',') }}</td>
                 <td style="text-align:right;">{{ number_format($item->total_bunga, 2, '.', ',') }}</td>
                 <td style="text-align:right; color:#10B981; font-weight:600;">{{ number_format($item->sisa_pokok, 2, '.', ',') }}</td>

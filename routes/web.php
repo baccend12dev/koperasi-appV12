@@ -39,6 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('laporan/pinjaman', [LaporanController::class, 'pinjaman'])->name('laporan.pinjaman');
     Route::get('laporan/sisa-pinjaman', [LaporanController::class, 'sisaPinjaman'])->name('laporan.sisa_pinjaman');
     Route::get('laporan/transaksi-pinjaman', [LaporanController::class, 'transaksiPinjaman'])->name('laporan.pembayaran.angsuran');
+    Route::get('laporan/cashflow', [LaporanController::class, 'cashflow'])->name('laporan.cashflow');
+    Route::get('laporan/perbandingan', [LaporanController::class, 'perbandingan'])->name('laporan.perbandingan');
 
     // ── Simpanan ───────────────────────────────────────────
     Route::get('simpanan/tagihangenerator', [SimpananController::class, 'tagihangenerator'])
@@ -96,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
     // ── Persetujuan (Approval) ───────────────────────────
     Route::get('persetujuan/pinjaman', [App\Http\Controllers\PersetujuanController::class, 'pinjaman'])->name('persetujuan.pinjaman');
     Route::post('persetujuan/pinjaman/approve-bulk', [App\Http\Controllers\PersetujuanController::class, 'approvePinjamanBulk'])->name('persetujuan.pinjaman.approve.bulk');
+    Route::post('persetujuan/pinjaman/approve-bulk-normal', [App\Http\Controllers\PersetujuanController::class, 'approveBulkNormal'])->name('persetujuan.pinjaman.approve.normal');
     Route::get('persetujuan/pengambilan', [App\Http\Controllers\PersetujuanController::class, 'pengambilan'])->name('persetujuan.pengambilan');
     Route::post('persetujuan/pengambilan/approve-bulk', [App\Http\Controllers\PersetujuanController::class, 'approvePengambilanBulk'])->name('persetujuan.pengambilan.approve.bulk');
     Route::post('persetujuan/pengambilan/{id}/approve', [App\Http\Controllers\PersetujuanController::class, 'approvePengambilan'])->name('persetujuan.pengambilan.approve');

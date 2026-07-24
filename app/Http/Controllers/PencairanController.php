@@ -48,13 +48,23 @@ class PencairanController extends Controller
 
         // Statistik
         $totalPinjaman = $listPinjaman->sum('jumlah_pinjaman');
+        $totalBunga    = $listPinjaman->sum('total_bunga');
         $totalPotongan = $listPinjaman->sum('potongan_pelunasan');
         $totalNet      = $listPinjaman->sum('jumlah_cair');
 
+        // Hitung badge belum bayar (pending)
+        $countPendingPinjaman = Pinjaman::whereNotIn('id', 
+            Pencairan::where('ref_type', 'pinjaman')->where('status', 'paid')->pluck('ref_id')
+        )->count();
+
+        $countPendingSimpanan = PengambilanSimpanan::where('status', 'approved')->whereNotIn('id', 
+            Pencairan::where('ref_type', 'simpanan')->where('status', 'paid')->pluck('ref_id')
+        )->count();
+
         return view('pencairan.pinjaman', compact(
             'listPinjaman', 'sidebarPeriode', 'pencairanExisting',
-            'tahun', 'bulan', 'jenis', 'totalPinjaman', 'totalPotongan', 'totalNet',
-            'jenisPinjamanList'
+            'tahun', 'bulan', 'jenis', 'totalPinjaman', 'totalBunga', 'totalPotongan', 'totalNet',
+            'jenisPinjamanList', 'countPendingPinjaman', 'countPendingSimpanan'
         ));
     }
 
@@ -83,9 +93,18 @@ class PencairanController extends Controller
 
         $totalNominal = $listPengambilan->sum('nominal');
 
+        // Hitung badge belum bayar (pending)
+        $countPendingPinjaman = Pinjaman::whereNotIn('id', 
+            Pencairan::where('ref_type', 'pinjaman')->where('status', 'paid')->pluck('ref_id')
+        )->count();
+
+        $countPendingSimpanan = PengambilanSimpanan::where('status', 'approved')->whereNotIn('id', 
+            Pencairan::where('ref_type', 'simpanan')->where('status', 'paid')->pluck('ref_id')
+        )->count();
+
         return view('pencairan.pengambilan', compact(
             'listPengambilan', 'sidebarPeriode', 'pencairanExisting',
-            'tahun', 'bulan', 'totalNominal'
+            'tahun', 'bulan', 'totalNominal', 'countPendingPinjaman', 'countPendingSimpanan'
         ));
     }
 

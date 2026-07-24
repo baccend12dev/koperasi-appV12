@@ -5,113 +5,22 @@
 @section('page-subtitle', 'Rekap pencairan dana pinjaman yang telah disetujui')
 
 @section('topbar-nav')
-    <a href="{{ route('pencairan.pinjaman') }}" class="tb-link active">Pencairan Pinjaman</a>
-    <a href="{{ route('pencairan.pengambilan') }}" class="tb-link">Penarikan Simpanan</a>
-@endsection
-
-@section('sidebar')
-<div class="sd-section">
-    <div class="sd-heading" style="margin-bottom:12px;font-weight:600;font-size:13px;color:#4B5563;">
-        <div style="display:flex;align-items:center;gap:5px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            FILTER PERIODE
-        </div>
-    </div>
-
-    <form action="{{ route('pencairan.pinjaman') }}" method="GET" class="space-y-1">
-        <style>
-            .filter-select {
-                width: 100%;
-                height: 38px;
-                border-radius: 8px;
-                border: 1px solid #E5E7EB;
-                background: #fff;
-                font-size: 13px;
-                padding: 0 10px;
-                font-family: inherit;
-                color: #374151;
-                outline: none;
-                transition: all 0.2s;
-                cursor: pointer;
-            }
-            .filter-select:focus {
-                border-color: #4F46E5;
-                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-            }
-            .filter-label {
-                display: block;
-                font-size: 10px;
-                font-weight: 700;
-                color: #9CA3AF;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 4px;
-                margin-left: 2px;
-            }
-            .btn-clear {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                width: 100%;
-                padding: 8px;
-                border-radius: 8px;
-                background: #F9FAFB;
-                border: 1px solid #E5E7EB;
-                color: #6B7280;
-                font-size: 12px;
-                font-weight: 600;
-                text-decoration: none;
-                margin-top: 12px;
-                transition: all 0.15s;
-            }
-            .btn-clear:hover {
-                background: #EEF2FF;
-                border-color: #C7D2FE;
-                color: #4F46E5;
-            }
-        </style>
-
-        <div style="margin-bottom: 12px;">
-            <label class="filter-label">Tahun</label>
-            <select name="tahun" onchange="this.form.submit()" class="filter-select">
-                <option value="">Semua Tahun</option>
-                @foreach(array_keys($sidebarPeriode) as $yr)
-                    <option value="{{ $yr }}" {{ $tahun == $yr ? 'selected' : '' }}>{{ $yr }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-            <label class="filter-label">Bulan</label>
-            <select name="bulan" onchange="this.form.submit()" class="filter-select" {{ !$tahun ? 'disabled' : '' }} style="{{ !$tahun ? 'background:#F3F4F6; cursor:not-allowed;' : '' }}">
-                <option value="">Semua Bulan</option>
-                @for($m=1; $m<=12; $m++)
-                    <option value="{{ $m }}" {{ $bulan == $m ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
-                    </option>
-                @endfor
-            </select>
-        </div>
-
-        @if($tahun || $bulan)
-            <a href="{{ route('pencairan.pinjaman', array_filter(['jenis'=>$jenis])) }}" class="btn-clear">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-                Reset Filter
-            </a>
+    <a href="{{ route('pencairan.pinjaman') }}" class="tb-link active flex items-center gap-2">
+        <span>Pencairan Pinjaman</span>
+        @if(($countPendingPinjaman ?? 0) > 0)
+            <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full leading-none shadow-sm">
+                {{ $countPendingPinjaman }}
+            </span>
         @endif
-        {{-- Preserve jenis filter when changing periode --}}
-        @if($jenis)<input type="hidden" name="jenis" value="{{ $jenis }}">@endif
-    </form>
-</div>
+    </a>
+    <a href="{{ route('pencairan.pengambilan') }}" class="tb-link flex items-center gap-2">
+        <span>Penarikan Simpanan</span>
+        @if(($countPendingSimpanan ?? 0) > 0)
+            <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full leading-none shadow-sm">
+                {{ $countPendingSimpanan }}
+            </span>
+        @endif
+    </a>
 @endsection
 
 @section('content')
@@ -295,6 +204,32 @@
         border-color: #C7D2FE;
         color: #4F46E5;
     }
+    /* Compact & Bordered Table */
+    .table-compact {
+        width: 100%;
+        border-collapse: collapse !important;
+        font-size: 14px;
+        color: #1E293B;
+        border: 1px solid #CBD5E1 !important;
+    }
+    .table-compact th,
+    .table-compact td {
+        padding: 9px 12px;
+        border: 1px solid #CBD5E1 !important;
+        vertical-align: middle;
+    }
+    .table-compact th {
+        background-color: #F8FAFC;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border: 1px solid #CBD5E1 !important;
+    }
+    .table-compact tbody tr:hover {
+        background-color: #F8FAFC;
+    }
 </style>
 
 {{-- Filter Bar — 1 baris --}}
@@ -388,30 +323,32 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-600 min-w-max">
-            <thead class="bg-gray-50/50 text-xs uppercase text-gray-400 font-semibold border-b border-gray-100">
+        <table class="table-compact min-w-max">
+            <thead>
                 <tr>
-                    <th class="px-4 py-4">
+                    <th class="w-10 text-center">
                         <input type="checkbox" id="check-all" class="bulk-checkbox" title="Pilih semua belum bayar" onchange="toggleAll(this)">
                     </th>
-                    <th class="px-6 py-4">TANGGAL</th>
-                    <th class="px-6 py-4">ANGGOTA</th>
-                    <th class="px-6 py-4">JENIS PINJAMAN</th>
-                    <th class="px-6 py-4 text-right">TOTAL PINJAM</th>
-                    <th class="px-6 py-4 text-right">POTONGAN</th>
-                    <th class="px-6 py-4 text-right">NET CAIR</th>
-                    <th class="px-6 py-4 text-center">STATUS</th>
-                    <th class="px-6 py-4 text-center">AKSI</th>
+                    <th>TANGGAL</th>
+                    <th>ANGGOTA</th>
+                    <th>JENIS PINJAMAN</th>
+                    <th class="text-right">POKOK</th>
+                    <th class="text-right">BUNGA</th>
+                    <th class="text-right">TOTAL</th>
+                    <th class="text-right">POTONGAN</th>
+                    <th class="text-right bg-emerald-50/80 text-emerald-800 font-extrabold">NET CAIR</th>
+                    <th class="text-center">STATUS</th>
+                    <th class="text-center">AKSI</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100" id="pinjaman-tbody">
+            <tbody id="pinjaman-tbody">
                 @forelse($listPinjaman as $row)
                 @php $p = $pencairanExisting->get($row->id); $isPaid = $p && $p->status === 'paid'; @endphp
                 <tr class="hover:bg-gray-50/50 transition-colors {{ $isPaid ? '' : 'row-pending' }}"
                     data-id="{{ $row->id }}"
                     data-nominal="{{ $row->jumlah_cair }}"
                     data-anggota="{{ $row->user_id }}">
-                    <td class="px-4 py-4">
+                    <td class="text-center">
                         @if(!$isPaid)
                         <input type="checkbox"
                                class="bulk-checkbox row-check"
@@ -423,47 +360,53 @@
                         <span class="text-gray-300 text-xs">—</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
+                    <td class="font-semibold text-gray-800 whitespace-nowrap text-sm">
                         {{ $row->created_at->format('d M Y') }}
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                                 {{ strtoupper(substr($row->anggota?->nama_anggota ?? 'U', 0, 2)) }}
                             </div>
                             <div>
-                                <div class="font-bold text-gray-800">{{ $row->anggota?->nama_anggota ?? '-' }}</div>
-                                <div class="text-xs text-gray-400 mt-0.5">NIK: {{ $row->anggota?->nik ?? '-' }}</div>
+                                <div class="font-bold text-gray-900 text-sm">{{ $row->anggota?->nama_anggota ?? '-' }}</div>
+                                <div class="text-xs text-gray-500">NIK: {{ $row->anggota?->nik ?? '-' }}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="font-semibold text-gray-700">{{ $row->jenisPinjaman?->nama_pinjaman ?? 'Pinjaman' }}</span>
+                    <td>
+                        <span class="font-semibold text-gray-800 text-sm">{{ $row->jenisPinjaman?->nama_pinjaman ?? 'Pinjaman' }}</span>
                     </td>
-                    <td class="px-6 py-4 text-right font-medium text-gray-500">
+                    <td class="text-right font-semibold text-gray-800 text-sm whitespace-nowrap">
                         Rp {{ number_format($row->jumlah_pinjaman, 0, ',', '.') }}
                     </td>
-                    <td class="px-6 py-4 text-right font-medium text-red-500">
+                    <td class="text-right font-medium text-gray-600 text-sm whitespace-nowrap">
+                        Rp {{ number_format($row->total_bunga ?? 0, 0, ',', '.') }}
+                    </td>
+                    <td class="text-right font-semibold text-gray-800 text-sm whitespace-nowrap">
+                        Rp {{ number_format($row->total_pinjaman ?? 0, 0, ',', '.') }}
+                    </td>
+                    <td class="text-right font-semibold text-red-600 text-sm whitespace-nowrap">
                         @if($row->potongan_pelunasan > 0)
                             -Rp {{ number_format($row->potongan_pelunasan, 0, ',', '.') }}
                         @else
                             <span class="text-gray-300">Rp 0</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 text-right font-bold text-emerald-600 whitespace-nowrap">
+                    <td class="text-right font-black text-emerald-700 text-base whitespace-nowrap bg-emerald-50/50">
                         Rp {{ number_format($row->jumlah_cair, 0, ',', '.') }}
                     </td>
 
-                    <td class="px-6 py-4 text-center">
+                    <td class="text-center">
                         @if($isPaid)
                             <span class="badge badge-paid">LUNAS</span>
-                            <div class="text-[10px] text-gray-400 mt-1">{{ ucfirst($p->metode) }} · {{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">{{ ucfirst($p->metode) }} · {{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</div>
                         @else
                             <span class="badge badge-pending">BELUM BAYAR</span>
                         @endif
                     </td>
 
-                    <td class="px-6 py-4 text-center">
+                    <td class="text-center">
                         @if($isPaid)
                             <span class="text-xs text-gray-400">—</span>
                         @else
@@ -529,7 +472,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="px-6 py-14 text-center text-gray-400">
+                    <td colspan="11" class="px-6 py-14 text-center text-gray-400">
                         <svg class="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
@@ -539,7 +482,7 @@
                 @endforelse
                 {{-- Row ditampilkan saat filter tidak menemukan hasil --}}
                 <tr id="no-result-row" style="display:none;">
-                    <td colspan="9" class="px-6 py-12 text-center text-gray-400">
+                    <td colspan="11" class="px-6 py-12 text-center text-gray-400">
                         <svg class="w-9 h-9 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <circle cx="11" cy="11" r="8" stroke-width="1.5"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="1.5"/>
                         </svg>
@@ -554,9 +497,11 @@
     @if($listPinjaman->count() > 0)
     <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center text-xs">
         <div class="text-gray-400">Total {{ $listPinjaman->count() }} Transaksi</div>
-        <div class="flex gap-4">
-            <span class="text-gray-500">Total Bruto: <strong class="text-gray-700">Rp {{ number_format($totalPinjaman, 0, ',', '.') }}</strong></span>
-            <span class="text-gray-500">Total Net: <strong class="text-indigo-600 font-bold">Rp {{ number_format($totalNet, 0, ',', '.') }}</strong></span>
+        <div class="flex gap-4 flex-wrap">
+            <span class="text-gray-500">Total Pokok: <strong class="text-gray-700">Rp {{ number_format($totalPinjaman, 0, ',', '.') }}</strong></span>
+            <span class="text-gray-500">Total Bunga: <strong class="text-gray-700">Rp {{ number_format($totalBunga, 0, ',', '.') }}</strong></span>
+            <span class="text-gray-500">Total Potongan: <strong class="text-red-500">Rp {{ number_format($totalPotongan, 0, ',', '.') }}</strong></span>
+            <span class="text-gray-500">Total Net Cair: <strong class="text-emerald-600 font-bold">Rp {{ number_format($totalNet, 0, ',', '.') }}</strong></span>
         </div>
     </div>
     @endif

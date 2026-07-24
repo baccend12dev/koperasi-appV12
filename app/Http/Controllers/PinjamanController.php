@@ -337,7 +337,7 @@ class PinjamanController extends Controller
                 'total_bunga'       => $total_bunga,
                 'total_pinjaman'    => $total_pinjaman,
                 'cicilan_per_bulan' => $cicilan_per_bulan,
-                'keterangan'        => $request->keterangan,
+                'keterangan'        => $request->keterangan ?? 'NORMAL',
                 'status'            => 'pending',
                 'created_by'        => auth()->id() ?? 1
             ]);

@@ -97,10 +97,94 @@
         .btn-export:hover {
             background: #D1FAE5;
         }
+
+        /* Custom Compact & Bordered Table Styling */
+        .table-compact {
+            width: 100%;
+            border-collapse: collapse !important;
+            font-size: 14px;
+            color: #1E293B;
+            border: 1px solid #CBD5E1 !important;
+        }
+        .table-compact th,
+        .table-compact td {
+            padding: 9px 12px;
+            border: 1px solid #CBD5E1 !important;
+            vertical-align: middle;
+        }
+        .table-compact th {
+            background-color: #F8FAFC;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border: 1px solid #CBD5E1 !important;
+        }
+        .table-compact tbody tr:hover {
+            background-color: #F8FAFC;
+        }
+        .btn-detail {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            background: #EFF6FF;
+            color: #2563EB;
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .btn-detail:hover {
+            background: #DBEAFE;
+            color: #1D4ED8;
+        }
+
+        /* Menu Tab Jenis Pinjaman */
+        .jenis-tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .jenis-tab-bar::-webkit-scrollbar {
+            display: none;
+        }
+        .jenis-tab-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 16px;
+            border-radius: 99px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #475569;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .jenis-tab-item:hover {
+            background: #F1F5F9;
+            color: #0F172A;
+            border-color: #CBD5E1;
+        }
+        .jenis-tab-item.active {
+            background: #1E3A5F;
+            color: #FFFFFF;
+            border-color: #1E3A5F;
+            box-shadow: 0 2px 5px rgba(30, 58, 95, 0.2);
+        }
     </style>
 
     {{-- Filter Bar --}}
     <form class="filter-card flex items-end gap-4" method="GET" action="{{ route('pinjaman.aktif') }}" style="margin-bottom: 24px;">
+        <input type="hidden" name="jenis" value="{{ request('jenis') }}">
         <div class="flex-1">
             <label class="label-text">Tahun</label>
             <select name="tahun" class="form-select">
@@ -124,23 +208,6 @@
         <div class="flex-2" style="flex: 2;">
             <label class="label-text">Nama / NIK Anggota</label>
             <input type="text" name="q" value="{{ request('q') }}" class="form-input" placeholder="Cari NIK atau Nama...">
-        </div>
-        <div class="flex-1">
-            <label class="label-text">Jenis Pinjaman</label>
-            <select name="jenis" class="form-select">
-                <option value="">Semua Jenis</option>
-                @foreach($jenisPinjamanList as $jp)
-                    @if($jp->children->count() > 0)
-                        <optgroup label="{{ $jp->nama_pinjaman }}">
-                            @foreach($jp->children as $child)
-                                <option value="{{ $child->id }}" {{ request('jenis') == $child->id ? 'selected' : '' }}>{{ $child->nama_pinjaman }}</option>
-                            @endforeach
-                        </optgroup>
-                    @else
-                        <option value="{{ $jp->id }}" {{ request('jenis') == $jp->id ? 'selected' : '' }}>{{ $jp->nama_pinjaman }}</option>
-                    @endif
-                @endforeach
-            </select>
         </div>
         <div class="flex-1">
             <label class="label-text">Status</label>
@@ -173,86 +240,111 @@
 
     {{-- Main Table Section --}}
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="font-bold text-sm text-gray-800 tracking-wide">DAFTAR PINJAMAN</h3>
+        <div class="px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800 tracking-wide">DAFTAR PINJAMAN</h3>
+            </div>
+
+            {{-- Menu Tab Jenis Pinjaman --}}
+            <div class="jenis-tab-bar">
+                <a href="{{ route('pinjaman.aktif', request()->except('jenis', 'page')) }}"
+                   class="jenis-tab-item {{ !request('jenis') ? 'active' : '' }}">
+                    Semua Jenis
+                </a>
+                @foreach($jenisPinjamanList as $jp)
+                    @if($jp->children->count() > 0)
+                        @foreach($jp->children as $child)
+                            <a href="{{ route('pinjaman.aktif', array_merge(request()->except('jenis', 'page'), ['jenis' => $child->id])) }}"
+                               class="jenis-tab-item {{ request('jenis') == $child->id ? 'active' : '' }}">
+                                {{ $child->nama_pinjaman }}
+                            </a>
+                        @endforeach
+                    @else
+                        <a href="{{ route('pinjaman.aktif', array_merge(request()->except('jenis', 'page'), ['jenis' => $jp->id])) }}"
+                           class="jenis-tab-item {{ request('jenis') == $jp->id ? 'active' : '' }}">
+                            {{ $jp->nama_pinjaman }}
+                        </a>
+                    @endif
+                @endforeach
+            </div>
         </div>
         
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-600 min-w-max">
-                <thead class="bg-gray-50/50 text-xs uppercase text-gray-400 font-semibold border-b border-gray-100">
+            <table class="table-compact min-w-max">
+                <thead>
                     <tr>
-                        <th class="px-6 py-4">PERIODE</th>
-                        <th class="px-6 py-4">NAMA ANGGOTA</th>
-                        <th class="px-6 py-4">JENIS</th>
-                        <th class="px-6 py-4">PINJAMAN (POKOK / TOTAL)</th>
-                        <th class="px-6 py-4">TENOR (TOTAL / SISA)</th>
-                        <th class="px-6 py-4">TERBAYAR</th>
-                        <th class="px-6 py-4">SISA TAGIHAN</th>
-                        <th class="px-6 py-4">PEMBAYARAN</th>
-                        <th class="px-6 py-4">STATUS</th>
-                        <th class="px-6 py-4 text-center">AKSI</th>
+                        <th>PERIODE</th>
+                        <th>NAMA ANGGOTA</th>
+                        <th>JENIS</th>
+                        <th>PINJAMAN (POKOK / TOTAL)</th>
+                        <th>TENOR</th>
+                        <th>TERBAYAR</th>
+                        <th>SISA TAGIHAN</th>
+                        <th class="text-center">PEMBAYARAN</th>
+                        <th class="text-center">STATUS</th>
+                        <th class="text-center">AKSI</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody>
                     @forelse($pinjaman_list as $item)
-                        <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-700">
-                                <div>{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '-' }}</div>
-                                <div class="text-xs text-gray-400 font-normal">s/d {{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') : '-' }}</div>
+                        <tr>
+                            <td class="font-medium text-gray-700">
+                                <div class="font-semibold text-gray-800 text-xs">{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '-' }}</div>
+                                <div class="text-[11px] text-gray-400 font-normal">s/d {{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') : '-' }}</div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs" style="flex-shrink:0;">
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs" style="flex-shrink:0;">
                                         {{ strtoupper(substr($item->anggota->nama_anggota ?? 'U', 0, 2)) }}
                                     </div>
                                     <div>
-                                        <div class="font-bold text-gray-800">{{ $item->anggota->nama_anggota ?? 'Unknown' }}</div>
-                                        <div class="text-xs text-gray-400 mt-0.5">NIK: {{ $item->anggota->nik ?? '-' }}</div>
+                                        <div class="font-bold text-gray-800 text-xs">{{ $item->anggota->nama_anggota ?? 'Unknown' }}</div>
+                                        <div class="text-[11px] text-gray-400">NIK: {{ $item->anggota->nik ?? '-' }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 font-medium text-gray-700">
+                            <td class="font-medium text-gray-700 text-xs">
                                 {{ $item->jenisPinjaman?->nama_pinjaman ?? '-' }}
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-gray-800">Rp {{ number_format($item->jumlah_pinjaman, 0, ',', '.') }}</div>
-                                <div class="text-xs text-gray-500 mt-0.5" title="Bunga {{ $item->bunga }}%">Total: Rp {{ number_format($item->total_pinjaman, 0, ',', '.') }}</div>
+                            <td>
+                                <div class="font-bold text-gray-800 text-xs">Rp {{ number_format($item->jumlah_pinjaman, 0, ',', '.') }}</div>
+                                <div class="text-[11px] text-gray-500" title="Bunga {{ $item->bunga }}%">Total: Rp {{ number_format($item->total_pinjaman, 0, ',', '.') }}</div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-gray-800">{{ $item->tenor }} Bulan</div>
-                                <div class="text-xs text-gray-500 mt-0.5">Sisa: {{ $item->sisa_tenor }} Bulan</div>
+                            <td>
+                                <div class="font-bold text-gray-800 text-xs">{{ $item->tenor }} Bulan</div>
+                                <div class="text-[11px] text-gray-500">Sisa: {{ $item->sisa_tenor }} Bulan</div>
                             </td>
-                            <td class="px-6 py-4 font-bold text-emerald-600">
+                            <td class="font-bold text-emerald-600 text-xs">
                                 Rp {{ number_format($item->total_terbayar, 0, ',', '.') }}
                             </td>
-                            <td class="px-6 py-4">
+                            <td>
                                 @if($item->status == 'lunas')
-                                    <div class="font-bold text-indigo-600">Rp 0</div>
+                                    <div class="font-bold text-indigo-600 text-xs">Rp 0</div>
                                 @else
-                                    <div class="font-bold text-amber-600">Rp {{ number_format($item->sisa_pinjaman, 0, ',', '.') }}</div>
+                                    <div class="font-bold text-amber-600 text-xs">Rp {{ number_format($item->sisa_pinjaman, 0, ',', '.') }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="text-center">
                                 @if ($item->payment_method == 'gaji')
-                                    <span class="badge">Gaji</span>
+                                    <span class="badge">Payroll</span>
                                 @else
-                                    <span class="badge">Mandiri</span>
+                                    <span class="badge">Tunai</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="text-center">
                                 <span class="badge {{ strtolower($item->status) === 'berjalan' ? 'badge-berjalan' : 'badge-lunas' }}">
                                     {{ strtoupper($item->status) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <a href="{{ route('pinjaman.aktif.show', $item->id) }}" title="Detail Pinjaman" style="color:#6366f1; font-weight:600; font-size:13px; text-decoration:none;">
+                            <td class="text-center">
+                                <a href="{{ route('pinjaman.aktif.show', $item->id) }}" class="btn-detail" title="Detail Pinjaman">
                                     Detail
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                            <td colspan="10" class="py-8 text-center text-gray-400">
                                 Tidak ada data pinjaman yang ditemukan.
                             </td>
                         </tr>

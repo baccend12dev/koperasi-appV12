@@ -118,18 +118,18 @@
 
     {{-- Data Table (Compact Padding) --}}
     <div class="data-table-wrap" style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow-x: auto;">
-        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; min-width: 900px;">
+        <table class="data-table excel-style-table" style="width: 100%; border-collapse: collapse; text-align: left; min-width: 900px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
             <thead>
-                <tr style="background: #F9FAFB; border-bottom: 1px solid #E5E7EB;">
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 40px;">No</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 180px;">Nama & NIK</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 120px;">Departemen</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Simpanan Pokok</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Simpanan Wajib</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Simpanan Sukarela</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Saldo Awal</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 120px;">Total Simpanan</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: center; width: 80px;">Status</th>
+                <tr style="background: #107C41; color: #FFFFFF; border-bottom: 2px solid #0B5C30;">
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 35px; text-align: center;">No</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 170px;">Nama & NIK</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 110px;">Departemen</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Simpanan Pokok</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Simpanan Wajib</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Simpanan Sukarela</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Saldo Awal</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Total Simpanan</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 75px;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -140,44 +140,46 @@
                         $sukarela = ($item->total_sukarela ?? 0) + ($item->saldo_awal_sukarela ?? 0);
                         $saldoAwal = $item->total_saldo_awal ?? 0;
                         $total = $pokok + $wajib + $sukarela;
+                        $rowBg = $index % 2 === 0 ? '#FFFFFF' : '#F9FAFB';
                     @endphp
-                    <tr style="border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
-                        <td style="padding: 10px 12px; font-size: 12px; color: #4B5563; vertical-align: middle;">{{ $members->firstItem() + $index }}</td>
-                        <td style="padding: 10px 12px; vertical-align: middle;">
-                            <div style="font-weight: 600; color: #111827; font-size: 12px;">{{ $item->nama_anggota }}</div>
-                            <div style="font-size: 10px; color: #6B7280; margin-top: 1px;">{{ $item->nik ?? '—' }}</div>
+                    <tr style="background-color: {{ $rowBg }}; border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $members->firstItem() + $index }}</td>
+                        <td style="padding: 5px 8px; border: 1px solid #E5E7EB; vertical-align: middle;">
+                            <div style="font-weight: 700; color: #000000; font-size: 11px; line-height: 1.2;">{{ $item->nama_anggota }}</div>
+                            <div style="font-size: 10px; color: #4B5563; font-weight: 600; margin-top: 1px;">NIK: {{ $item->nik ?? '—' }}</div>
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">{{ $item->departemen->nama ?? '—' }}</td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; {!! $pokok < 0 ? 'color: #DC2626;' : '' !!}">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $item->departemen->nama ?? '—' }}</td>
+                        <td style="padding: 5px 8px; font-size: 11px; color: {{ $pokok < 0 ? '#DC2626' : '#000000' }}; font-weight: 600; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle;">
                             {{ number_format($pokok, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; {!! $wajib < 0 ? 'color: #DC2626;' : '' !!}">
+                        <td style="padding: 5px 8px; font-size: 11px; color: {{ $wajib < 0 ? '#DC2626' : '#000000' }}; font-weight: 600; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle;">
                             {{ number_format($wajib, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; {!! $sukarela < 0 ? 'color: #DC2626;' : '' !!}">
+                        <td style="padding: 5px 8px; font-size: 11px; color: {{ $sukarela < 0 ? '#DC2626' : '#000000' }}; font-weight: 600; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle;">
                             {{ number_format($sukarela, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle;">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle;">
                             {{ number_format($saldoAwal, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; font-weight: 700; color: #1D4ED8; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle; {!! $total < 0 ? 'color: #DC2626;' : '' !!}">
+                        <td style="padding: 5px 8px; font-size: 11px; font-weight: 800; color: {{ $total < 0 ? '#DC2626' : '#1E40AF' }}; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle; background-color: rgba(30, 64, 175, 0.04);">
                             {{ number_format($total, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; text-align: center; vertical-align: middle;">
+                        <td style="padding: 5px 8px; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">
                             @if($item->status_anggota == 'active' || $item->status_anggota == 'aktif')
-                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#e6f4ea; color:#137333; font-weight:600; text-transform: capitalize;">Aktif</span>
+                                <span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size: 10px; background-color:#DEF7EC; color:#03543F; font-weight:800; text-transform: capitalize;">Aktif</span>
                             @else
-                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#fce8e6; color:#c5221f; font-weight:600; text-transform: capitalize;">{{ $item->status_anggota }}</span>
+                                <span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size: 10px; background-color:#FDE8E8; color:#9B1C1C; font-weight:800; text-transform: capitalize;">{{ $item->status_anggota }}</span>
                             @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                         <td colspan="9" style="text-align:center; padding:30px 12px; color:#6B7280; font-size:13px; vertical-align: middle;">
+                         <td colspan="9" style="text-align:center; padding:20px 8px; color:#374151; font-weight: 600; font-size:12px; vertical-align: middle;">
                              Tidak ada data saldo simpanan ditemukan.
                          </td>
                     </tr>
                 @endforelse
+            </tbody>
         </table>
 
         {{-- Pagination (Bottom of table) --}}

@@ -143,21 +143,21 @@
 
     {{-- Data Table (Compact Padding) --}}
     <div class="data-table-wrap" style="background: #fff; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow-x: auto;">
-        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px;">
+        <table class="data-table excel-style-table" style="width: 100%; border-collapse: collapse; text-align: left; min-width: 1000px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
             <thead>
-                <tr style="background: #F9FAFB; border-bottom: 1px solid #E5E7EB;">
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 40px;">No</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 140px;">Periode Kontrak</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 180px;">Nama & NIK</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 100px;">Departemen</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; width: 120px;">Jenis Pinjaman</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 120px;">Pinjaman (Pokok / Total)</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 120px;">Cicil per Bulan</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: center; width: 110px;">Tenor (Total / Sisa)</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Terbayar</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: right; width: 110px;">Sisa Tagihan</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: center; width: 80px;">Status</th>
-                    <th style="padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #4B5563; text-align: center; width: 70px;">Aksi</th>
+                <tr style="background: #107C41; color: #FFFFFF; border-bottom: 2px solid #0B5C30;">
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 35px; text-align: center;">No</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 130px;">Periode Kontrak</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 170px;">Nama & NIK</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 95px;">Departemen</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 110px;">Jenis Pinjaman</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Pinjaman (Pokok / Total)</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Cicil per Bulan</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 100px;">Tenor (Total / Sisa)</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 110px;">Terbayar</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Sisa Tagihan</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 75px;">Status</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: center; width: 60px;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -169,54 +169,55 @@
                         $sisa = $total_kontrak - $terbayar;
                         if ($sisa < 0) $sisa = 0;
                         $statusLabel = $sisa <= 0 ? 'lunas' : 'berjalan';
+                        $rowBg = $index % 2 === 0 ? '#FFFFFF' : '#F9FAFB';
                     @endphp
-                    <tr style="border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
-                        <td style="padding: 10px 12px; font-size: 12px; color: #4B5563; vertical-align: middle;">{{ $pinjaman->firstItem() + $index }}</td>
-                        <td style="padding: 10px 12px; font-size: 11px; color: #374151; vertical-align: middle; line-height: 1.3;">
-                            <div style="font-weight: 600;">{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '—' }}</div>
-                            <div style="color: #6B7280; font-size: 10px; margin-top: 1px;">s.d. {{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') : '—' }}</div>
+                    <tr style="background-color: {{ $rowBg }}; border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $pinjaman->firstItem() + $index }}</td>
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
+                            <div style="font-weight: 700;">{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '—' }}</div>
+                            <div style="color: #4B5563; font-size: 10px; font-weight: 600; margin-top: 1px;">s.d. {{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') : '—' }}</div>
                         </td>
-                        <td style="padding: 10px 12px; vertical-align: middle;">
-                            <div style="font-weight: 600; color: #111827; font-size: 12px;">{{ $item->anggota->nama_anggota ?? '—' }}</div>
-                            <div style="font-size: 10px; color: #6B7280; margin-top: 1px;">{{ $item->anggota->nik ?? '—' }}</div>
+                        <td style="padding: 5px 8px; border: 1px solid #E5E7EB; vertical-align: middle;">
+                            <div style="font-weight: 700; color: #000000; font-size: 11px; line-height: 1.2;">{{ $item->anggota->nama_anggota ?? '—' }}</div>
+                            <div style="font-size: 10px; color: #4B5563; font-weight: 600; margin-top: 1px;">NIK: {{ $item->anggota->nik ?? '—' }}</div>
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">{{ $item->anggota->bagian ?? '—' }}</td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; vertical-align: middle;">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $item->anggota->bagian ?? '—' }}</td>
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">
                             {{ $item->jenisPinjaman?->nama_pinjaman ?? '—' }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; vertical-align: middle; line-height: 1.3;">
-                            <div style="font-weight: 600;">Rp {{ number_format($pokok, 2, ',', '.') }}</div>
-                            <div style="color: #6B7280; font-size: 10px;">Total: Rp {{ number_format($total_kontrak, 2, ',', '.') }}</div>
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; text-align: right; vertical-align: middle; line-height: 1.2; font-variant-numeric: tabular-nums;">
+                            <div style="font-weight: 700;">Rp {{ number_format($pokok, 2, ',', '.') }}</div>
+                            <div style="color: #4B5563; font-size: 10px; font-weight: 600;">Total: Rp {{ number_format($total_kontrak, 2, ',', '.') }}</div>
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: right; vertical-align: middle;">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: right; border: 1px solid #E5E7EB; vertical-align: middle; font-variant-numeric: tabular-nums;">
                             Rp {{ number_format($item->cicilan_per_bulan, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; color: #374151; text-align: center; vertical-align: middle; line-height: 1.3;">
-                            <div style="font-weight: 600;">{{ $item->tenor }} Bln</div>
-                            <div style="color: #6B7280; font-size: 10px;">Sisa: {{ $item->sisa_tenor_historis }} Bln</div>
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
+                            <div style="font-weight: 700;">{{ $item->tenor }} Bln</div>
+                            <div style="color: #4B5563; font-size: 10px; font-weight: 600;">Sisa: {{ $item->sisa_tenor_historis }} Bln</div>
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; font-weight: 600; color: #10B981; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle;">
+                        <td style="padding: 5px 8px; font-size: 11px; font-weight: 700; color: #047857; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle;">
                             Rp {{ number_format($terbayar, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; font-size: 12px; font-weight: 700; color: #D97706; text-align: right; font-variant-numeric: tabular-nums; vertical-align: middle;">
+                        <td style="padding: 5px 8px; font-size: 11px; font-weight: 800; color: #B45309; text-align: right; border: 1px solid #E5E7EB; font-variant-numeric: tabular-nums; vertical-align: middle; background-color: rgba(245, 158, 11, 0.05);">
                             Rp {{ number_format($sisa, 2, ',', '.') }}
                         </td>
-                        <td style="padding: 10px 12px; text-align: center; vertical-align: middle;">
+                        <td style="padding: 5px 8px; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">
                             @if($statusLabel === 'berjalan')
-                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#e6f4ea; color:#137333; font-weight:600; text-transform: uppercase;">Berjalan</span>
+                                <span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size: 10px; background-color:#DEF7EC; color:#03543F; font-weight:800; text-transform: uppercase;">Berjalan</span>
                             @elseif($statusLabel === 'lunas')
-                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#e8f0fe; color:#1a73e8; font-weight:600; text-transform: uppercase;">Lunas</span>
+                                <span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size: 10px; background-color:#E1EFFE; color:#1E429F; font-weight:800; text-transform: uppercase;">Lunas</span>
                             @else
-                                <span style="display:inline-block; padding:1px 6px; border-radius:10px; font-size: 10px; background-color:#f5f5f5; color:#666; font-weight:600; text-transform: uppercase;">{{ $statusLabel }}</span>
+                                <span style="display:inline-block; padding:2px 6px; border-radius:4px; font-size: 10px; background-color:#F3F4F6; color:#1F2937; font-weight:800; text-transform: uppercase;">{{ $statusLabel }}</span>
                             @endif
                         </td>
-                        <td style="padding: 10px 12px; text-align: center; vertical-align: middle;">
-                            <a href="{{ route('pinjaman.aktif.show', $item->id) }}" style="color: #4F46E5; font-weight: 600; font-size: 11px; text-decoration: none;" title="Detail Angsuran">Detail</a>
+                        <td style="padding: 5px 8px; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">
+                            <a href="{{ route('pinjaman.aktif.show', $item->id) }}" style="color: #1D4ED8; font-weight: 700; font-size: 11px; text-decoration: underline;" title="Detail Angsuran">Detail</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                         <td colspan="11" style="text-align:center; padding:30px 12px; color:#6B7280; font-size:13px; vertical-align: middle;">
+                         <td colspan="12" style="text-align:center; padding:20px 8px; color:#374151; font-weight: 600; font-size:12px; vertical-align: middle;">
                              Tidak ada data pinjaman berjalan ditemukan.
                          </td>
                     </tr>

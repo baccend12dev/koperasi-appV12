@@ -450,4 +450,42 @@ class PersetujuanController extends Controller
             return back()->with('error', 'Gagal menyetujui pengajuan: ' . implode(', ', $errors));
         }
     }
+
+    /**
+     * Bulk approve all pending loan requests marked as NORMAL in keterangan.
+     */
+    public function approveBulkNormal(Request $request)
+    {
+        $normalRequests = LoanRequest::where('status', 'pending')
+            ->where(function($q) {
+                $q->where('keterangan', 'NORMAL')
+                  ->orWhere('keterangan', 'LIKE', '%NORMAL%')
+                  ->orWhereNull('keterangan');
+            })
+            ->pluck('id');
+
+        if ($normalRequests->isEmpty()) {
+            return back()->with('error', 'Tidak ada pengajuan pinjaman berstatus NORMAL yang belum disetujui.');
+        }
+
+        $successCount = 0;
+        $errors = [];
+
+        foreach ($normalRequests as $id) {
+            try {
+                $this->approvePinjaman($id);
+                $successCount++;
+            } catch (\Exception $e) {
+                $errors[] = "ID #{$id}: " . $e->getMessage();
+            }
+        }
+
+        if ($successCount > 0 && empty($errors)) {
+            return back()->with('success', "Berhasil menyetujui {$successCount} pengajuan pinjaman berstatus NORMAL!");
+        } elseif ($successCount > 0) {
+            return back()->with('success', "{$successCount} pengajuan NORMAL disetujui, " . count($errors) . " gagal.");
+        } else {
+            return back()->with('error', 'Gagal menyetujui pengajuan NORMAL: ' . implode(', ', $errors));
+        }
+    }
 }

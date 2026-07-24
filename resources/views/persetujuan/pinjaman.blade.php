@@ -154,9 +154,39 @@
     .filter-tab:hover:not(.active) { color: #374151; }
     .filter-result-info { font-size: 12px; color: #9CA3AF; white-space: nowrap; }
     #no-result-row { display: none; }
+
+    /* Risk Filter Tabs */
+    .risk-tab {
+        padding: 5px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #E2E8F0;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #F8FAFC;
+        color: #64748B;
+    }
+    .risk-tab:hover { background: #F1F5F9; }
+    .risk-tab.risk-normal { color: #047857; background: #ECFDF5; border-color: #A7F3D0; }
+    .risk-tab.risk-normal.active { background: #059669; color: #fff; border-color: #059669; }
+    .risk-tab.risk-warning { color: #B45309; background: #FFFBEB; border-color: #FDE68A; }
+    .risk-tab.risk-warning.active { background: #D97706; color: #fff; border-color: #D97706; }
+    .risk-tab[data-risk="semua"].active { background: #334155; color: #fff; border-color: #334155; }
 </style>
 
-{{-- Filter Bar --}}
+@php
+    $countPendingAll = $pengajuan_list->where('status', 'pending')->count();
+    $countNormal    = $pengajuan_list->where('status', 'pending')->filter(fn($i) => !str_contains($i->keterangan ?? '', 'WARNING'))->count();
+    $countWarning   = $pengajuan_list->where('status', 'pending')->filter(fn($i) => str_contains($i->keterangan ?? '', 'WARNING'))->count();
+    $countApproved  = $pengajuan_list->where('status', 'approved')->count();
+    $countRejected  = $pengajuan_list->where('status', 'rejected')->count();
+@endphp
+
+{{-- Filter Bar Utama --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3 flex-wrap">
     <div class="filter-search-wrap">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -169,13 +199,27 @@
     <div style="width:1px;height:24px;background:#E5E7EB;flex-shrink:0;"></div>
 
     <div class="filter-status-tabs">
-        <button type="button" class="filter-tab active" data-status="semua" onclick="setStatus('semua',this)">Semua</button>
-        <button type="button" class="filter-tab" data-status="pending" onclick="setStatus('pending',this)">Pending</button>
-        <button type="button" class="filter-tab" data-status="approved" onclick="setStatus('approved',this)">Approved</button>
-        <button type="button" class="filter-tab" data-status="rejected" onclick="setStatus('rejected',this)">Rejected</button>
+        <button type="button" class="filter-tab" data-status="semua" onclick="setStatus('semua',this)">Semua</button>
+        <button type="button" class="filter-tab active" data-status="pending" onclick="setStatus('pending',this)">Pending ({{ $countPendingAll }})</button>
+        <button type="button" class="filter-tab" data-status="approved" onclick="setStatus('approved',this)">Approved ({{ $countApproved }})</button>
+        <button type="button" class="filter-tab" data-status="rejected" onclick="setStatus('rejected',this)">Rejected ({{ $countRejected }})</button>
     </div>
 
     <span class="filter-result-info" id="filter-info"></span>
+</div>
+
+{{-- Sub-Menu Filter Risk (Di Bawah Filter Utama) --}}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-2.5 flex items-center gap-2 flex-wrap">
+    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-1">Tingkat Risk:</span>
+    <button type="button" class="risk-tab active" data-risk="semua" onclick="setRisk('semua', this)">
+        Semua Risk
+    </button>
+    <button type="button" class="risk-tab risk-normal" data-risk="normal" onclick="setRisk('normal', this)">
+        ✓ Normal ({{ $countNormal }})
+    </button>
+    <button type="button" class="risk-tab risk-warning" data-risk="warning" onclick="setRisk('warning', this)">
+        ⚠️ Warning ({{ $countWarning }})
+    </button>
 </div>
 
 {{-- Bulk Action Bar --}}
@@ -195,9 +239,19 @@
 
 {{-- Main Table --}}
 <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 class="font-bold text-sm text-gray-800 tracking-wide">DAFTAR PENGAJUAN PINJAMAN</h3>
-        <span class="text-xs text-gray-400">{{ $pengajuan_list->where('status','pending')->count() }} pending</span>
+    <div class="px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center gap-3">
+        <div>
+            <h3 class="font-bold text-sm text-gray-800 tracking-wide">DAFTAR PENGAJUAN PINJAMAN</h3>
+            <span class="text-xs text-gray-400">{{ $pengajuan_list->where('status','pending')->count() }} pending</span>
+        </div>
+
+        @php
+            $countPendingNormal = $pengajuan_list->where('status', 'pending')->filter(function($i) {
+                return str_contains($i->keterangan ?? '', 'NORMAL') || empty($i->keterangan);
+            })->count();
+        @endphp
+
+        
     </div>
 
     <div class="overflow-x-auto">
@@ -211,15 +265,19 @@
                     <th class="px-6 py-4">NAMA ANGGOTA</th>
                     <th class="px-6 py-4">JENIS</th>
                     <th class="px-6 py-4">NOMINAL / TENOR</th>
-                    <th class="px-6 py-4 text-center">STATUS</th>
+                    <th class="px-6 py-4 text-center">STATUS & RISK</th>
                     <th class="px-6 py-4 text-center">AKSI</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100" id="approval-tbody">
                 @forelse($pengajuan_list as $item)
-                    @php $isPending = $item->status === 'pending'; @endphp
+                    @php 
+                        $isPending = $item->status === 'pending';
+                        $isWarning = str_contains($item->keterangan ?? '', 'WARNING');
+                    @endphp
                     <tr class="hover:bg-gray-50/50 transition-colors"
-                        data-status="{{ $item->status }}">
+                        data-status="{{ $item->status }}"
+                        data-risk="{{ $isWarning ? 'warning' : 'normal' }}">
                         <td class="px-4 py-4">
                             @if($isPending)
                                 <input type="checkbox" class="bulk-checkbox row-check"
@@ -254,7 +312,18 @@
                         </td>
                         <td class="px-6 py-4 text-center">
                             @if($item->status == 'pending')
-                                <span class="badge badge-pending">PENDING</span>
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <span class="badge badge-pending">PENDING</span>
+                                    @if($isWarning)
+                                        <span class="px-2.5 py-0.5 text-[10px] font-extrabold bg-amber-100 text-amber-800 rounded-full border border-amber-300 cursor-help" title="{{ $item->keterangan }}">
+                                            ⚠️ WARNING
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
+                                            ✓ NORMAL
+                                        </span>
+                                    @endif
+                                </div>
                             @elseif($item->status == 'approved')
                                 <span class="badge badge-approved">APPROVED</span>
                             @else
@@ -292,6 +361,16 @@
                                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                 </button>
                                             </div>
+
+                                            @if($isWarning)
+                                                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 text-xs text-amber-900 shadow-sm flex items-start gap-2">
+                                                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <div>
+                                                        <div class="font-bold text-amber-900">PERHATIAN RISK (WARNING):</div>
+                                                        <div class="mt-0.5 leading-relaxed">{{ str_replace('WARNING: ', '', $item->keterangan) }}</div>
+                                                    </div>
+                                                </div>
+                                            @endif
 
                                             <div class="grid grid-cols-2 gap-3 mb-3">
                                                 <!-- Data Pinjaman -->
@@ -556,11 +635,19 @@
 
 <script>
 // ─── Filter ────────────────────────────────────────────────
-let activeStatus = 'semua';
+let activeStatus = 'pending';
+let activeRisk   = 'semua';
 
 function setStatus(s, btn) {
     activeStatus = s;
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilter();
+}
+
+function setRisk(r, btn) {
+    activeRisk = r;
+    document.querySelectorAll('.risk-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     applyFilter();
 }
@@ -572,9 +659,13 @@ function applyFilter() {
 
     rows.forEach(row => {
         const rowStatus = row.dataset.status ?? 'semua';
-        let statusOk = activeStatus === 'semua' || rowStatus === activeStatus;
-        let searchOk = !q || row.textContent.toLowerCase().includes(q);
-        const show = statusOk && searchOk;
+        const rowRisk   = row.dataset.risk   ?? 'normal';
+
+        let statusOk = (activeStatus === 'semua' || rowStatus === activeStatus);
+        let riskOk   = (activeRisk === 'semua'   || rowRisk === activeRisk);
+        let searchOk = (!q || row.textContent.toLowerCase().includes(q));
+
+        const show = statusOk && riskOk && searchOk;
         row.style.display = show ? '' : 'none';
         if (show) visible++;
 
@@ -657,5 +748,8 @@ function closeBulkModal() {
 document.getElementById('modal-bulk').addEventListener('click', function(e) {
     if (e.target === this) closeBulkModal();
 });
+
+// Jalankan filter otomatis saat halaman dimuat (default ke tab Pending)
+document.addEventListener('DOMContentLoaded', applyFilter);
 </script>
 @endsection

@@ -5,111 +5,22 @@
 @section('page-subtitle', 'Rekap penarikan simpanan anggota yang telah disetujui')
 
 @section('topbar-nav')
-    <a href="{{ route('pencairan.pinjaman') }}" class="tb-link">Pencairan Pinjaman</a>
-    <a href="{{ route('pencairan.pengambilan') }}" class="tb-link active">Penarikan Simpanan</a>
-@endsection
-
-@section('sidebar')
-<div class="sd-section">
-    <div class="sd-heading" style="margin-bottom:12px;font-weight:600;font-size:13px;color:#4B5563;">
-        <div style="display:flex;align-items:center;gap:5px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            FILTER PERIODE
-        </div>
-    </div>
-
-    <form action="{{ route('pencairan.pengambilan') }}" method="GET" class="space-y-1">
-        <style>
-            .filter-select {
-                width: 100%;
-                height: 38px;
-                border-radius: 8px;
-                border: 1px solid #E5E7EB;
-                background: #fff;
-                font-size: 13px;
-                padding: 0 10px;
-                font-family: inherit;
-                color: #374151;
-                outline: none;
-                transition: all 0.2s;
-                cursor: pointer;
-            }
-            .filter-select:focus {
-                border-color: #D97706;
-                box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
-            }
-            .filter-label {
-                display: block;
-                font-size: 10px;
-                font-weight: 700;
-                color: #9CA3AF;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 4px;
-                margin-left: 2px;
-            }
-            .btn-clear {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                width: 100%;
-                padding: 8px;
-                border-radius: 8px;
-                background: #F9FAFB;
-                border: 1px solid #E5E7EB;
-                color: #6B7280;
-                font-size: 12px;
-                font-weight: 600;
-                text-decoration: none;
-                margin-top: 12px;
-                transition: all 0.15s;
-            }
-            .btn-clear:hover {
-                background: #FEF2F2;
-                border-color: #FCA5A5;
-                color: #DC2626;
-            }
-        </style>
-
-        <div style="margin-bottom: 12px;">
-            <label class="filter-label">Tahun</label>
-            <select name="tahun" onchange="this.form.submit()" class="filter-select">
-                <option value="">Semua Tahun</option>
-                @foreach(array_keys($sidebarPeriode) as $yr)
-                    <option value="{{ $yr }}" {{ $tahun == $yr ? 'selected' : '' }}>{{ $yr }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-            <label class="filter-label">Bulan</label>
-            <select name="bulan" onchange="this.form.submit()" class="filter-select" {{ !$tahun ? 'disabled' : '' }} style="{{ !$tahun ? 'background:#F3F4F6; cursor:not-allowed;' : '' }}">
-                <option value="">Semua Bulan</option>
-                @for($m=1; $m<=12; $m++)
-                    <option value="{{ $m }}" {{ $bulan == $m ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
-                    </option>
-                @endfor
-            </select>
-        </div>
-
-        @if($tahun || $bulan)
-            <a href="{{ route('pencairan.pengambilan') }}" class="btn-clear">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-                Reset Filter
-            </a>
+    <a href="{{ route('pencairan.pinjaman') }}" class="tb-link flex items-center gap-2">
+        <span>Pencairan Pinjaman</span>
+        @if(($countPendingPinjaman ?? 0) > 0)
+            <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full leading-none shadow-sm">
+                {{ $countPendingPinjaman }}
+            </span>
         @endif
-    </form>
-</div>
+    </a>
+    <a href="{{ route('pencairan.pengambilan') }}" class="tb-link active flex items-center gap-2">
+        <span>Penarikan Simpanan</span>
+        @if(($countPendingSimpanan ?? 0) > 0)
+            <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full leading-none shadow-sm">
+                {{ $countPendingSimpanan }}
+            </span>
+        @endif
+    </a>
 @endsection
 
 @section('content')
@@ -119,6 +30,33 @@
     .badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:12px; font-size:11px; font-weight:600; }
     .badge-paid    { background:#D1FAE5; color:#059669; }
     .badge-pending { background:#FEF3C7; color:#D97706; }
+
+    /* Compact & Bordered Table */
+    .table-compact {
+        width: 100%;
+        border-collapse: collapse !important;
+        font-size: 14px;
+        color: #1E293B;
+        border: 1px solid #CBD5E1 !important;
+    }
+    .table-compact th,
+    .table-compact td {
+        padding: 9px 12px;
+        border: 1px solid #CBD5E1 !important;
+        vertical-align: middle;
+    }
+    .table-compact th {
+        background-color: #F8FAFC;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border: 1px solid #CBD5E1 !important;
+    }
+    .table-compact tbody tr:hover {
+        background-color: #F8FAFC;
+    }
 
     /* Checkbox styles */
     .bulk-checkbox {
@@ -301,27 +239,27 @@
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-600 min-w-max">
-            <thead class="bg-gray-50/50 text-xs uppercase text-gray-400 font-semibold border-b border-gray-100">
+        <table class="table-compact min-w-max">
+            <thead>
                 <tr>
-                    <th class="px-4 py-4">
+                    <th class="w-10 text-center">
                         <input type="checkbox" id="check-all-wd" class="bulk-checkbox" title="Pilih semua belum bayar" onchange="toggleAllWd(this)">
                     </th>
-                    <th class="px-6 py-4">TANGGAL APPROVE</th>
-                    <th class="px-6 py-4">ANGGOTA</th>
-                    <th class="px-6 py-4">NOMINAL WD</th>
-                    <th class="px-6 py-4 text-center">STATUS BAYAR</th>
-                    <th class="px-6 py-4 text-center">AKSI</th>
+                    <th>TANGGAL APPROVE</th>
+                    <th>ANGGOTA</th>
+                    <th class="text-right bg-amber-50/80 text-amber-900 font-extrabold">NOMINAL WD</th>
+                    <th class="text-center">STATUS BAYAR</th>
+                    <th class="text-center">AKSI</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100" id="wd-tbody">
+            <tbody id="wd-tbody">
                 @forelse($listPengambilan as $row)
                 @php $p = $pencairanExisting->get($row->id); $isPaid = $p && $p->status === 'paid'; @endphp
                 <tr class="hover:bg-gray-50/50 transition-colors {{ $isPaid ? '' : 'row-pending-wd' }}"
                     data-id="{{ $row->id }}"
                     data-nominal="{{ $row->nominal }}"
                     data-anggota="{{ $row->anggota_id }}">
-                    <td class="px-4 py-4">
+                    <td class="text-center">
                         @if(!$isPaid)
                         <input type="checkbox"
                                class="bulk-checkbox row-check-wd"
@@ -333,34 +271,34 @@
                         <span class="text-gray-300 text-xs">—</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 font-medium text-gray-700 whitespace-nowrap">
+                    <td class="font-medium text-gray-700 whitespace-nowrap text-xs">
                         {{ \Carbon\Carbon::parse($row->updated_at)->format('d M Y') }}
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
                                 {{ strtoupper(substr($row->anggota?->nama_anggota ?? 'U', 0, 2)) }}
                             </div>
                             <div>
-                                <div class="font-bold text-gray-800">{{ $row->anggota?->nama_anggota ?? '-' }}</div>
-                                <div class="text-xs text-gray-400 mt-0.5">NIK: {{ $row->anggota?->nik ?? '-' }}</div>
+                                <div class="font-bold text-gray-800 text-xs">{{ $row->anggota?->nama_anggota ?? '-' }}</div>
+                                <div class="text-[11px] text-gray-400">NIK: {{ $row->anggota?->nik ?? '-' }}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 font-bold text-gray-800 text-right whitespace-nowrap" style="padding-right: 4rem;">
+                    <td class="text-right font-extrabold text-amber-700 text-sm whitespace-nowrap bg-amber-50/40">
                         Rp {{ number_format($row->nominal, 0, ',', '.') }}
                     </td>
 
-                    <td class="px-6 py-4 text-center">
+                    <td class="text-center">
                         @if($isPaid)
                             <span class="badge badge-paid">LUNAS</span>
-                            <div class="text-[10px] text-gray-400 mt-1">{{ ucfirst($p->metode) }} · {{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">{{ ucfirst($p->metode) }} · {{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</div>
                         @else
                             <span class="badge badge-pending">BELUM BAYAR</span>
                         @endif
                     </td>
 
-                    <td class="px-6 py-4 text-center">
+                    <td class="text-center">
                         @if($isPaid)
                             <span class="text-xs text-gray-400">—</span>
                         @else

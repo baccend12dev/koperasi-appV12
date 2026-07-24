@@ -363,6 +363,7 @@ input:checked + .slider-sw:before { transform: translateX(20px); }
     <input type="hidden" name="user_id" id="user_id_input">
     <input type="hidden" name="bunga" id="bunga_input">
     <input type="hidden" name="include_pelunasan" id="include_pelunasan" value="0">
+    <input type="hidden" name="keterangan" id="keterangan_input" value="NORMAL">
     <div id="pelunasan_inputs"></div>
 </div>
 
@@ -948,7 +949,7 @@ function hitung() {
     const j = parseFloat(document.getElementById('jumlah').value) || 0;
     const t = parseInt(document.getElementById('tenor').value) || 0;
 
-    // Cek limit dari parent pinjaman
+    // ── Evaluasi Risk & Limit (Warning vs Normal) ──
     const jenisEl      = document.getElementById('jenis');
     const limitMax     = parseFloat(jenisEl.dataset.activelimit)   || 0;
     const sisaLimit    = parseFloat(jenisEl.dataset.sisa_limit)    || 0;
@@ -956,20 +957,33 @@ function hitung() {
     const parentNama   = jenisEl.dataset.activenama || '';
     const notice       = document.getElementById('limit-notice');
     const noticeText   = document.getElementById('limit-notice-text');
+    const keteranganInput = document.getElementById('keterangan_input');
 
+    let warnings = [];
+
+    // 1. Cek Limit 5X Simpanan (Max Rp 50.000.000)
+    let limit5xSimpanan = Math.min(_simpanan * 5, 50000000);
+    if (j > 0 && _simpanan > 0 && j > limit5xSimpanan) {
+        warnings.push(`Jumlah pinjaman (${rp(j)}) melebihi batas 5x total simpanan / max Rp 50.000.000 (Limit: ${rp(limit5xSimpanan)})`);
+    } else if (j > 0 && _simpanan <= 0 && j > 50000000) {
+        warnings.push(`Jumlah pinjaman (${rp(j)}) melebihi batas maksimal Rp 50.000.000`);
+    }
+
+    // 2. Cek Limit Jenis Pinjaman
     if (limitMax > 0 && j > sisaLimit) {
-        const totalTerpakai = sudahDipakai + j;
+        warnings.push(`Jumlah pinjaman (${rp(j)}) melebihi limit ${parentNama} (Sisa Limit: ${rp(sisaLimit)})`);
+    }
+
+    if (warnings.length > 0) {
         noticeText.innerHTML =
-            `Jumlah pengajuan <strong>${rp(j)}</strong> melebihi sisa limit yang tersedia.<br>` +
-            `<span style="font-size:10px">` +
-            `Limit ${parentNama}: ${rp(limitMax)} &nbsp;|&nbsp; ` +
-            `Sudah digunakan: ${rp(sudahDipakai)} &nbsp;|&nbsp; ` +
-            `Sisa tersedia: <strong>${rp(sisaLimit)}</strong>` +
-            `</span><br>` +
-            `<span style="font-size:10px">Pengajuan tetap bisa dikirim, namun memerlukan persetujuan admin.</span>`;
+            `<strong>PERHATIAN (WARNING RISK):</strong><br>` +
+            warnings.map(w => `• ${w}`).join('<br>') +
+            `<br><span style="font-size:10.5px;opacity:0.9;">Pengajuan tetap dapat dikirim, namun perlu tinjauan persetujuan manual admin/ketua.</span>`;
         notice.classList.add('show');
+        if (keteranganInput) keteranganInput.value = 'WARNING: ' + warnings.join(' | ');
     } else {
         notice.classList.remove('show');
+        if (keteranganInput) keteranganInput.value = 'NORMAL';
     }
 
     // Hitung Total Payoff (Pelunasan)

@@ -139,7 +139,7 @@
 
     {{-- ── Cashflow ── --}}
     <li class="lap-nav-item">
-        <a href="#"
+        <a href="{{ route('laporan.cashflow') }}"
            class="lap-nav-link {{ request()->routeIs('laporan.cashflow') ? 'active' : '' }}">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -150,7 +150,7 @@
 
     {{-- ── Perbandingan ── --}}
     <li class="lap-nav-item">
-        <a href="#"
+        <a href="{{ route('laporan.perbandingan') }}"
            class="lap-nav-link {{ request()->routeIs('laporan.perbandingan') ? 'active' : '' }}">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
