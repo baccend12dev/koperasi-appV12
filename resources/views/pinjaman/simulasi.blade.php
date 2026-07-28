@@ -703,7 +703,7 @@
                                 <label for="si-bunga">Bunga (%/bulan)</label>
                                 <input type="number" id="si-bunga"
                                     placeholder="1" min="0" max="10" step="0.1"
-                                    oninput="hitungSimulasi()" />
+                                    oninput="hitungSimulasi()" readonly />
                             </div>
 
                         </div>
@@ -800,6 +800,23 @@
                     </div>
 
                 </div>
+
+                {{-- Form Submit Direct Pengajuan Pinjaman --}}
+                <form id="form-direct-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}" style="margin-top:20px;">
+                    @csrf
+                    <input type="hidden" name="user_id" id="sim_user_id">
+                    <input type="hidden" name="jenis_pinjaman_id" id="sim_jenis_pinjaman_id">
+                    <input type="hidden" name="jumlah_pengajuan" id="sim_jumlah_pengajuan">
+                    <input type="hidden" name="tenor" id="sim_tenor">
+                    <input type="hidden" name="bunga" id="sim_bunga">
+                    <input type="hidden" name="payment_method" value="gaji">
+                    <input type="hidden" name="keterangan" id="sim_keterangan" value="NORMAL">
+
+                    <button type="submit" id="btn-submit-pengajuan" style="width:100%; height:48px; background:#0B1C3F; color:#ffffff; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase; transition:0.2s; box-shadow: 0 4px 12px rgba(11, 28, 63, 0.2);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Buat Pengajuan Pinjaman Sekarang
+                    </button>
+                </form>
             </div>{{-- end results panel --}}
 
         </div>{{-- end #sim-content --}}
@@ -1062,8 +1079,9 @@ function hitungSimulasi() {
     document.getElementById('sh-cicilan').textContent = fmt(cicilan);
 
     // Validasi
-    const sisaLimit = parseFloat(anggotaData ? (anggotaData.sisa_limit ?? 0) : 0) || 0;
     const maks      = parseFloat(anggotaData ? (anggotaData.maks_pinjaman ?? 0) : 0) || 0;
+    const aktif     = parseFloat(anggotaData ? (anggotaData.pinjaman_aktif ?? 0) : 0) || 0;
+    const sisaLimit = Math.max(0, maks - aktif);
     const vEl  = document.getElementById('sim-validasi');
     const vTxt = document.getElementById('sim-validasi-txt');
 
@@ -1087,6 +1105,31 @@ function hitungSimulasi() {
     document.getElementById('rp-wajib').textContent         = fmt(wajibBulan);
     document.getElementById('rp-cicilan-baru').textContent  = fmt(cicilan);
     document.getElementById('rp-grand-total').textContent   = fmt(grandTotal);
+
+    // Populate Hidden Form Inputs for Direct Submit
+    const userIdInput = document.getElementById('sim_user_id');
+    if (userIdInput) userIdInput.value = anggotaData ? (anggotaData.user_id || anggotaData.id || '') : '';
+    document.getElementById('sim_jenis_pinjaman_id').value = jenisEl.value || '';
+    document.getElementById('sim_jumlah_pengajuan').value  = jumlah;
+    document.getElementById('sim_tenor').value            = tenor;
+    document.getElementById('sim_bunga').value            = bunga;
+
+    let warnings = [];
+    const totalSimpanan = parseFloat(anggotaData ? (anggotaData.total_simpanan ?? 0) : 0) || 0;
+    let limit5xSimpanan = Math.min(totalSimpanan * 5, 50000000);
+    if (jumlah > 0 && totalSimpanan > 0 && jumlah > limit5xSimpanan) {
+        warnings.push(`Jumlah pinjaman (${fmt(jumlah)}) melebihi batas 5x total simpanan / max Rp 50.000.000 (Limit: ${fmt(limit5xSimpanan)})`);
+    } else if (jumlah > 0 && totalSimpanan <= 0 && jumlah > 50000000) {
+        warnings.push(`Jumlah pinjaman (${fmt(jumlah)}) melebihi batas maksimal Rp 50.000.000`);
+    }
+    if (limitMax > 0 && jumlah > sisaLimitJenis) {
+        warnings.push(`Jumlah pinjaman (${fmt(jumlah)}) melebihi limit ${parentNama} (Sisa Limit: ${fmt(sisaLimitJenis)})`);
+    }
+
+    const keteranganInput = document.getElementById('sim_keterangan');
+    if (keteranganInput) {
+        keteranganInput.value = warnings.length > 0 ? 'WARNING: ' + warnings.join(' | ') : 'NORMAL';
+    }
 
     panel.style.display = 'block';
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

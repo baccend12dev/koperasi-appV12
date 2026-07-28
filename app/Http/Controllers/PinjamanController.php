@@ -360,6 +360,26 @@ class PinjamanController extends Controller
         }
     }
 
+    public function destroyPengajuan($id) {
+        $loanRequest = LoanRequest::findOrFail($id);
+
+        if (strtolower($loanRequest->status) !== 'pending') {
+            return back()->with('error', 'Hanya pengajuan dengan status pending yang dapat dihapus.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $loanRequest->topups()->delete();
+            $loanRequest->delete();
+            DB::commit();
+
+            return redirect()->route('pinjaman.pengajuan')->with('success', 'Pengajuan pinjaman berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan saat menghapus pengajuan: ' . $e->getMessage());
+        }
+    }
+
     public function searchAnggota(Request $request) {
         $q = $request->q;
         if (!$q) {

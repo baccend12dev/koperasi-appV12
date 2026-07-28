@@ -205,10 +205,14 @@
                             <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px;" title="Detail">Detail</button>
                             @if(strtolower($item->status) == 'pending')
                                 <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px; margin-left: 4px;" title="Edit">Edit</button>
+                                <form action="{{ route('pinjaman.pengajuan.destroy', $item->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengajuan ini?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-secondary" style="padding: 4px 8px; font-size: 12px; margin-left: 4px; color: #d93025; border-color: #f1f3f4; background-color: #fdf2f2; cursor: pointer;" title="Hapus">
+                                        Hapus
+                                    </button>
+                                </form>
                             @endif
-                            <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px; margin-left: 4px; color: #d93025; border-color: #f1f3f4; background-color: #fdf2f2;" title="Hapus">
-                                Hapus
-                            </button>
                         </td>
                     </tr>
                 @empty

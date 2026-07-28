@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pinjaman', [App\Http\Controllers\PinjamanController::class, 'index'])->name('pinjaman.index');
     Route::get('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'pengajuan'])->name('pinjaman.pengajuan');
     Route::post('pinjaman/pengajuan', [App\Http\Controllers\PinjamanController::class, 'storePengajuan'])->name('pinjaman.pengajuan.store');
+    Route::delete('pinjaman/pengajuan/{id}', [App\Http\Controllers\PinjamanController::class, 'destroyPengajuan'])->name('pinjaman.pengajuan.destroy');
     Route::get('pinjaman/pengajuan/search-anggota', [App\Http\Controllers\PinjamanController::class, 'searchAnggota'])->name('pinjaman.pengajuan.searchAnggota');
     Route::get('pinjaman/pengajuan/create', [App\Http\Controllers\PinjamanController::class, 'create'])->name('pinjaman.pengajuan.create');
     Route::post('pinjaman/approval/{id}/approve', [App\Http\Controllers\PersetujuanController::class, 'approvePinjaman'])->name('pinjaman.approval.approve');
