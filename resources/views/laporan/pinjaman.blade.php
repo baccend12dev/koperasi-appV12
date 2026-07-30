@@ -158,10 +158,11 @@
             <thead>
                 <tr style="background: #107C41; color: #FFFFFF; border-bottom: 2px solid #0B5C30;">
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 35px; text-align: center;">No</th>
-                    <!-- <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 130px;">Periode Kontrak</th> -->
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 170px;">Nama & NIK</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 95px;">Departemen</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 110px;">Jenis Pinjaman</th>
+                    <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; width: 100px; text-align: center;">Tanggal Pinjam</th>
+                    
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Pinjaman (Pokok / Total)</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 125px;">Bunga</th>
                     <th style="padding: 6px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid #0E6B37; text-align: right; width: 115px;">Cicil per Bulan</th>
@@ -185,17 +186,16 @@
                     @endphp
                     <tr style="background-color: {{ $rowBg }}; border-bottom: 1px solid #E5E7EB; transition: background-color 0.1s;">
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; text-align: center; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $pinjaman->firstItem() + $index }}</td>
-                        <!-- <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
-                            <div style="font-weight: 700;">{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '—' }}</div>
-                            <div style="color: #4B5563; font-size: 10px; font-weight: 600; margin-top: 1px;">s.d. {{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') : '—' }}</div>
-                        </td> -->
                         <td style="padding: 5px 8px; border: 1px solid #E5E7EB; vertical-align: middle;">
                             <div style="font-weight: 700; color: #000000; font-size: 11px; line-height: 1.2;">{{ $item->anggota->nama_anggota ?? '—' }}</div>
                             <div style="font-size: 11px; color: #4B5563; font-weight: 600; margin-top: 1px;">NIK: {{ $item->anggota->nik ?? '—' }}</div>
                         </td>
                         <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">{{ $item->anggota->bagian ?? '—' }}</td>
-                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle;">
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; font-weight: 600; border: 1px solid #E5E7EB; vertical-align: middle; line-height: 1.2;">
                             {{ $item->jenisPinjaman?->nama_pinjaman ?? '—' }}
+                        </td>
+                        <td style="padding: 5px 8px; font-size: 11px; color: #000000; border: 1px solid #E5E7EB; text-align: center; vertical-align: middle; line-height: 1.2;">
+                            <div style="font-weight: 700;">{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') : '—' }}</div>
                         </td>
                         <td style="padding: 5px 8px; font-size: 12px; color: #000000; border: 1px solid #E5E7EB; text-align: right; vertical-align: middle; line-height: 1.2; font-variant-numeric: tabular-nums;">
                             <div style="font-weight: 700;"> {{ number_format($pokok, 2, ',', '.') }}</div>

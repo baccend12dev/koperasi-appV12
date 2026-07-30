@@ -475,6 +475,16 @@ class PinjamanController extends Controller
             ];
         });
 
+        $pendingPerParent = [];
+        foreach ($pinjamanPendingDb as $p) {
+            $jp = \App\Models\MasterJenisPinjaman::find($p->jenis_pinjaman_id);
+            if ($jp) {
+                $parentId = $jp->parent_id ?? $jp->id;
+                $pendingPerParent[$parentId] = ($pendingPerParent[$parentId] ?? 0) + $p->jumlah_pengajuan;
+            }
+        }
+        $totalPinjamanPending = $pinjamanPendingDb->sum('jumlah_pengajuan');
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -494,7 +504,9 @@ class PinjamanController extends Controller
                 'total_cicilan_per_bulan' => $totalCicilanPerBulan,
                 'sisa_limit'            => $sisaLimit,
                 'pinjaman_berjalan'     => $listPinjaman,
-                'usage_per_parent'      => $usagePerParent
+                'usage_per_parent'      => $usagePerParent,
+                'pending_per_parent'    => $pendingPerParent,
+                'total_pinjaman_pending'=> $totalPinjamanPending
             ]
         ]);
     }

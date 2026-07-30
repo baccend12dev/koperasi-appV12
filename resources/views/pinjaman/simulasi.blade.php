@@ -642,11 +642,17 @@
 
                 {{-- Form Simulasi Pinjaman Baru --}}
                 <div class="sim-card">
-                    <div class="sim-card-header">
-                        <div class="sim-card-icon blue">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+                    <div class="sim-card-header" style="justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="sim-card-icon blue">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+                            </div>
+                            <h3>Simulasi Pinjaman Baru</h3>
                         </div>
-                        <h3>Simulasi Pinjaman Baru</h3>
+                        <div id="badge-pinjaman-pending" style="display: none; align-items: center; gap: 6px; background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span id="badge-pinjaman-pending-text">Terdapat Pinjaman Pending: Rp 0</span>
+                        </div>
                     </div>
                     <div class="sim-form-body">
                         <div class="sim-form-grid">
@@ -991,6 +997,20 @@ function renderMain(d) {
     document.getElementById('sc-total-simpanan-bulanan').textContent = fmt(totalSimpananBulanan);
     document.getElementById('sc-grand-total-potongan').textContent = fmt(grandTotal);
     footer.style.display = 'flex';
+
+    // Badge Pinjaman Pending
+    const pendingBadge = document.getElementById('badge-pinjaman-pending');
+    const pendingText  = document.getElementById('badge-pinjaman-pending-text');
+    const totalPending = d.total_pinjaman_pending ?? 0;
+    if (pendingBadge && pendingText) {
+        if (totalPending > 0) {
+            pendingText.textContent = `Terdapat Pinjaman Pending: ${fmt(totalPending)}`;
+            pendingBadge.style.display = 'inline-flex';
+        } else {
+            pendingBadge.style.display = 'none';
+        }
+    }
+
     hitungRasioTotal();
 }
 
@@ -1006,21 +1026,25 @@ function onJenisChange() {
         const limitParent  = parseFloat(selectedOption.dataset.limit)  || 0;
         const parentId     = selectedOption.dataset.parent || '';
         const parentNama   = selectedOption.dataset.parentNama || '';
-        const usagePerParent = anggotaData ? (anggotaData.usage_per_parent || {}) : {};
-        const sudahDigunakan = parseFloat(usagePerParent[parentId]) || 0;
-        const sisaLimit    = Math.max(0, limitParent - sudahDigunakan);
+        const usagePerParent   = anggotaData ? (anggotaData.usage_per_parent || {}) : {};
+        const pendingPerParent = anggotaData ? (anggotaData.pending_per_parent || {}) : {};
+        const sudahDigunakan   = parseFloat(usagePerParent[parentId]) || 0;
+        const pendingDigunakan = parseFloat(pendingPerParent[parentId]) || 0;
+        const sisaLimit        = Math.max(0, limitParent - sudahDigunakan);
 
         // Simpan ke dataset untuk dipakai hitungSimulasi()
         select.dataset.activelimit    = limitParent;
         select.dataset.sisa_limit     = sisaLimit;
         select.dataset.sudah_dipakai  = sudahDigunakan;
+        select.dataset.pending_dipakai= pendingDigunakan;
         select.dataset.activenama     = parentNama;
     } else {
         document.getElementById('si-bunga').value = '';
-        select.dataset.activelimit   = 0;
-        select.dataset.sisa_limit    = 0;
-        select.dataset.sudah_dipakai = 0;
-        select.dataset.activenama    = '';
+        select.dataset.activelimit    = 0;
+        select.dataset.sisa_limit     = 0;
+        select.dataset.sudah_dipakai  = 0;
+        select.dataset.pending_dipakai= 0;
+        select.dataset.activenama     = '';
     }
     hitungSimulasi();
 }
@@ -1033,21 +1057,26 @@ function hitungSimulasi() {
     const panel  = document.getElementById('sim-hasil-panel');
 
     // Cek limit dari parent pinjaman (jenis)
-    const jenisEl      = document.getElementById('si-jenis');
-    const limitMax     = parseFloat(jenisEl.dataset.activelimit)   || 0;
-    const sisaLimitJenis = parseFloat(jenisEl.dataset.sisa_limit)    || 0;
-    const sudahDipakai = parseFloat(jenisEl.dataset.sudah_dipakai) || 0;
-    const parentNama   = jenisEl.dataset.activenama || '';
-    const notice       = document.getElementById('limit-notice');
-    const noticeText   = document.getElementById('limit-notice-text');
+    const jenisEl         = document.getElementById('si-jenis');
+    const limitMax        = parseFloat(jenisEl.dataset.activelimit)    || 0;
+    const sisaLimitJenis  = parseFloat(jenisEl.dataset.sisa_limit)     || 0;
+    const sudahDipakai    = parseFloat(jenisEl.dataset.sudah_dipakai)  || 0;
+    const pendingDipakai  = parseFloat(jenisEl.dataset.pending_dipakai)|| 0;
+    const parentNama      = jenisEl.dataset.activenama || '';
+    const notice          = document.getElementById('limit-notice');
+    const noticeText      = document.getElementById('limit-notice-text');
 
     if (notice && noticeText) {
         if (limitMax > 0 && jumlah > sisaLimitJenis) {
+            let detailUsage = `Sudah digunakan: ${fmt(sudahDipakai)}`;
+            if (pendingDipakai > 0) {
+                detailUsage += ` (termasuk Pending: ${fmt(pendingDipakai)})`;
+            }
             noticeText.innerHTML =
                 `Jumlah pengajuan <strong>${fmt(jumlah)}</strong> melebihi sisa limit yang tersedia.<br>` +
                 `<span style="font-size:10px">` +
                 `Limit ${parentNama}: ${fmt(limitMax)} &nbsp;|&nbsp; ` +
-                `Sudah digunakan: ${fmt(sudahDipakai)} &nbsp;|&nbsp; ` +
+                `${detailUsage} &nbsp;|&nbsp; ` +
                 `Sisa tersedia: <strong>${fmt(sisaLimitJenis)}</strong>` +
                 `</span><br>` +
                 `<span style="font-size:10px">Pengajuan tetap bisa dikirim, namun memerlukan persetujuan admin.</span>`;
