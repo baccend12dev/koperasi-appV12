@@ -22,6 +22,8 @@
             overflow-x: hidden;
         }
 
+        [x-cloak] { display: none !important; }
+
         /* Animasi muncul untuk ikon */
         @keyframes popIn {
             0% { opacity: 0; transform: scale(0.8) translateY(10px); }
@@ -74,7 +76,7 @@
                     <i class="fas fa-chevron-down text-xs text-gray-500 ml-1"></i>
                 </div>
                 
-                <div x-show="open" x-transition x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30" style="display: none;">
+                <div x-show="open" x-transition x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30">
                     <div class="px-4 py-2 border-b border-gray-100">
                         <strong class="block text-sm text-gray-800">{{ auth()->user()?->name }}</strong>
                         <span class="text-xs text-gray-500">{{ auth()->user()?->email }}</span>
@@ -83,7 +85,9 @@
                     <hr class="border-gray-100">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors" style="border: none; background: none; cursor: pointer;">Keluar</button>
+                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium cursor-pointer" style="border: none; background: none;">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Keluar
+                        </button>
                     </form>
                 </div>
             </div>
@@ -115,22 +119,33 @@
     <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/40 rounded-full blur-3xl z-0 pointer-events-none"></div>
     <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-200/40 rounded-full blur-3xl z-0 pointer-events-none"></div>
 
-    <script>
-        // Data Modul-modul Koperasi
-        const modules = [
-            { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-th-large', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-            { id: 'keanggotaan', name: 'Keanggotaan', icon: 'fas fa-users', color: 'text-blue-500', bgColor: 'bg-blue-100', url: '/anggota' },
-            { id: 'simpanan', name: 'Simpanan', icon: 'fas fa-money-bill-1', color: 'text-pink-500', bgColor: 'bg-pink-100', url: '/simpanan' },
-            { id: 'pinjaman', name: 'Pinjaman', icon: 'fas fa-hand-holding-dollar', color: 'text-green-500', bgColor: 'bg-green-100', url: '/pinjaman' },
-            { id: 'penagihan', name: 'Penagihan', icon: 'fas fa-calculator', color: 'text-orange-500', bgColor: 'bg-orange-100', url: '/penagihan' },
-            { id: 'kasir', name: 'Pembayaran / Pencairan', icon: 'fas fa-cash-register', color: 'text-teal-500', bgColor: 'bg-teal-100', url: '/pencairan/pinjaman' },
-            { id: 'persetujuan', name: 'Persetujuan', icon: 'fas fa-check-double', color: 'text-indigo-500', bgColor: 'bg-indigo-100', url: '/persetujuan/pinjaman' },
-            { id: 'dokumen', name: 'Dokumen', icon: 'fas fa-folder-open', color: 'text-yellow-500', bgColor: 'bg-yellow-100' },
-            { id: 'laporan', name: 'Laporan', icon: 'fas fa-chart-pie', color: 'text-red-500', bgColor: 'bg-red-100', url: '/laporan' },
-            { id: 'simulasi', name: 'Simulasi', icon: 'fa-solid fa-wand-magic-sparkles', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/simulasi' },
-            { id: 'pengurus', name: 'Pengurus', icon: 'fa-solid fa-user-tie', color: 'text-amber-500', bgColor: 'bg-amber-100', url: '/pengurus' },
-            { id: 'konfigurasi', name: 'Konfigurasi', icon: 'fas fa-cog', color: 'text-blue-600', bgColor: 'bg-blue-100', url: '/konfigurasi' }
+    @php
+        $allModules = [
+            ['id' => 'dashboard', 'name' => 'Dashboard', 'icon' => 'fas fa-th-large', 'color' => 'text-purple-600', 'bgColor' => 'bg-purple-100', 'permission' => null],
+            ['id' => 'keanggotaan', 'name' => 'Keanggotaan', 'icon' => 'fas fa-users', 'color' => 'text-blue-500', 'bgColor' => 'bg-blue-100', 'url' => '/anggota', 'permission' => 'anggota.view'],
+            ['id' => 'simpanan', 'name' => 'Simpanan', 'icon' => 'fas fa-money-bill-1', 'color' => 'text-pink-500', 'bgColor' => 'bg-pink-100', 'url' => '/simpanan', 'permission' => 'simpanan.view'],
+            ['id' => 'pinjaman', 'name' => 'Pinjaman', 'icon' => 'fas fa-hand-holding-dollar', 'color' => 'text-green-500', 'bgColor' => 'bg-green-100', 'url' => '/pinjaman', 'permission' => 'pinjaman.view'],
+            ['id' => 'penagihan', 'name' => 'Penagihan', 'icon' => 'fas fa-calculator', 'color' => 'text-orange-500', 'bgColor' => 'bg-orange-100', 'url' => '/penagihan', 'permission' => 'penagihan.view'],
+            ['id' => 'kasir', 'name' => 'Pembayaran / Pencairan', 'icon' => 'fas fa-cash-register', 'color' => 'text-teal-500', 'bgColor' => 'bg-teal-100', 'url' => '/pencairan', 'permission' => 'pencairan.view'],
+            ['id' => 'persetujuan', 'name' => 'Persetujuan', 'icon' => 'fas fa-check-double', 'color' => 'text-indigo-500', 'bgColor' => 'bg-indigo-100', 'url' => '/persetujuan', 'permission' => 'persetujuan.view'],
+            ['id' => 'dokumen', 'name' => 'Dokumen', 'icon' => 'fas fa-folder-open', 'color' => 'text-yellow-500', 'bgColor' => 'bg-yellow-100', 'permission' => null],
+            ['id' => 'laporan', 'name' => 'Laporan', 'icon' => 'fas fa-chart-pie', 'color' => 'text-red-500', 'bgColor' => 'bg-red-100', 'url' => '/laporan', 'permission' => 'laporan.view'],
+            ['id' => 'simulasi', 'name' => 'Simulasi', 'icon' => 'fa-solid fa-wand-magic-sparkles', 'color' => 'text-blue-600', 'bgColor' => 'bg-blue-100', 'url' => '/simulasi', 'permission' => 'pinjaman.simulasi'],
+            ['id' => 'pengurus', 'name' => 'Pengurus', 'icon' => 'fa-solid fa-user-tie', 'color' => 'text-amber-500', 'bgColor' => 'bg-amber-100', 'url' => '/pengurus', 'permission' => 'pengurus.users'],
+            ['id' => 'konfigurasi', 'name' => 'Konfigurasi', 'icon' => 'fas fa-cog', 'color' => 'text-blue-600', 'bgColor' => 'bg-blue-100', 'url' => '/konfigurasi', 'permission' => 'pengurus.users']
         ];
+
+        $allowedModules = array_values(array_filter($allModules, function($mod) {
+            if (empty($mod['permission'])) {
+                return true;
+            }
+            return auth()->user() && auth()->user()->hasPermission($mod['permission']);
+        }));
+    @endphp
+
+    <script>
+        // Data Modul-modul Koperasi yang diizinkan untuk User
+        const modules = @json($allowedModules);
 
         const gridContainer = document.getElementById('module-grid');
         const toast = document.getElementById('toast');

@@ -456,6 +456,44 @@
 }
 .limit-notice.show { display: flex; }
 .limit-notice svg { flex-shrink: 0; margin-top: 1px; color: #b45309; }
+
+/* ── Tab Switcher ── */
+.sim-tabs-nav {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid #E5E7EB;
+    margin-top: 10px;
+}
+.sim-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #4B5563;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+.sim-tab-btn:hover { color: #1E3A5F; }
+.sim-tab-btn.active {
+    color: #1E3A5F;
+    border-bottom-color: #1E3A5F;
+    font-weight: 700;
+}
+.sim-tab-pane {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+.sim-tab-pane.active {
+    display: flex;
+}
 </style>
 
 <div class="sim-layout">
@@ -466,7 +504,7 @@
             <span class="sim-search-label">Cari Anggota</span>
             <div class="sim-search-input-wrap">
                 <input type="text" id="sim-nik" class="sim-search-input"
-                    placeholder="NIK / No. KTP…" autocomplete="off" />
+                    placeholder="NIK / No. KTP…" autocomplete="off" value="{{ request('nik') }}" />
                 <button class="sim-search-btn" id="sim-btn" onclick="cariAnggota()">
                     <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                         <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
@@ -640,190 +678,353 @@
                     </div>
                 </div>
 
-                {{-- Form Simulasi Pinjaman Baru --}}
-                <div class="sim-card">
-                    <div class="sim-card-header" style="justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="sim-card-icon blue">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
-                            </div>
-                            <h3>Simulasi Pinjaman Baru</h3>
-                        </div>
-                        <div id="badge-pinjaman-pending" style="display: none; align-items: center; gap: 6px; background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span id="badge-pinjaman-pending-text">Terdapat Pinjaman Pending: Rp 0</span>
-                        </div>
-                    </div>
-                    <div class="sim-form-body">
-                        <div class="sim-form-grid">
-                            
-                            <div class="sim-field">
-                                <label for="si-jumlah">Jumlah Pinjaman</label>
-                                <div class="sim-field-input-wrap">
-                                    <span class="sim-field-prefix">Rp</span>
-                                    <input type="text" id="si-jumlah" class="with-prefix"
-                                        placeholder="10.000.000"
-                                        oninput="formatRupiahInput(this); hitungSimulasi()" />
+                {{-- Tab Switcher Navigation --}}
+                <div class="sim-tabs-nav">
+                    <button type="button" class="sim-tab-btn active" id="sim-tab-btn-pinjaman" onclick="switchSimTab('pinjaman')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+                        Simulasi Pinjaman Baru
+                    </button>
+                    <button type="button" class="sim-tab-btn" id="sim-tab-btn-tarik" onclick="switchSimTab('tarik')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Simulasi Tarik Simpanan
+                    </button>
+                </div>
+
+                {{-- ══ TAB 1: SIMULASI PINJAMAN BARU ══ --}}
+                <div id="sim-pane-pinjaman" class="sim-tab-pane active">
+                    {{-- Form Simulasi Pinjaman Baru --}}
+                    <div class="sim-card">
+                        <div class="sim-card-header" style="justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="sim-card-icon blue">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
                                 </div>
-                                <div class="limit-notice" id="limit-notice">
-                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-                                    <span id="limit-notice-text">Jumlah melebihi batas maksimal jenis pinjaman ini. Pengajuan tetap bisa dikirim namun perlu persetujuan admin.</span>
-                                </div>
+                                <h3>Simulasi Pinjaman Baru</h3>
                             </div>
-                            <div class="sim-field">
-                                <label for="si-jenis">Jenis Pinjaman</label>
-                                <select id="si-jenis" onchange="onJenisChange()">
-                                    <option value="">— Pilih Jenis Pinjaman —</option>
-                                    @foreach($jenisPinjamanList as $jpParent)
-                                        @if($jpParent->children->count() > 0)
-                                            <optgroup label="{{ $jpParent->nama_pinjaman }}">
-                                            @foreach($jpParent->children as $jpChild)
-                                                <option value="{{ $jpChild->id }}"
-                                                    data-bunga="{{ $jpChild->bunga }}"
+                            <div id="badge-pinjaman-pending" style="display: none; align-items: center; gap: 6px; background-color: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 20px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                <span id="badge-pinjaman-pending-text">Terdapat Pinjaman Pending: Rp 0</span>
+                            </div>
+                        </div>
+                        <div class="sim-form-body">
+                            <div class="sim-form-grid">
+                                
+                                <div class="sim-field">
+                                    <label for="si-jumlah">Jumlah Pinjaman</label>
+                                    <div class="sim-field-input-wrap">
+                                        <span class="sim-field-prefix">Rp</span>
+                                        <input type="text" id="si-jumlah" class="with-prefix"
+                                            placeholder="10.000.000"
+                                            oninput="formatRupiahInput(this); hitungSimulasi()" />
+                                    </div>
+                                    <div class="limit-notice" id="limit-notice">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12H1L7 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.5v3.5M7 10.5h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                                        <span id="limit-notice-text">Jumlah melebihi batas maksimal jenis pinjaman ini. Pengajuan tetap bisa dikirim namun perlu persetujuan admin.</span>
+                                    </div>
+                                </div>
+                                <div class="sim-field">
+                                    <label for="si-jenis">Jenis Pinjaman</label>
+                                    <select id="si-jenis" onchange="onJenisChange()">
+                                        <option value="">— Pilih Jenis Pinjaman —</option>
+                                        @foreach($jenisPinjamanList as $jpParent)
+                                            @if($jpParent->children->count() > 0)
+                                                <optgroup label="{{ $jpParent->nama_pinjaman }}">
+                                                @foreach($jpParent->children as $jpChild)
+                                                    <option value="{{ $jpChild->id }}"
+                                                        data-bunga="{{ $jpChild->bunga }}"
+                                                        data-parent="{{ $jpParent->id }}"
+                                                        data-limit="{{ $jpParent->limit_maksimal ?? 0 }}"
+                                                        data-parent-nama="{{ $jpParent->nama_pinjaman }}">
+                                                        {{ $jpChild->nama_pinjaman }}
+                                                    </option>
+                                                @endforeach
+                                                </optgroup>
+                                            @else
+                                                <option value="{{ $jpParent->id }}"
+                                                    data-bunga="{{ $jpParent->bunga }}"
                                                     data-parent="{{ $jpParent->id }}"
                                                     data-limit="{{ $jpParent->limit_maksimal ?? 0 }}"
                                                     data-parent-nama="{{ $jpParent->nama_pinjaman }}">
-                                                    {{ $jpChild->nama_pinjaman }}
+                                                    {{ $jpParent->nama_pinjaman }}
                                                 </option>
-                                            @endforeach
-                                            </optgroup>
-                                        @else
-                                            <option value="{{ $jpParent->id }}"
-                                                data-bunga="{{ $jpParent->bunga }}"
-                                                data-parent="{{ $jpParent->id }}"
-                                                data-limit="{{ $jpParent->limit_maksimal ?? 0 }}"
-                                                data-parent-nama="{{ $jpParent->nama_pinjaman }}">
-                                                {{ $jpParent->nama_pinjaman }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="sim-field">
-                                <label for="si-tenor">Lama Angsuran (Bulan)</label>
-                                <input type="number" id="si-tenor"
-                                    placeholder="12" min="1" max="60"
-                                    oninput="hitungSimulasi()" />
-                            </div>
-                            <div class="sim-field">
-                                <label for="si-bunga">Bunga (%/bulan)</label>
-                                <input type="number" id="si-bunga"
-                                    placeholder="1" min="0" max="10" step="0.1"
-                                    oninput="hitungSimulasi()" readonly />
-                            </div>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="sim-field">
+                                    <label for="si-tenor">Lama Angsuran (Bulan)</label>
+                                    <input type="number" id="si-tenor"
+                                        placeholder="12" min="1" max="60"
+                                        oninput="hitungSimulasi()" />
+                                </div>
+                                <div class="sim-field">
+                                    <label for="si-bunga">Bunga (%/bulan)</label>
+                                    <input type="number" id="si-bunga"
+                                        placeholder="1" min="0" max="10" step="0.1"
+                                        oninput="hitungSimulasi()" readonly />
+                                </div>
 
-                        </div>
-                        <div class="sim-form-footer">
-                            <button type="button" class="sim-reset-btn" onclick="resetSimulasi()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg>
-                                Reset
-                            </button>
-                            <button type="button" class="sim-hitung-btn" onclick="hitungSimulasi()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                                Hitung Simulasi
-                            </button>
+                            </div>
+                            <div class="sim-form-footer">
+                                <button type="button" class="sim-reset-btn" onclick="resetSimulasi()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg>
+                                    Reset
+                                </button>
+                                <button type="button" class="sim-hitung-btn" onclick="hitungSimulasi()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                    Hitung Simulasi
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-            </div>{{-- end bento grid --}}
+                    {{-- ── Results Panel (muncul setelah hitung) ── --}}
+                    <div id="sim-hasil-panel">
+                        <div class="sim-results-grid">
 
-            {{-- ── Results Panel (muncul setelah hitung) ── --}}
-            <div id="sim-hasil-panel">
-                <div class="sim-results-grid">
+                            {{-- Hasil Detail --}}
+                            <div class="sim-card">
+                                <div class="sim-card-header">
+                                    <div class="sim-card-icon green">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                    </div>
+                                    <h3>Hasil Simulasi</h3>
+                                </div>
+                                <div class="sim-hasil-detail">
+                                    <div class="sim-validasi" id="sim-validasi">
+                                        <span class="sim-validasi-dot"></span>
+                                        <span id="sim-validasi-txt"></span>
+                                    </div>
+                                    <div class="sim-hasil-cards">
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Pinjaman Pokok</div>
+                                            <div class="sim-hasil-mini-val" id="sh-pokok">—</div>
+                                        </div>
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Tenor</div>
+                                            <div class="sim-hasil-mini-val" id="sh-tenor">—</div>
+                                        </div>
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Total Bunga</div>
+                                            <div class="sim-hasil-mini-val" id="sh-bunga">—</div>
+                                        </div>
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Total Pengembalian</div>
+                                            <div class="sim-hasil-mini-val" id="sh-total">—</div>
+                                        </div>
+                                    </div>
+                                    <div class="sim-cicilan-row">
+                                        <div class="sim-cicilan-row-left">
+                                            <p>Estimasi Cicilan Baru</p>
+                                            <span>Angsuran pokok + bunga / bulan</span>
+                                        </div>
+                                        <div class="sim-cicilan-row-val" id="sh-cicilan">Rp 0</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    {{-- Hasil Detail --}}
+                            {{-- Ringkasan Potongan (gradient) --}}
+                            <div class="sim-ringkasan-card">
+                                <div>
+                                    <p class="sim-ringkasan-title">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        Ringkasan Potongan
+                                    </p>
+                                    <div class="sim-ringkasan-items">
+                                        <div class="sim-ringkasan-item">
+                                            <span>Cicilan Aktif</span>
+                                            <span id="rp-cicilan-aktif">Rp 0</span>
+                                        </div>
+                                        <div class="sim-ringkasan-item">
+                                            <span>Potongan Simpanan</span>
+                                            <span id="rp-wajib">Rp 0</span>
+                                        </div>
+                                        <div class="sim-ringkasan-item">
+                                            <span>Cicilan Simulasi Baru</span>
+                                            <span id="rp-cicilan-baru">Rp 0</span>
+                                        </div>
+                                        <div class="sim-ringkasan-item" id="rp-rasio-item" style="display:none;">
+                                            <span>Rasio Gaji Diterima (Net)</span>
+                                            <span id="rp-rasio-val">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="sim-ringkasan-total-label">Total Potongan Bulanan Estimasi</div>
+                                    <div class="sim-ringkasan-total-val" id="rp-grand-total">Rp 0</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {{-- Form Submit Direct Pengajuan Pinjaman --}}
+                        <form id="form-direct-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}" style="margin-top:20px;">
+                            @csrf
+                            <input type="hidden" name="user_id" id="sim_user_id">
+                            <input type="hidden" name="jenis_pinjaman_id" id="sim_jenis_pinjaman_id">
+                            <input type="hidden" name="jumlah_pengajuan" id="sim_jumlah_pengajuan">
+                            <input type="hidden" name="tenor" id="sim_tenor">
+                            <input type="hidden" name="bunga" id="sim_bunga">
+                            <input type="hidden" name="payment_method" value="gaji">
+                            <input type="hidden" name="keterangan" id="sim_keterangan" value="NORMAL">
+
+                            <button type="submit" id="btn-submit-pengajuan" style="width:100%; height:48px; background:#0B1C3F; color:#ffffff; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase; transition:0.2s; box-shadow: 0 4px 12px rgba(11, 28, 63, 0.2);">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                Buat Pengajuan Pinjaman Sekarang
+                            </button>
+                        </form>
+                    </div>{{-- end results panel --}}
+                </div>{{-- end tab 1 pane --}}
+
+                {{-- ══ TAB 2: SIMULASI TARIK SIMPANAN ══ --}}
+                <div id="sim-pane-tarik" class="sim-tab-pane">
                     <div class="sim-card">
-                        <div class="sim-card-header">
-                            <div class="sim-card-icon green">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        <div class="sim-card-header" style="justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="sim-card-icon green">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                </div>
+                                <h3>Simulasi Penarikan Simpanan</h3>
                             </div>
-                            <h3>Hasil Simulasi</h3>
-                        </div>
-                        <div class="sim-hasil-detail">
-                            <div class="sim-validasi" id="sim-validasi">
-                                <span class="sim-validasi-dot"></span>
-                                <span id="sim-validasi-txt"></span>
-                            </div>
-                            <div class="sim-hasil-cards">
-                                <div class="sim-hasil-mini-card">
-                                    <div class="sim-hasil-mini-label">Pinjaman Pokok</div>
-                                    <div class="sim-hasil-mini-val" id="sh-pokok">—</div>
-                                </div>
-                                <div class="sim-hasil-mini-card">
-                                    <div class="sim-hasil-mini-label">Tenor</div>
-                                    <div class="sim-hasil-mini-val" id="sh-tenor">—</div>
-                                </div>
-                                <div class="sim-hasil-mini-card">
-                                    <div class="sim-hasil-mini-label">Total Bunga</div>
-                                    <div class="sim-hasil-mini-val" id="sh-bunga">—</div>
-                                </div>
-                                <div class="sim-hasil-mini-card">
-                                    <div class="sim-hasil-mini-label">Total Pengembalian</div>
-                                    <div class="sim-hasil-mini-val" id="sh-total">—</div>
-                                </div>
-                            </div>
-                            <div class="sim-cicilan-row">
-                                <div class="sim-cicilan-row-left">
-                                    <p>Estimasi Cicilan Baru</p>
-                                    <span>Angsuran pokok + bunga / bulan</span>
-                                </div>
-                                <div class="sim-cicilan-row-val" id="sh-cicilan">Rp 0</div>
+                            <div style="font-size: 11.5px; font-weight: 600; color: #059669; background: #ECFDF5; padding: 4px 10px; border-radius: 20px; border: 1px solid #A7F3D0;">
+                                Saldo Sukarela Tersedia: <strong id="st-badge-sukarela">Rp 0</strong>
                             </div>
                         </div>
-                    </div>
+                        <div class="sim-form-body">
+                            <div class="sim-form-grid" style="grid-template-columns: 1fr 1fr;">
+                                <div class="sim-field">
+                                    <label for="st-jenis">Pilih Sumber Simpanan</label>
+                                    <select id="st-jenis" onchange="onJenisTarikChange()">
+                                        <option value="sukarela">Simpanan Sukarela (Bisa Ditarik Sewaktu-waktu)</option>
+                                        <option value="semua">Semua Simpanan (Sukarela + Pokok + Wajib)</option>
+                                    </select>
+                                </div>
 
-                    {{-- Ringkasan Potongan (gradient) --}}
-                    <div class="sim-ringkasan-card">
-                        <div>
-                            <p class="sim-ringkasan-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                Ringkasan Potongan
-                            </p>
-                            <div class="sim-ringkasan-items">
-                                <div class="sim-ringkasan-item">
-                                    <span>Cicilan Aktif</span>
-                                    <span id="rp-cicilan-aktif">Rp 0</span>
-                                </div>
-                                <div class="sim-ringkasan-item">
-                                    <span>Potongan Simpanan</span>
-                                    <span id="rp-wajib">Rp 0</span>
-                                </div>
-                                <div class="sim-ringkasan-item">
-                                    <span>Cicilan Simulasi Baru</span>
-                                    <span id="rp-cicilan-baru">Rp 0</span>
-                                </div>
-                                <div class="sim-ringkasan-item" id="rp-rasio-item" style="display:none;">
-                                    <span>Rasio Gaji Diterima (Net)</span>
-                                    <span id="rp-rasio-val">-</span>
+                                <div class="sim-field">
+                                    <label for="st-nominal">Nominal Penarikan</label>
+                                    <div class="sim-field-input-wrap">
+                                        <span class="sim-field-prefix">Rp</span>
+                                        <input type="text" id="st-nominal" class="with-prefix"
+                                            placeholder="0"
+                                            oninput="formatRupiahInput(this); hitungSimulasiTarik()" />
+                                    </div>
+                                    <div style="display: flex; gap: 6px; margin-top: 6px;">
+                                        <button type="button" onclick="setPercentTarik(0.25)" style="padding: 3px 8px; font-size: 10.5px; font-weight: 700; border: 1px solid #D1D5DB; border-radius: 4px; background: #F9FAFB; cursor: pointer; color: #374151;">25%</button>
+                                        <button type="button" onclick="setPercentTarik(0.50)" style="padding: 3px 8px; font-size: 10.5px; font-weight: 700; border: 1px solid #D1D5DB; border-radius: 4px; background: #F9FAFB; cursor: pointer; color: #374151;">50%</button>
+                                        <button type="button" onclick="setPercentTarik(0.75)" style="padding: 3px 8px; font-size: 10.5px; font-weight: 700; border: 1px solid #D1D5DB; border-radius: 4px; background: #F9FAFB; cursor: pointer; color: #374151;">75%</button>
+                                        <button type="button" onclick="setPercentTarik(1.00)" style="padding: 3px 8px; font-size: 10.5px; font-weight: 700; border: 1px solid #D1D5DB; border-radius: 4px; background: #EFF6FF; border-color: #BFDBFE; cursor: pointer; color: #1E40AF;">100% Saldo</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div>
-                            <div class="sim-ringkasan-total-label">Total Potongan Bulanan Estimasi</div>
-                            <div class="sim-ringkasan-total-val" id="rp-grand-total">Rp 0</div>
+
+                            {{-- Opsi Pelunasan Pinjaman (Refinancing) --}}
+                            <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 16px; margin-top: 10px;">
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="st-opt-refinance" onchange="toggleStRefinance(this.checked)" style="width: 16px; height: 16px; accent-color: #107C41; cursor: pointer;" />
+                                    <span style="font-size: 13px; font-weight: 700; color: #1F2937;">Gunakan dana penarikan untuk melunasi pinjaman aktif (Refinancing)</span>
+                                </label>
+                                
+                                <div id="st-refinance-wrap" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E5E7EB;">
+                                    <div style="font-size: 11.5px; font-weight: 700; color: #4B5563; text-transform: uppercase; margin-bottom: 8px;">Pilih Pinjaman yang Akan Dilunasi:</div>
+                                    <div id="st-ref-loans-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                                </div>
+                            </div>
+
+                            <div class="sim-form-footer" style="margin-top: 16px;">
+                                <button type="button" class="sim-reset-btn" onclick="resetSimulasiTarik()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg>
+                                    Reset
+                                </button>
+                                <button type="button" class="sim-hitung-btn" style="background: #107C41;" onclick="hitungSimulasiTarik()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                    Hitung Simulasi Penarikan
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                </div>
+                    {{-- Hasil Simulasi Penarikan Panel --}}
+                    <div id="st-hasil-panel" style="display: none;">
+                        <div class="sim-results-grid">
+                            <div class="sim-card">
+                                <div class="sim-card-header">
+                                    <div class="sim-card-icon green">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                    </div>
+                                    <h3>Hasil Simulasi Penarikan Simpanan</h3>
+                                </div>
+                                <div class="sim-hasil-detail">
+                                    <div class="sim-validasi" id="st-validasi">
+                                        <span class="sim-validasi-dot"></span>
+                                        <span id="st-validasi-txt"></span>
+                                    </div>
 
-                {{-- Form Submit Direct Pengajuan Pinjaman --}}
-                <form id="form-direct-pengajuan" method="POST" action="{{ route('pinjaman.pengajuan.store') }}" style="margin-top:20px;">
-                    @csrf
-                    <input type="hidden" name="user_id" id="sim_user_id">
-                    <input type="hidden" name="jenis_pinjaman_id" id="sim_jenis_pinjaman_id">
-                    <input type="hidden" name="jumlah_pengajuan" id="sim_jumlah_pengajuan">
-                    <input type="hidden" name="tenor" id="sim_tenor">
-                    <input type="hidden" name="bunga" id="sim_bunga">
-                    <input type="hidden" name="payment_method" value="gaji">
-                    <input type="hidden" name="keterangan" id="sim_keterangan" value="NORMAL">
+                                    <div class="sim-hasil-cards" style="grid-template-columns: repeat(4, 1fr);">
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Total Saldo Simpanan</div>
+                                            <div class="sim-hasil-mini-val" id="sth-saldo-awal">Rp 0</div>
+                                        </div>
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Nominal Penarikan</div>
+                                            <div class="sim-hasil-mini-val" style="color: #DC2626;" id="sth-nominal">Rp 0</div>
+                                        </div>
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Potongan Pelunasan</div>
+                                            <div class="sim-hasil-mini-val" style="color: #D97706;" id="sth-potongan">Rp 0</div>
+                                        </div>
+                                        <div class="sim-hasil-mini-card">
+                                            <div class="sim-hasil-mini-label">Sisa Saldo Simpanan</div>
+                                            <div class="sim-hasil-mini-val" style="color: #059669;" id="sth-sisa-saldo">Rp 0</div>
+                                        </div>
+                                    </div>
 
-                    <button type="submit" id="btn-submit-pengajuan" style="width:100%; height:48px; background:#0B1C3F; color:#ffffff; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; text-transform:uppercase; transition:0.2s; box-shadow: 0 4px 12px rgba(11, 28, 63, 0.2);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                        Buat Pengajuan Pinjaman Sekarang
-                    </button>
-                </form>
-            </div>{{-- end results panel --}}
+                                    <div class="sim-cicilan-row" style="background: #ECFDF5; border-color: #A7F3D0;">
+                                        <div class="sim-cicilan-row-left">
+                                            <p style="color: #065F46;">Estimasi Dana Net Diterima Anggota</p>
+                                            <span style="color: #047857;">Nominal penarikan dikurangi pelunasan pinjaman</span>
+                                        </div>
+                                        <div class="sim-cicilan-row-val" style="color: #047857;" id="sth-net-payout">Rp 0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Ringkasan Penarikan Gradient Card --}}
+                            <div class="sim-ringkasan-card" style="background: linear-gradient(135deg, #0D7A57 0%, #065F46 100%);">
+                                <div>
+                                    <p class="sim-ringkasan-title">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                        Ringkasan Penarikan
+                                    </p>
+                                    <div class="sim-ringkasan-items">
+                                        <div class="sim-ringkasan-item">
+                                            <span>Penarikan Simpanan</span>
+                                            <span id="str-penarikan">Rp 0</span>
+                                        </div>
+                                        <div class="sim-ringkasan-item">
+                                            <span>Potongan Pelunasan</span>
+                                            <span id="str-pelunasan">Rp 0</span>
+                                        </div>
+                                        <div class="sim-ringkasan-item">
+                                            <span>Sisa Simpanan Terjaga</span>
+                                            <span id="str-sisa">Rp 0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="sim-ringkasan-total-label">Estimasi Transfer Net ke Anggota</div>
+                                    <div class="sim-ringkasan-total-val" id="str-grand-net">Rp 0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Direct Pengajuan Penarikan Link / Form --}}
+                        <a id="btn-direct-tarik" href="{{ route('simpanan.tarik') }}" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; background: #107C41; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 800; font-size: 14px; text-transform: uppercase; margin-top: 20px; box-shadow: 0 4px 12px rgba(16, 124, 65, 0.25); transition: 0.2s;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            Buat Pengajuan Penarikan Simpanan Sekarang
+                        </a>
+                    </div>
+                </div>{{-- end tab 2 pane --}}
+            </div>{{-- end bento grid --}}
 
         </div>{{-- end #sim-content --}}
     </div>{{-- end main --}}
@@ -874,6 +1075,8 @@ function cariAnggota() {
             if (rpRasioItem) rpRasioItem.style.display = 'none';
             renderSidebar(res.data);
             renderMain(res.data);
+            populateStRefinanceLoans();
+            resetSimulasiTarik();
             document.getElementById('sim-member-panel').classList.add('show');
             document.getElementById('sim-empty').style.display   = 'none';
             document.getElementById('sim-content').style.display = 'flex';
@@ -1276,7 +1479,7 @@ function cetakSimulasiPDF() {
     const tenorInt = parseInt(tenor) || 0;
     const bungaFloat = parseFloat(bungaPersen) || 0;
 
-    const totalBunga = (jumlah * (bungaFloat / 100) * (tenorInt / 12));
+    const totalBunga = (jumlah * (bungaFloat / 100) * tenorInt);
     const totalPengembalian = jumlah + totalBunga;
     const cicilanPerBulan = tenorInt > 0 ? (totalPengembalian / tenorInt) : 0;
 
@@ -1285,11 +1488,161 @@ function cetakSimulasiPDF() {
     window.open(printUrl, '_blank', 'width=900,height=800,scrollbars=yes');
 }
 
-// Enter key
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('sim-nik').addEventListener('keydown', e => {
-        if (e.key === 'Enter') cariAnggota();
+/* ── TAB SIMULASI TARIK SIMPANAN FUNCTIONS ── */
+function switchSimTab(tab) {
+    const btnPinjaman = document.getElementById('sim-tab-btn-pinjaman');
+    const btnTarik    = document.getElementById('sim-tab-btn-tarik');
+    const panePinjaman= document.getElementById('sim-pane-pinjaman');
+    const paneTarik   = document.getElementById('sim-pane-tarik');
+
+    if (tab === 'pinjaman') {
+        btnPinjaman.classList.add('active');
+        btnTarik.classList.remove('active');
+        panePinjaman.classList.add('active');
+        paneTarik.classList.remove('active');
+    } else {
+        btnTarik.classList.add('active');
+        btnPinjaman.classList.remove('active');
+        paneTarik.classList.add('active');
+        panePinjaman.classList.remove('active');
+        populateStRefinanceLoans();
+        hitungSimulasiTarik();
+    }
+}
+
+function onJenisTarikChange() {
+    hitungSimulasiTarik();
+}
+
+function setPercentTarik(pct) {
+    if (!anggotaData) return;
+    const jenis = document.getElementById('st-jenis').value;
+    let base = 0;
+    if (jenis === 'sukarela') {
+        base = parseFloat(anggotaData.simpanan_sukarela ?? 0) || 0;
+    } else {
+        base = parseFloat(anggotaData.total_simpanan ?? 0) || 0;
+    }
+    const val = Math.round(base * pct);
+    const input = document.getElementById('st-nominal');
+    input.value = new Intl.NumberFormat('id-ID').format(val);
+    hitungSimulasiTarik();
+}
+
+function toggleStRefinance(checked) {
+    const wrap = document.getElementById('st-refinance-wrap');
+    if (wrap) wrap.style.display = checked ? 'block' : 'none';
+    hitungSimulasiTarik();
+}
+
+function populateStRefinanceLoans() {
+    const list = anggotaData ? (anggotaData.pinjaman_berjalan ?? []) : [];
+    const container = document.getElementById('st-ref-loans-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (list.length === 0) {
+        container.innerHTML = '<div style="font-size:12px; color:#6B7280; font-style:italic;">Tidak ada pinjaman berjalan untuk dilunasi.</div>';
+        return;
+    }
+
+    list.forEach((p, i) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid #E5E7EB; padding:10px 12px; border-radius:6px;';
+        item.innerHTML = `
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; font-weight:600; color:#1F2937;">
+                <input type="checkbox" class="st-ref-cb" value="${p.id}" data-sisa="${p.sisa_tagihan || 0}" onchange="hitungSimulasiTarik()" style="width:15px; height:15px; accent-color:#107C41;" />
+                <span>${p.jenis_pinjaman} (Sisa Tenor: ${p.sisa_tenor} Bln)</span>
+            </label>
+            <span style="font-weight:700; color:#DC2626; font-size:12.5px;">Sisa Pokok: ${fmt(p.sisa_tagihan || 0)}</span>
+        `;
+        container.appendChild(item);
     });
+}
+
+function hitungSimulasiTarik() {
+    if (!anggotaData) return;
+    const rawNominal = document.getElementById('st-nominal').value.replace(/[^\d]/g, "");
+    const nominal = parseFloat(rawNominal) || 0;
+    const jenis = document.getElementById('st-jenis').value;
+    const isRefinance = document.getElementById('st-opt-refinance').checked;
+
+    const sukarela = parseFloat(anggotaData.simpanan_sukarela ?? 0) || 0;
+    const totalSimpanan = parseFloat(anggotaData.total_simpanan ?? 0) || 0;
+    const badgeSukarela = document.getElementById('st-badge-sukarela');
+    if (badgeSukarela) badgeSukarela.textContent = fmt(sukarela);
+
+    let maxAvailable = jenis === 'sukarela' ? sukarela : totalSimpanan;
+
+    let totalPotonganLoan = 0;
+    if (isRefinance) {
+        document.querySelectorAll('.st-ref-cb:checked').forEach(cb => {
+            totalPotonganLoan += parseFloat(cb.dataset.sisa) || 0;
+        });
+    }
+
+    const panel = document.getElementById('st-hasil-panel');
+    if (!nominal || nominal <= 0) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    const sisaSaldo = Math.max(0, maxAvailable - nominal);
+    const netPayout  = Math.max(0, nominal - totalPotonganLoan);
+
+    document.getElementById('sth-saldo-awal').textContent  = fmt(maxAvailable);
+    document.getElementById('sth-nominal').textContent     = fmt(nominal);
+    document.getElementById('sth-potongan').textContent    = fmt(totalPotonganLoan);
+    document.getElementById('sth-sisa-saldo').textContent  = fmt(sisaSaldo);
+    document.getElementById('sth-net-payout').textContent  = fmt(netPayout);
+
+    document.getElementById('str-penarikan').textContent = fmt(nominal);
+    document.getElementById('str-pelunasan').textContent = fmt(totalPotonganLoan);
+    document.getElementById('str-sisa').textContent      = fmt(sisaSaldo);
+    document.getElementById('str-grand-net').textContent  = fmt(netPayout);
+
+    const vEl  = document.getElementById('st-validasi');
+    const vTxt = document.getElementById('st-validasi-txt');
+
+    if (nominal > maxAvailable) {
+        vEl.className = 'sim-validasi warn';
+        vTxt.textContent = `Penarikan melebihi saldo ${jenis === 'sukarela' ? 'sukarela' : 'simpanan'} tersedia (${fmt(maxAvailable)})!`;
+    } else if (isRefinance && totalPotonganLoan > nominal) {
+        vEl.className = 'sim-validasi warn';
+        vTxt.textContent = `Total pelunasan pinjaman (${fmt(totalPotonganLoan)}) melebihi nominal penarikan (${fmt(nominal)}). Net transfer: Rp 0!`;
+    } else {
+        vEl.className = 'sim-validasi ok';
+        vTxt.textContent = `Sesuai saldo simpanan. Sisa saldo setelah penarikan: ${fmt(sisaSaldo)}`;
+    }
+
+    const btnDirect = document.getElementById('btn-direct-tarik');
+    if (btnDirect) {
+        const masterId = anggotaData.master_simpanan_id || anggotaData.id || '';
+        btnDirect.href = `{{ route('simpanan.tarik') }}?master_id=${masterId}&nominal=${nominal}`;
+    }
+
+    panel.style.display = 'block';
+}
+
+function resetSimulasiTarik() {
+    document.getElementById('st-nominal').value = '';
+    document.getElementById('st-jenis').value = 'sukarela';
+    document.getElementById('st-opt-refinance').checked = false;
+    toggleStRefinance(false);
+    document.getElementById('st-hasil-panel').style.display = 'none';
+}
+
+// Enter key & Auto-search from URL param nik
+document.addEventListener('DOMContentLoaded', () => {
+    const inputNik = document.getElementById('sim-nik');
+    if (inputNik) {
+        inputNik.addEventListener('keydown', e => {
+            if (e.key === 'Enter') cariAnggota();
+        });
+        if (inputNik.value.trim() !== '') {
+            cariAnggota();
+        }
+    }
 });
 </script>
 @endpush

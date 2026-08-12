@@ -451,6 +451,8 @@
     {{-- ── MAIN CONTENT (Simpanan / Pinjaman) ── --}}
     <div class="profile-main">
         
+        
+
         {{-- Summary Grid --}}
         <div class="pm-summary-grid">
             <div class="pm-sum-card">
@@ -474,7 +476,25 @@
                 <span class="pm-sum-sub">Plafond tersedia</span>
             </div>
         </div>
-
+{{-- Banner Ajukan Simulasi Pinjaman Baru --}}
+        <div style="background: #0D7A57; border-radius: 14px; padding: 20px 24px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(13, 122, 87, 0.15); flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 260px;">
+                <h3 style="font-size: 17px; font-weight: 700; color: #ffffff; margin: 0 0 6px 0; line-height: 1.2; font-family: inherit;">
+                    Ajukan Pinjaman / Tarik Simpanan
+                </h3>
+                <p style="font-size: 13px; color: rgba(255, 255, 255, 0.9); margin: 0; line-height: 1.4; font-weight: 400; font-family: inherit;">
+                    Hitung estimasi angsuran &amp; bunga berdasarkan sisa kuota dan saldo simpanan {{ $anggota->nama_anggota }} sebelum pengajuan resmi dibuat.
+                </p>
+            </div>
+            <div>
+                <a href="{{ route('pinjaman.simulasi', ['nik' => $anggota->nik]) }}" 
+                   style="background: #ffffff; color: #0D7A57; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.06); white-space: nowrap; font-family: inherit;"
+                   onmouseover="this.style.background='#f8fafc'; this.style.transform='translateY(-1px)';" 
+                   onmouseout="this.style.background='#ffffff'; this.style.transform='none';">
+                    <span style="font-size: 15px; font-weight: 800; line-height: 1;">+</span> Buat Simulasi 
+                </a>
+            </div>
+        </div>
         {{-- Detail Container (Tabs) --}}
         <div class="pm-container">
             <div class="ag-tabs">

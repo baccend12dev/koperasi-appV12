@@ -56,4 +56,33 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'permission_user')->withPivot('access_type');
+    }
+
+    /**
+     * Check if user has a specific permission.
+     */
+    public function hasPermission(string $permissionName): bool
+    {
+        // 1. Super Admin bypass (Full Access)
+        if ($this->role && in_array(strtolower($this->role->name), ['super admin', 'superadmin'])) {
+            return true;
+        }
+
+        // 2. Direct User Permissions (Override)
+        $directPerm = $this->permissions()->where('name', $permissionName)->first();
+        if ($directPerm) {
+            return $directPerm->pivot->access_type === 'grant';
+        }
+
+        // 3. Role Permissions
+        if ($this->role) {
+            return $this->role->permissions()->where('name', $permissionName)->exists();
+        }
+
+        return false;
+    }
 }

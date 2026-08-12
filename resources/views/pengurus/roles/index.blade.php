@@ -114,12 +114,10 @@
                         </td>
                         <td style="text-align: right; padding-right: 16px;" onclick="event.stopPropagation()">
                             <div style="display:inline-flex; gap:6px;">
-                                <button class="btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="alert('Detail Role {{ $role->name }} akan diimplementasikan pada tahap berikutnya.')">
-                                    Detail
-                                </button>
-                                <button class="btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="alert('Edit Role {{ $role->name }} akan diimplementasikan pada tahap berikutnya.')">
-                                    Edit
-                                </button>
+                                <a href="{{ route('pengurus.roles.permissions', $role->id) }}" class="btn-secondary" style="padding: 4px 10px; font-size: 11.5px; font-weight:700; color:#1D4ED8; background:#EFF6FF; border-color:#BFDBFE; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    Kelola Permission
+                                </a>
                             </div>
                         </td>
                     </tr>

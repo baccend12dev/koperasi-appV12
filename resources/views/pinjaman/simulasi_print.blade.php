@@ -382,7 +382,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Bunga Pinjaman:</span>
-                <span class="info-value">{{ $simulasi['bunga_persen'] ?? 0 }}% per tahun</span>
+                <span class="info-value">{{ $simulasi['bunga_persen'] ?? 0 }}% /bulan</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Total Bunga:</span>

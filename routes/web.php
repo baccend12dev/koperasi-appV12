@@ -98,7 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('penagihan/tagihan-generator/detail/{id}', [App\Http\Controllers\PenagihanController::class, 'destroyDetail'])->name('penagihan.destroyDetail');
 
     // ── Persetujuan (Approval) ───────────────────────────
-    Route::get('persetujuan/pinjaman', [App\Http\Controllers\PersetujuanController::class, 'pinjaman'])->name('persetujuan.pinjaman');
+    Route::get('persetujuan', [App\Http\Controllers\PersetujuanController::class, 'pinjaman'])->name('persetujuan.pinjaman');
     Route::post('persetujuan/pinjaman/approve-bulk', [App\Http\Controllers\PersetujuanController::class, 'approvePinjamanBulk'])->name('persetujuan.pinjaman.approve.bulk');
     Route::post('persetujuan/pinjaman/approve-bulk-normal', [App\Http\Controllers\PersetujuanController::class, 'approveBulkNormal'])->name('persetujuan.pinjaman.approve.normal');
     Route::get('persetujuan/pengambilan', [App\Http\Controllers\PersetujuanController::class, 'pengambilan'])->name('persetujuan.pengambilan');
@@ -107,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('persetujuan/pengambilan/{id}/reject', [App\Http\Controllers\PersetujuanController::class, 'rejectPengambilan'])->name('persetujuan.pengambilan.reject');
 
     // ── Pencairan ─────────────────────────────────────────
-    Route::get('pencairan/pinjaman', [App\Http\Controllers\PencairanController::class, 'pinjaman'])->name('pencairan.pinjaman');
+    Route::get('pencairan', [App\Http\Controllers\PencairanController::class, 'pinjaman'])->name('pencairan.pinjaman');
     Route::get('pencairan/pengambilan', [App\Http\Controllers\PencairanController::class, 'pengambilan'])->name('pencairan.pengambilan');
     Route::post('pencairan/bayar', [App\Http\Controllers\PencairanController::class, 'markPaid'])->name('pencairan.bayar');
     Route::post('pencairan/bayar-bulk', [App\Http\Controllers\PencairanController::class, 'markPaidBulk'])->name('pencairan.bayar.bulk');
@@ -121,13 +121,26 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'role:Admin,Super Admin'])->prefix('pengurus')->group(function () {
+Route::middleware(['auth'])->prefix('pengurus')->group(function () {
     Route::get('/', function () {
         return redirect()->route('pengurus.users.index');
-    })->name('pengurus.index');
-    Route::get('/users', [App\Http\Controllers\Pengurus\UserController::class, 'index'])->name('pengurus.users.index');
-    Route::get('/roles', [App\Http\Controllers\Pengurus\RoleController::class, 'index'])->name('pengurus.roles.index');
-    Route::get('/permissions', [App\Http\Controllers\Pengurus\PermissionController::class, 'index'])->name('pengurus.permissions.index');
+    })->middleware('permission:pengurus.users')->name('pengurus.index');
+
+    // Users & User Custom Permissions
+    Route::get('/users', [App\Http\Controllers\Pengurus\UserController::class, 'index'])->middleware('permission:pengurus.users')->name('pengurus.users.index');
+    Route::get('/users/{id}/permissions', [App\Http\Controllers\Pengurus\UserController::class, 'permissions'])->middleware('permission:pengurus.users')->name('pengurus.users.permissions');
+    Route::post('/users/{id}/permissions', [App\Http\Controllers\Pengurus\UserController::class, 'updatePermissions'])->middleware('permission:pengurus.users')->name('pengurus.users.permissions.update');
+
+    // Roles & Role Permissions Matrix
+    Route::get('/roles', [App\Http\Controllers\Pengurus\RoleController::class, 'index'])->middleware('permission:pengurus.roles')->name('pengurus.roles.index');
+    Route::get('/roles/{id}/permissions', [App\Http\Controllers\Pengurus\RoleController::class, 'permissions'])->middleware('permission:pengurus.roles')->name('pengurus.roles.permissions');
+    Route::post('/roles/{id}/permissions', [App\Http\Controllers\Pengurus\RoleController::class, 'updatePermissions'])->middleware('permission:pengurus.roles')->name('pengurus.roles.permissions.update');
+
+    // Master Permissions Management
+    Route::get('/permissions', [App\Http\Controllers\Pengurus\PermissionController::class, 'index'])->middleware('permission:pengurus.permissions')->name('pengurus.permissions.index');
+    Route::post('/permissions', [App\Http\Controllers\Pengurus\PermissionController::class, 'store'])->middleware('permission:pengurus.permissions')->name('pengurus.permissions.store');
+    Route::put('/permissions/{id}', [App\Http\Controllers\Pengurus\PermissionController::class, 'update'])->middleware('permission:pengurus.permissions')->name('pengurus.permissions.update');
+    Route::delete('/permissions/{id}', [App\Http\Controllers\Pengurus\PermissionController::class, 'destroy'])->middleware('permission:pengurus.permissions')->name('pengurus.permissions.destroy');
 });
 
 require __DIR__.'/auth.php';
